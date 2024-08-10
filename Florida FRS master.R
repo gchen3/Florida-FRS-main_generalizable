@@ -22,13 +22,13 @@ source("Florida FRS benefit model.R")
 
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
 source("Florida FRS workforce model.R")
-# get_wf_data(class_name = "regular")
-# get_wf_data(class_name = "special")
-# get_wf_data(class_name = "admin")
-# get_wf_data(class_name = "eco")
-# get_wf_data(class_name = "eso")
-# get_wf_data(class_name = "judges")
-# get_wf_data(class_name = "senior management")
+get_wf_data(class_name = "regular")
+get_wf_data(class_name = "special")
+get_wf_data(class_name = "admin")
+get_wf_data(class_name = "eco")
+get_wf_data(class_name = "eso")
+get_wf_data(class_name = "judges")
+get_wf_data(class_name = "senior management")
 
 
 #Get liability model
@@ -47,7 +47,7 @@ source("Florida FRS funding model.R")
 
 ##############################################TESTING############################################
 
-# baseline_funding <- get_funding_data()
+baseline_funding <- get_funding_data()
 # 
 # funding_72return <- get_funding_data(return_scen = "model",
 #                                      model_return = 0.072)
@@ -67,7 +67,7 @@ source("Florida FRS funding model.R")
 # export(baseline_funding, "baseline_funding.xlsx")
 # 
 # 
-# baseline_liability <- get_liability_data()
+baseline_liability <- get_liability_data()
 # 
 # cola1_constant_liability <- get_liability_data(cola_tier_1_active_constant = "yes")
 
