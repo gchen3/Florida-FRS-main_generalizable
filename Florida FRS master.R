@@ -22,13 +22,13 @@ source("Florida FRS benefit model.R")
 
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
 source("Florida FRS workforce model.R")
-# get_wf_data(class_name = "regular")
-# get_wf_data(class_name = "special")
-# get_wf_data(class_name = "admin")
-# get_wf_data(class_name = "eco")
-# get_wf_data(class_name = "eso")
-# get_wf_data(class_name = "judges")
-# get_wf_data(class_name = "senior management")
+get_wf_data(class_name = "regular")
+get_wf_data(class_name = "special")
+get_wf_data(class_name = "admin")
+get_wf_data(class_name = "eco")
+get_wf_data(class_name = "eso")
+get_wf_data(class_name = "judges")
+get_wf_data(class_name = "senior management")
 
 
 #Get liability model
