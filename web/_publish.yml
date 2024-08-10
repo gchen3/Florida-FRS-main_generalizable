@@ -1,0 +1,4 @@
+- source: project
+  netlify:
+    - id: 691ea4ce-d6b2-448a-a536-b8cbe90d5251
+      url: 'https://frs-generalize.netlify.app'
