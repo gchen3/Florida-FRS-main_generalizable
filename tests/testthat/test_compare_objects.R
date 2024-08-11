@@ -2,29 +2,26 @@
 
 library(testthat)
 
-test_that("Compare baseline_funding", {
-  print("Comparing baseline_funding...")
+test_that("Compare baseline_funding expect_equal", {
   old_object <- get("baseline_funding", envir = oldws)
   new_object <- get("baseline_funding", envir = newws)
-  expect_equal(old_object, new_object)
+  expect_equal(new_object, old_object)
 })
 
-test_that("Compare baseline_liability", {
-  print("Comparing baseline_liability...")
+test_that("Compare baseline_liability expect_equal", {
   old_object <- get("baseline_liability", envir = oldws)
   new_object <- get("baseline_liability", envir = newws)
-  expect_equal(old_object, new_object)
+  expect_equal(new_object, old_object)
 })
 
-# test_that("Object comparison test 2", {
-#   old_object <- get("another_object_name", envir = old_env)
-#   new_object <- get("another_object_name", envir = new_env)
-#   expect_equal(old_object, new_object)
+# test_that("Compare baseline_funding expect_identical", {
+#   old_object <- get("baseline_funding", envir = oldws)
+#   new_object <- get("baseline_funding", envir = newws)
+#   print(all.equal(old_object, new_object))
+#   expect_identical(old_object, new_object)
 # })
 
-# run with testthat::test_dir("tests/testthat")
-# or testthat::test_dir("tests/testthat", reporter = "progress")
-# testthat::test_dir("tests/testthat", reporter = "summary")
-# testthat::test_dir("tests/testthat", reporter = ListReporter)
-# or devtools::test()
+# run with 
+#   testthat::test_dir("tests/testthat", reporter = ListReporter)
+#   testthat::test_file("tests/testthat/test_compare_objects.R", reporter = ListReporter)
 

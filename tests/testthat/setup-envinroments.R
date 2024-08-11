@@ -18,6 +18,9 @@ load(oldpath, oldws <- new.env())
 newpath <- here::here("new_results", "new_workspace.RData")
 load(newpath, newws <- new.env())
 
+print("beginning tests...")
+
+
 # Make the environments available to all tests
 testthat::setup({
   assign("oldws", oldws, envir = .GlobalEnv)
