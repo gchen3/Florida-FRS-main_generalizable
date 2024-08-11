@@ -1,5 +1,5 @@
 
-# run the following in a CLEAN environment --------------------------------
+# run the following in a CLEAN environment with the branch of interest checked out --------------------------------
 
 # run the full FRS Florida model
 
@@ -11,7 +11,7 @@ baseline_funding <- get_funding_data()
 baseline_liability <- get_liability_data()
 
 # save the entire workspace
-save.image(here::here("new_results", "reason_workspace.RData"))
+save.image(here::here("new_results", "new_workspace.RData"))
 
 
 # additional new results --------------------------------------------------
