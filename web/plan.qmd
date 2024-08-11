@@ -10,5 +10,7 @@ editor_options:
 -   Save ALL Reason results from baseline run
 -   Establish tests to see whether the model as modified reproduces Reason baseline results
 -   Separate functions from action -- make sure that all sourced files are only functions or constants. Let functions do the action.
+-   Isolate constants
 -   Localize all functions - make sure all data used in functions is passed in as arguments
 -   Modularize - break large functions into smaller pieces
+-   Restructure data to be generalizable - e.g., stacked data frames in a common format
