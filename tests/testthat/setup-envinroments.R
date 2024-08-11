@@ -2,6 +2,10 @@
 
 # make old workspace environment (Reason results) and new workspace environment (new results) available to all tests
 
+
+# text-fixtures is supposed to be a better / newer way to do this.
+# explore it: https://testthat.r-lib.org/articles/test-fixtures.html
+
 library(testthat)
 
 print("loading the Reason results and new results environments...")
