@@ -1,7 +1,6 @@
 
 # run the following in a CLEAN environment --------------------------------
 
-# I have commented out the code below to avoid accidentally running it. 
 # To recreate Reason results, checkout main branch and run the code.
 # This code may not be in the main branch, in which case you'll have to make it available.
 
