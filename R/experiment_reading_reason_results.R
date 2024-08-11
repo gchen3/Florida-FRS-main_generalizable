@@ -1,4 +1,4 @@
-source(here::here("testing", "libraries.R"))
+source(here::here("R", "libraries.R"))
 
 # TEST reading the workspace ----------------------------------------------
 # load Reason FRS workspace into its OWN environment I call rws
