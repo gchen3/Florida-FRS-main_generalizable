@@ -1,6 +1,9 @@
 
 # run the following in a CLEAN environment --------------------------------
 
+# To recreate Reason results, checkout main branch and run the code.
+# This code may not be in the main branch, in which case you'll have to make it available.
+
 # run the full FRS Florida model
 
 source(here::here("Florida FRS master.R")) # load the model

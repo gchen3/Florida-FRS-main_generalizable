@@ -54,6 +54,8 @@ rsconnect/
 */_freeze/
 */_webpage/
 # data-raw/web/_webpage/
+
+new_results/
 reason_results/
 
 *.rds

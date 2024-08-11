@@ -6,9 +6,9 @@ editor_options:
 
 # Preliminary plan for generalizing the Reason FRS Model
 
--   Modify FRS to make sure it runs on Windows (change number of cores)
--   Save ALL Reason results from baseline run
--   Establish tests to see whether the model as modified reproduces Reason baseline results
+-   DONE - Modify FRS to make sure it runs on Windows (change number of cores)
+-   DONE - Save ALL Reason results from baseline run
+-   DONE - Establish initial tests to see whether the model as modified reproduces Reason baseline results
 -   Separate functions from action -- make sure that all sourced files are only functions or constants. Let functions do the action.
 -   Isolate constants
 -   Localize all functions - make sure all data used in functions is passed in as arguments
