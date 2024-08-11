@@ -47,7 +47,7 @@ source("Florida FRS funding model.R")
 
 ##############################################TESTING############################################
 
-baseline_funding <- get_funding_data()
+# baseline_funding <- get_funding_data()
 # 
 # funding_72return <- get_funding_data(return_scen = "model",
 #                                      model_return = 0.072)
@@ -67,7 +67,7 @@ baseline_funding <- get_funding_data()
 # export(baseline_funding, "baseline_funding.xlsx")
 # 
 # 
-baseline_liability <- get_liability_data()
+# baseline_liability <- get_liability_data()
 # 
 # cola1_constant_liability <- get_liability_data(cola_tier_1_active_constant = "yes")
 

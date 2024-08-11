@@ -48,11 +48,13 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
-# Boyd additions below here
+# Boyd additions below here ------------------
+
 */.quarto/
 */_freeze/
 */_webpage/
 # data-raw/web/_webpage/
+reason_results/
 
 *.rds
 
