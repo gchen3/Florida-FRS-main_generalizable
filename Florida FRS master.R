@@ -47,7 +47,10 @@ senior_management_wf_data <- readRDS("senior_management_wf_data.rds")
 source("Florida FRS liability model.R") # only creates function - no live code
 
 #Get funding model
-source("Florida FRS funding model.R")
+# source("Florida FRS funding model.R")
+source("Florida FRS funding model_functions.R") # only creates function - no live code
+source("Florida FRS funding model_actions.R") # only creates objects - no functions
+
 
 ##############################################TESTING############################################
 
