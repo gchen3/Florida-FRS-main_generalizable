@@ -17,6 +17,7 @@ run_tests()
 
 
 # Cleanup code
+print("\ndone with tests, removing objects and environments created during setup...\n")
 # Remove objects or environments created during setup
 rm(list = ls(envir = oldws), envir = oldws)
 rm(oldws)
