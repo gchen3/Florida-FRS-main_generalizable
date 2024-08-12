@@ -197,6 +197,55 @@ senior_management_normal_retire_rate_tier_2_table <- get_normal_retire_rate_tabl
                                                                                   drop_entry_table = drop_entry_tier_2_table,
                                                                                   normal_retire_rate_table = normal_retire_rate_tier_2_table)
 
+# get early retirement rate tables ----------------------------------------
+
+
+regular_early_retire_rate_tier_1_table <- get_early_retire_rate_table(class_name = "regular",
+                                                                      init_early_retire_rate_table = early_retire_rate_tier_1_table)
+
+regular_early_retire_rate_tier_2_table <- get_early_retire_rate_table(class_name = "regular",
+                                                                      init_early_retire_rate_table = early_retire_rate_tier_2_table)
+
+
+special_early_retire_rate_tier_1_table <- get_early_retire_rate_table(class_name = "special",
+                                                                      init_early_retire_rate_table = early_retire_rate_tier_1_table)
+
+special_early_retire_rate_tier_2_table <- get_early_retire_rate_table(class_name = "special",
+                                                                      init_early_retire_rate_table = early_retire_rate_tier_2_table)
+
+
+admin_early_retire_rate_tier_1_table <- get_early_retire_rate_table(class_name = "admin",
+                                                                    init_early_retire_rate_table = early_retire_rate_tier_1_table)
+
+admin_early_retire_rate_tier_2_table <- get_early_retire_rate_table(class_name = "admin",
+                                                                    init_early_retire_rate_table = early_retire_rate_tier_2_table)
+
+eco_early_retire_rate_tier_1_table <- get_early_retire_rate_table(class_name = "eco",
+                                                                  init_early_retire_rate_table = early_retire_rate_tier_1_table)
+
+eco_early_retire_rate_tier_2_table <- get_early_retire_rate_table(class_name = "eco",
+                                                                  init_early_retire_rate_table = early_retire_rate_tier_2_table)
+
+eso_early_retire_rate_tier_1_table <- get_early_retire_rate_table(class_name = "eso",
+                                                                  init_early_retire_rate_table = early_retire_rate_tier_1_table)
+
+eso_early_retire_rate_tier_2_table <- get_early_retire_rate_table(class_name = "eso",
+                                                                  init_early_retire_rate_table = early_retire_rate_tier_2_table)
+
+judges_early_retire_rate_tier_1_table <- get_early_retire_rate_table(class_name = "judge",
+                                                                     init_early_retire_rate_table = early_retire_rate_tier_1_table)
+
+judges_early_retire_rate_tier_2_table <- get_early_retire_rate_table(class_name = "judge",
+                                                                     init_early_retire_rate_table = early_retire_rate_tier_2_table)
+
+
+senior_management_early_retire_rate_tier_1_table <- get_early_retire_rate_table(class_name = "senior management",
+                                                                                init_early_retire_rate_table = early_retire_rate_tier_1_table)
+
+senior_management_early_retire_rate_tier_2_table <- get_early_retire_rate_table(class_name = "senior management",
+                                                                                init_early_retire_rate_table = early_retire_rate_tier_2_table)
+
+
 
 
 
