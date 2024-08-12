@@ -12,10 +12,10 @@ library(rio)
 library(parallel)
 
 #Get actuarial and financial functions
-source("utility_functions.R")
+source("utility_functions.R") # only creates functions - no live code
 
 #Get model inputs and assumptions
-source("Florida FRS model input.R")
+source("Florida FRS model input.R") # only reads data and sets variable values - no functions
 
 #Get benefit data and model
 source("Florida FRS benefit model.R")
