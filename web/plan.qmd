@@ -15,7 +15,11 @@ editor_options:
     -   DONE - Separate "Florida FRS funding model.R" into separate files for functions and actions
     -   DONE - Rename "Florida FRS workforce model.R" to "Florida FRS workforce model_functions.R" and create separate files for creating and saving workforce data, and for loading previously saved workforce data
     -   DONE - restructure "Florida FRS master.R" so that all functions are loaded, then constants loaded, then objects are created
--   Isolate constants
+
 -   Localize all functions - make sure all data used in functions is passed in as arguments
+    -   DONE - localize get_salary_headcount_table() function and eliminate duplicate calls
+    -   localize get_tier()
+
+-   Isolate constants
 -   Modularize - break large functions into smaller pieces
 -   Restructure data to be generalizable - e.g., stacked data frames in a common format
