@@ -18,7 +18,9 @@ source("utility_functions.R") # only creates functions - no live code
 source("Florida FRS model input.R") # only reads data and sets variable values - no functions
 
 #Get benefit data and model
-source("Florida FRS benefit model.R")
+# source("Florida FRS benefit model.R")
+source("Florida FRS benefit model_functions.R")
+source("Florida FRS benefit model_actions.R")
 
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
 source("Florida FRS workforce model.R")
