@@ -29,7 +29,7 @@ temp <- get_salary_headcount_table(special_salary_table_, special_headcount_tabl
 special_salary_headcount_table <- temp$salary_headcount_table
 special_entrant_profile_table <- temp$entrant_profile
 
-temp <- get_salary_headcount_table(special_salary_table_, special_headcount_table_, special_total_active_member_, salary_growth_table, "admin")
+temp <- get_salary_headcount_table(admin_salary_table_, admin_headcount_table_, admin_total_active_member_, salary_growth_table, "admin")
 admin_salary_headcount_table <- temp$salary_headcount_table
 admin_entrant_profile_table <- temp$entrant_profile
 
