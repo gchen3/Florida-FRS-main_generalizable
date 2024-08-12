@@ -180,8 +180,10 @@ get_mp_final_table <- function(mp_table, gender, base_year, age_range, year_rang
 
 
 ##Mortality calculations
-get_mort_table <- function(class_name, base_mort_table, male_mp_final_table, female_mp_final_table, entrant_profile){
-  final_mort_table <- expand_grid(entry_year = entry_year_range_, entry_age = entrant_profile$entry_age, dist_age = age_range_, yos = yos_range_) %>% 
+# entry_year_range_, age_range_, yos_range_
+get_mort_table <- function(class_name, base_mort_table, male_mp_final_table, female_mp_final_table, entrant_profile,
+                           entry_year_range, age_range, yos_range){
+  final_mort_table <- expand_grid(entry_year = entry_year_range, entry_age = entrant_profile$entry_age, dist_age = age_range, yos = yos_range) %>% 
     mutate(
       term_year = entry_year + yos,
       dist_year = entry_year + dist_age - entry_age
