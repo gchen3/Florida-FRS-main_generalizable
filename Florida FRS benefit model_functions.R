@@ -288,8 +288,6 @@ get_normal_retire_rate_table <- function(class_name, drop_entry_table, normal_re
 
 # ..early retirement rate tables ------------------------------------------
 
-
-  
 get_early_retire_rate_table <- function(class_name, init_early_retire_rate_table){
   if (class_name %in% c("eco", "eso", "judge")) {
     search_text = "eco_eso_jud"
