@@ -1,19 +1,21 @@
-# tests/testthat/test_compare_objects.R
+# tests/testthat/test_compare_baseline.R
 
 library(testthat)
 
 test_that("Compare baseline_funding expect_equal", {
   objname <- "baseline_funding"
+  cat("\nTesting object: ", objname, "\n")
   old_object <- get(objname, envir = oldws)
   new_object <- get(objname, envir = newws)
-  expect_equal(new_object, old_object)
+  expect_equal(new_object, old_object, info = paste("Mismatch in", objname))
 })
 
 test_that("Compare baseline_liability expect_equal", {
   objname <- "baseline_liability"
+  cat("\nTesting object: ", objname, "\n")
   old_object <- get(objname, envir = oldws)
   new_object <- get(objname, envir = newws)
-  expect_equal(new_object, old_object)
+  expect_equal(new_object, old_object, info = paste("Mismatch in", objname))
 })
 
 # test_that("Compare baseline_funding expect_identical", {
