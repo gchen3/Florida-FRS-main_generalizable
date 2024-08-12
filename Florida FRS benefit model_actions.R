@@ -15,28 +15,42 @@ eco_eso_judges_active_member_adjustment_ratio <- eco_eso_judges_total_active_mem
 
 #.. call get_salary_headcount_table -----------------------------------------
 
-regular_salary_headcount_table <- get_salary_headcount_table(regular_salary_table_, regular_headcount_table_, salary_growth_table, "regular")$salary_headcount_table
-regular_entrant_profile_table <- get_salary_headcount_table(regular_salary_table_, regular_headcount_table_, salary_growth_table, "regular")$entrant_profile
+# if (!class_name %in% c("eco", "eso", "judges")) {
+#   assign("total_active_member", get(paste0(class_name, "_total_active_member_")))
+# } else {
+#   assign("total_active_member", get("eco_eso_judges_total_active_member_"))
+# }
 
-special_salary_headcount_table <- get_salary_headcount_table(special_salary_table_, special_headcount_table_, salary_growth_table, "special")$salary_headcount_table
-special_entrant_profile_table <- get_salary_headcount_table(special_salary_table_, special_headcount_table_, salary_growth_table, "special")$entrant_profile
+temp <- get_salary_headcount_table(regular_salary_table_, regular_headcount_table_, regular_total_active_member_, salary_growth_table, "regular")
+regular_salary_headcount_table <- temp$salary_headcount_table
+regular_entrant_profile_table <- temp$entrant_profile
 
-admin_salary_headcount_table <- get_salary_headcount_table(admin_salary_table_, admin_headcount_table_, salary_growth_table, "admin")$salary_headcount_table
-admin_entrant_profile_table <- get_salary_headcount_table(admin_salary_table_, admin_headcount_table_, salary_growth_table, "admin")$entrant_profile
+temp <- get_salary_headcount_table(special_salary_table_, special_headcount_table_, special_total_active_member_, salary_growth_table, "special")
+special_salary_headcount_table <- temp$salary_headcount_table
+special_entrant_profile_table <- temp$entrant_profile
 
-eco_salary_headcount_table <- get_salary_headcount_table(eco_salary_table_, eco_headcount_table_, salary_growth_table, "eco")$salary_headcount_table
-eco_entrant_profile_table <- get_salary_headcount_table(eco_salary_table_, eco_headcount_table_, salary_growth_table, "eco")$entrant_profile
+temp <- get_salary_headcount_table(admin_salary_table_, admin_headcount_table_, admin_total_active_member_, salary_growth_table, "admin")
+admin_salary_headcount_table <- temp$salary_headcount_table
+admin_entrant_profile_table <- temp$entrant_profile
 
-eso_salary_headcount_table <- get_salary_headcount_table(eso_salary_table_, eso_headcount_table_, salary_growth_table, "eso")$salary_headcount_table
-eso_entrant_profile_table <- get_salary_headcount_table(eso_salary_table_, eso_headcount_table_, salary_growth_table, "eso")$entrant_profile
+temp <- get_salary_headcount_table(eco_salary_table_, eco_headcount_table_, eco_eso_judges_total_active_member_, salary_growth_table, "eco")
+eco_salary_headcount_table <- temp$salary_headcount_table
+eco_entrant_profile_table <- temp$entrant_profile
 
-judges_salary_headcount_table <- get_salary_headcount_table(judges_salary_table_, judges_headcount_table_, salary_growth_table, "judges")$salary_headcount_table
-judges_entrant_profile_table <- get_salary_headcount_table(judges_salary_table_, judges_headcount_table_, salary_growth_table, "judges")$entrant_profile
+temp <- get_salary_headcount_table(eso_salary_table_, eso_headcount_table_, eco_eso_judges_total_active_member_, salary_growth_table, "eso")
+eso_salary_headcount_table <- temp$salary_headcount_table
+eso_entrant_profile_table <- temp$entrant_profile
 
-senior_management_salary_headcount_table <- get_salary_headcount_table(senior_management_salary_table_, 
-                                                                       senior_management_headcount_table_, salary_growth_table, "senior management")$salary_headcount_table
-senior_management_entrant_profile_table <- get_salary_headcount_table(senior_management_salary_table_, 
-                                                                      senior_management_headcount_table_, salary_growth_table, "senior management")$entrant_profile
+temp <- get_salary_headcount_table(judges_salary_table_, judges_headcount_table_, eco_eso_judges_total_active_member_, salary_growth_table, "judges")
+judges_salary_headcount_table <- temp$salary_headcount_table
+judges_entrant_profile_table <- temp$entrant_profile
+
+temp <- get_salary_headcount_table(senior_management_salary_table_, 
+                                   senior_management_headcount_table_, 
+                                   senior_management_total_active_member_, 
+                                   salary_growth_table, "senior management")
+senior_management_salary_headcount_table <- temp$salary_headcount_table
+senior_management_entrant_profile_table <- temp$entrant_profile
 
 
 # Retirement & Separation Conditions --------------------------------------
