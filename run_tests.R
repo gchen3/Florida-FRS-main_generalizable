@@ -10,6 +10,7 @@ run_tests <- function() {
   test_file("tests/testthat/test_compare_baseline.R")
   test_file("tests/testthat/test_compare_salary_headcount.R")
   test_file("tests/testthat/test_compare_mortality.R")
+  test_file("tests/testthat/test_compare_separation.R")
   cat("\n\n")
   # Add more test files as needed
 }

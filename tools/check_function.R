@@ -14,6 +14,8 @@ fun <- clean_retire_rate_table
 fun <- get_normal_retire_rate_table
 fun <- get_early_retire_rate_table
 
+fun <- get_separation_table
+
 codetools::checkUsage(fun)
 
 codetools::findGlobals(fun, merge = FALSE)

@@ -311,7 +311,9 @@ get_early_retire_rate_table <- function(class_name, init_early_retire_rate_table
 
 #.. separation tables ---------------------------------------------------------
 
-get_separation_table <- function(class_name){
+# age_range_, entry_year_range_, yos_range_, new_year_
+get_separation_table <- function(class_name,
+                                 age_range, entry_year_range, yos_range, new_year){
   
   # class_name <- gsub(" ", "_", class_name)
   class_name <- str_replace(class_name, " ", "_")
@@ -328,7 +330,7 @@ get_separation_table <- function(class_name){
   assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table")))
   
   term_rate_table <- ((term_rate_male_table + term_rate_female_table) / 2) %>% 
-    add_row(yos = (max(term_rate_male_table$yos) + 1):max(yos_range_)) %>% 
+    add_row(yos = (max(term_rate_male_table$yos) + 1):max(yos_range)) %>% 
     fill(everything(), .direction="down")
   
   breaks <- c(-Inf, 24, 29, 34, 44, 54, Inf)
@@ -336,7 +338,7 @@ get_separation_table <- function(class_name){
   
   long_term_rate_table <- pivot_longer(term_rate_table, cols = -yos, names_to = "age_group", values_to = "term_rate")
   
-  sep_rate_table <- expand_grid(entry_year = entry_year_range_, term_age = age_range_, yos = yos_range_) %>% 
+  sep_rate_table <- expand_grid(entry_year = entry_year_range, term_age = age_range, yos = yos_range) %>% 
     mutate(
       entry_age = term_age  - yos,
       term_year = entry_year + yos,
@@ -353,7 +355,7 @@ get_separation_table <- function(class_name){
     fill(contains("retire_rate"), .direction="downup") %>% 
     ungroup() %>% 
     mutate(
-      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, new_year_),
+      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, new_year),
       separation_rate = case_when(
         tier_at_term_age %in% c("tier_3_norm", "tier_2_norm") ~ normal_retire_rate_tier_2,
         tier_at_term_age %in% c("tier_3_early", "tier_2_early") ~ early_retire_rate_tier_2,
