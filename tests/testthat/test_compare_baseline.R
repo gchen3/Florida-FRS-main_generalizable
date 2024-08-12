@@ -2,6 +2,9 @@
 
 library(testthat)
 
+cat("\n\n")
+print("running baseline results tests")
+
 test_that("Compare baseline_funding expect_equal", {
   objname <- "baseline_funding"
   cat("\nTesting object: ", objname, "\n")

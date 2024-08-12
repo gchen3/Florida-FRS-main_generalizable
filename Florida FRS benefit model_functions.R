@@ -151,7 +151,7 @@ clean_mp_table <- function(raw_mp_table, extend_2_yrs = F){
 
 #Modify mortality improvement rates
 #base_year is the year when the base mort rate is given. It's 2010 in this case
-get_mp_final_table <- function(mp_table, gender, base_year){
+get_mp_final_table <- function(mp_table, gender, base_year, age_range, year_range){
   mp_table <- mp_table %>% 
     pivot_longer(-age, names_to = "year", values_to = "mp") %>% 
     mutate(year = as.numeric(year))
@@ -161,7 +161,7 @@ get_mp_final_table <- function(mp_table, gender, base_year){
     rename(mp_ultimate = mp) %>% 
     select(-year)
   
-  mp_final_table <- expand_grid(age = age_range_, year = min(mp_table$year):max(year_range_)) %>% 
+  mp_final_table <- expand_grid(age = age_range, year = min(mp_table$year):max(year_range)) %>% 
     left_join(mp_table) %>% 
     left_join(mp_ultimate_table, by = "age") %>% 
     mutate(mp_final = if_else(year > max(mp_table$year), mp_ultimate, mp)) %>% 
@@ -180,8 +180,9 @@ get_mp_final_table <- function(mp_table, gender, base_year){
 
 
 ##Mortality calculations
-get_mort_table <- function(class_name, base_mort_table, male_mp_final_table, female_mp_final_table, entrant_profile){
-  final_mort_table <- expand_grid(entry_year = entry_year_range_, entry_age = entrant_profile$entry_age, dist_age = age_range_, yos = yos_range_) %>% 
+get_mort_table <- function(class_name, base_mort_table, male_mp_final_table, female_mp_final_table, entrant_profile,
+                           entry_year_range, age_range, yos_range){
+  final_mort_table <- expand_grid(entry_year = entry_year_range, entry_age = entrant_profile$entry_age, dist_age = age_range, yos = yos_range) %>% 
     mutate(
       term_year = entry_year + yos,
       dist_year = entry_year + dist_age - entry_age
@@ -208,13 +209,15 @@ get_mort_table <- function(class_name, base_mort_table, male_mp_final_table, fem
 
 
 #Create a second mortality table for current retirees
-get_mort_retire_table <- function(base_mort_table, male_mp_final_table, female_mp_final_table){
+# age_range_, year_range_, start_year_
+get_mort_retire_table <- function(base_mort_table, male_mp_final_table, female_mp_final_table,
+                                  age_range, year_range, start_year){
   
-  mort_retire_table <- expand_grid(age = age_range_[age_range_ >= 40], year = year_range_[year_range_ >= start_year_]) %>% 
+  mort_retire_table <- expand_grid(age = age_range[age_range >= 40], year = year_range[year_range >= start_year]) %>% 
     left_join(base_mort_table, by = "age") %>% 
     left_join(male_mp_final_table, by = c("age", "year")) %>% 
     left_join(female_mp_final_table, by = c("age", "year")) %>% 
-    mutate(base_age = age - (year - start_year_),
+    mutate(base_age = age - (year - start_year),
            male_mort = healthy_retiree_male * male_mp_cumprod_adj,
            female_mort = healthy_retiree_female * female_mp_cumprod_adj,
            mort_final = (male_mort + female_mort)/2) %>% 

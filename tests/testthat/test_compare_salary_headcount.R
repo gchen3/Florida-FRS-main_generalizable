@@ -3,6 +3,9 @@
 library(testthat)
 library(purrr)
 
+cat("\n\n")
+print("running salary headcount tests")
+
 classes <- c("regular", "special", "admin", "eco", "eso", "judges", "senior_management")
 
 walk(classes, function(class) {
