@@ -3,14 +3,16 @@
 library(testthat)
 
 test_that("Compare baseline_funding expect_equal", {
-  old_object <- get("baseline_funding", envir = oldws)
-  new_object <- get("baseline_funding", envir = newws)
+  objname <- "baseline_funding"
+  old_object <- get(objname, envir = oldws)
+  new_object <- get(objname, envir = newws)
   expect_equal(new_object, old_object)
 })
 
 test_that("Compare baseline_liability expect_equal", {
-  old_object <- get("baseline_liability", envir = oldws)
-  new_object <- get("baseline_liability", envir = newws)
+  objname <- "baseline_liability"
+  old_object <- get(objname, envir = oldws)
+  new_object <- get(objname, envir = newws)
   expect_equal(new_object, old_object)
 })
 
