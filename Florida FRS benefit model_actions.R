@@ -85,6 +85,117 @@ senior_management_mort_retire_table <- get_mort_retire_table(base_general_mort_t
 
 # Separation Assumptions --------------------------------------------------
 
+#.. Clean retirement and drop ----
+
+drop_entry_table_col_names <- c("age", "regular_inst_female", "regular_inst_male",
+                                "regular_non_inst_female", "regular_non_inst_male",
+                                "special_risk_non_leo_female", "special_risk_non_leo_male",
+                                "special_risk_leo_female", "special_risk_leo_male",
+                                "other_female", "other_male")
+
+normal_retire_table_col_names <- c("age", "regular_inst_female", "regular_inst_male",
+                                   "regular_non_inst_female", "regular_non_inst_male",
+                                   "special_risk_female", "special_risk_male",
+                                   "eco_eso_jud_female", "eco_eso_jud_male",
+                                   "senior_management_female", "senior_management_male")
+
+early_retire_table_col_names <- c("age", "regular_non_inst_female", "regular_non_inst_male",
+                                  "special_risk_female", "special_risk_male",
+                                  "eco_eso_jud_female", "eco_eso_jud_male",
+                                  "senior_management_female", "senior_management_male")
+
+
+drop_entry_tier_1_table <- clean_retire_rate_table(drop_entry_tier_1_table_, drop_entry_table_col_names)
+drop_entry_tier_2_table <- clean_retire_rate_table(drop_entry_tier_2_table_, drop_entry_table_col_names)
+
+normal_retire_rate_tier_1_table <- clean_retire_rate_table(normal_retirement_tier_1_table_, normal_retire_table_col_names)
+normal_retire_rate_tier_2_table <- clean_retire_rate_table(normal_retirement_tier_2_table_, normal_retire_table_col_names)
+
+early_retire_rate_tier_1_table <- clean_retire_rate_table(early_retirement_tier_1_table_, early_retire_table_col_names)
+early_retire_rate_tier_2_table <- clean_retire_rate_table(early_retirement_tier_2_table_, early_retire_table_col_names)
+
+
+normal_retire_rate_tier_2_table <- normal_retire_rate_tier_2_table %>% 
+  add_row(age=45:49, .before=1) %>% 
+  mutate(across(everything(), ~replace(.x, is.na(.x), 0)))
+# mutate_all(~replace(., is.na(.), 0))
+
+special_risk_drop_entry_tier_1_table <- drop_entry_tier_1_table %>% 
+  select(age, contains("special_risk")) %>% 
+  mutate(
+    special_risk_female = (special_risk_non_leo_female + special_risk_leo_female)/2,
+    special_risk_male = (special_risk_non_leo_male + special_risk_leo_male)/2,
+    .keep = "unused"
+  )
+
+special_risk_drop_entry_tier_2_table <- drop_entry_tier_2_table %>% 
+  select(age, contains("special_risk")) %>% 
+  mutate(
+    special_risk_female = (special_risk_non_leo_female + special_risk_leo_female)/2,
+    special_risk_male = (special_risk_non_leo_male + special_risk_leo_male)/2,
+    .keep = "unused"
+  )
+
+
+# get retirement-rate tables ----------------------------------------------
+
+
+regular_normal_retire_rate_tier_1_table <- get_normal_retire_rate_table(class_name = "regular",
+                                                                        drop_entry_table = drop_entry_tier_1_table,
+                                                                        normal_retire_rate_table = normal_retire_rate_tier_1_table)
+
+regular_normal_retire_rate_tier_2_table <- get_normal_retire_rate_table(class_name = "regular",
+                                                                        drop_entry_table = drop_entry_tier_2_table,
+                                                                        normal_retire_rate_table = normal_retire_rate_tier_2_table)
+
+special_normal_retire_rate_tier_1_table <- get_normal_retire_rate_table(class_name = "special",
+                                                                        drop_entry_table = special_risk_drop_entry_tier_1_table,
+                                                                        normal_retire_rate_table = normal_retire_rate_tier_1_table)
+
+special_normal_retire_rate_tier_2_table <- get_normal_retire_rate_table(class_name = "special",
+                                                                        drop_entry_table = special_risk_drop_entry_tier_2_table,
+                                                                        normal_retire_rate_table = normal_retire_rate_tier_2_table)
+
+admin_normal_retire_rate_tier_1_table <- get_normal_retire_rate_table(class_name = "admin",
+                                                                      drop_entry_table = special_risk_drop_entry_tier_1_table,
+                                                                      normal_retire_rate_table = normal_retire_rate_tier_1_table)
+
+admin_normal_retire_rate_tier_2_table <- get_normal_retire_rate_table(class_name = "admin",
+                                                                      drop_entry_table = special_risk_drop_entry_tier_2_table,
+                                                                      normal_retire_rate_table = normal_retire_rate_tier_2_table)
+
+eco_normal_retire_rate_tier_1_table <- get_normal_retire_rate_table(class_name = "eco",
+                                                                    drop_entry_table = drop_entry_tier_1_table,
+                                                                    normal_retire_rate_table = normal_retire_rate_tier_1_table)
+
+eco_normal_retire_rate_tier_2_table <- get_normal_retire_rate_table(class_name = "eco",
+                                                                    drop_entry_table = drop_entry_tier_2_table,
+                                                                    normal_retire_rate_table = normal_retire_rate_tier_2_table)
+
+eso_normal_retire_rate_tier_1_table <- get_normal_retire_rate_table(class_name = "eso",
+                                                                    drop_entry_table = drop_entry_tier_1_table,
+                                                                    normal_retire_rate_table = normal_retire_rate_tier_1_table)
+
+eso_normal_retire_rate_tier_2_table <- get_normal_retire_rate_table(class_name = "eso",
+                                                                    drop_entry_table = drop_entry_tier_2_table,
+                                                                    normal_retire_rate_table = normal_retire_rate_tier_2_table)
+
+judges_normal_retire_rate_tier_1_table <- get_normal_retire_rate_table(class_name = "judge",
+                                                                       drop_entry_table = drop_entry_tier_1_table,
+                                                                       normal_retire_rate_table = normal_retire_rate_tier_1_table)
+
+judges_normal_retire_rate_tier_2_table <- get_normal_retire_rate_table(class_name = "judge",
+                                                                       drop_entry_table = drop_entry_tier_2_table,
+                                                                       normal_retire_rate_table = normal_retire_rate_tier_2_table)
+
+
+senior_management_normal_retire_rate_tier_1_table <- get_normal_retire_rate_table(class_name = "senior management",
+                                                                                  drop_entry_table = drop_entry_tier_1_table,
+                                                                                  normal_retire_rate_table = normal_retire_rate_tier_1_table)
+
+senior_management_normal_retire_rate_tier_2_table <- get_normal_retire_rate_table(class_name = "senior management",
+                                                                                  drop_entry_table = drop_entry_tier_2_table,
+                                                                                  normal_retire_rate_table = normal_retire_rate_tier_2_table)
 
 
 
