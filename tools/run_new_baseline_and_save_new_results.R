@@ -1,9 +1,26 @@
 
 # run the following in a CLEAN environment with the branch of interest checked out --------------------------------
 
-rm(list = ls())
 
-# run the full FRS Florida model
+# reset environment -------------------------------------------------------
+
+resetEnvironment <- function() {
+  graphics.off()  # Close all graphics devices
+  rm(list = ls(all.names = TRUE))  # Remove all objects
+  lapply(search(), function(x) {
+    if (grepl("package:", x)) {
+      detach(x, unload = TRUE, character.only = TRUE)
+    }
+  })
+  gc()  # Explicit garbage collection
+}
+
+resetEnvironment() # not as complete as a full restart, but pretty complete
+
+
+
+
+# run the full FRS Florida model --------------------------------
 
 source(here::here("Florida FRS master.R")) # load the model
 
