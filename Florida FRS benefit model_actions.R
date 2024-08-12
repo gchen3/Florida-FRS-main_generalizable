@@ -246,6 +246,16 @@ senior_management_early_retire_rate_tier_2_table <- get_early_retire_rate_table(
                                                                                 init_early_retire_rate_table = early_retire_rate_tier_2_table)
 
 
+# ..get separation rate tables --------------------------------------------
+
+regular_separation_rate_table <- get_separation_table("regular")
+special_separation_rate_table <- get_separation_table("special")
+admin_separation_rate_table <- get_separation_table("admin")
+eco_separation_rate_table <- get_separation_table("eco")
+eso_separation_rate_table <- get_separation_table("regular")
+judges_separation_rate_table <- get_separation_table("judges")
+senior_management_separation_rate_table <- get_separation_table("senior management")
+
 
 
 

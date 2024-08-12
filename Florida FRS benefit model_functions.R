@@ -229,7 +229,8 @@ get_mort_retire_table <- function(base_mort_table, male_mp_final_table, female_m
 
 # Separation Assumptions --------------------------------------------------
 
-# Clean up retirement rate tables
+
+# .. retirement rate tables -----------------------------------------------
 
 clean_retire_rate_table <- function(df, col_names){
   
@@ -281,6 +282,10 @@ get_normal_retire_rate_table <- function(class_name, drop_entry_table, normal_re
   return(normal_retire_rate_table)
 }
 
+
+# ..early retirement rate tables ------------------------------------------
+
+
   
 get_early_retire_rate_table <- function(class_name, init_early_retire_rate_table){
   if (class_name %in% c("eco", "eso", "judge")) {
@@ -301,6 +306,9 @@ get_early_retire_rate_table <- function(class_name, init_early_retire_rate_table
   
   return(final_early_retire_rate_table)
 }
+
+
+#.. separation tables ---------------------------------------------------------
 
 get_separation_table <- function(class_name){
   
@@ -364,21 +372,11 @@ get_separation_table <- function(class_name){
   return(sep_rate_table)
 }
 
-regular_separation_rate_table <- get_separation_table("regular")
-special_separation_rate_table <- get_separation_table("special")
-admin_separation_rate_table <- get_separation_table("admin")
-eco_separation_rate_table <- get_separation_table("eco")
-eso_separation_rate_table <- get_separation_table("regular")
-judges_separation_rate_table <- get_separation_table("judges")
-senior_management_separation_rate_table <- get_separation_table("senior management")
 
 
+# Benefit Model Function --------------------------------------------------
 
-
-##############################################################################################################################
-##################################################################
-##                    Benefit Model Function                    ##
-##################################################################
+# here is where Reason selectively sets global variables, presumably to test the function
 
 # class_name = class_name_
 # dr_current = dr_current_
