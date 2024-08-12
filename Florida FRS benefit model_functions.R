@@ -151,7 +151,7 @@ clean_mp_table <- function(raw_mp_table, extend_2_yrs = F){
 
 #Modify mortality improvement rates
 #base_year is the year when the base mort rate is given. It's 2010 in this case
-get_mp_final_table <- function(mp_table, gender, base_year){
+get_mp_final_table <- function(mp_table, gender, base_year, age_range){
   mp_table <- mp_table %>% 
     pivot_longer(-age, names_to = "year", values_to = "mp") %>% 
     mutate(year = as.numeric(year))
@@ -161,7 +161,7 @@ get_mp_final_table <- function(mp_table, gender, base_year){
     rename(mp_ultimate = mp) %>% 
     select(-year)
   
-  mp_final_table <- expand_grid(age = age_range_, year = min(mp_table$year):max(year_range_)) %>% 
+  mp_final_table <- expand_grid(age = age_range, year = min(mp_table$year):max(year_range_)) %>% 
     left_join(mp_table) %>% 
     left_join(mp_ultimate_table, by = "age") %>% 
     mutate(mp_final = if_else(year > max(mp_table$year), mp_ultimate, mp)) %>% 
