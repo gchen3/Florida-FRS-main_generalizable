@@ -1,14 +1,14 @@
 # Salary & Headcount Processing -------------------------------------------
 
-get_salary_headcount_table <- function(salary_table, headcount_table, salary_growth_table, class_name){
+get_salary_headcount_table <- function(salary_table, headcount_table, total_active_member, salary_growth_table, class_name){
   
   class_name <- str_replace(class_name, " ", "_")
   
-  if (!class_name %in% c("eco", "eso", "judges")) {
-    assign("total_active_member", get(paste0(class_name, "_total_active_member_")))
-  } else {
-    assign("total_active_member", get("eco_eso_judges_total_active_member_"))
-  }
+  # if (!class_name %in% c("eco", "eso", "judges")) {
+  #   assign("total_active_member", get(paste0(class_name, "_total_active_member_")))
+  # } else {
+  #   assign("total_active_member", get("eco_eso_judges_total_active_member_"))
+  # }
   
   salary_growth_table <- salary_growth_table %>% 
     select(yos, contains(class_name)) %>% 
