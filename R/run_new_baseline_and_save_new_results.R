@@ -14,9 +14,12 @@ baseline_liability <- get_liability_data()
 save.image(here::here("new_results", "new_workspace.RData"))
 
 
-# additional new results --------------------------------------------------
+# run tests --------------------------------
+source(here::here("run_tests.R"))
 
 
+
+# INFORMATAIONAL ONLY ------
 # prepare comparisons of new vs. Reason -----------------------------------
 
 # load each result into its own environment
@@ -35,8 +38,6 @@ newnames # almost 300 objects!; already sorted by name
 
 # get(objnames[119], envir=rws) # how to get an object from the workspace
 
-# run tests --------------------------------
-source(here::here("run_tests.R"))
 
 
 # get baseline_funding list old and new --------------------------------
