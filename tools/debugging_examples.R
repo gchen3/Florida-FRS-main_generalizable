@@ -1,3 +1,7 @@
+
+source(here::here("tools", "libraries.R")) # load all tools
+source(here::here("tools", "functions.R"))
+
 source(here::here("testing", "libraries.R"))
 
 checkUsage(add_new_entrants)

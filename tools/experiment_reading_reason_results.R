@@ -1,4 +1,5 @@
-source(here::here("R", "libraries.R"))
+source(here::here("tools", "libraries.R")) # load all tools
+source(here::here("tools", "functions.R"))
 
 # TEST reading the workspace ----------------------------------------------
 # load Reason FRS workspace into its OWN environment I call rws
