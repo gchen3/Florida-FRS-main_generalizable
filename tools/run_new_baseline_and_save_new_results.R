@@ -18,8 +18,6 @@ resetEnvironment <- function() {
 resetEnvironment() # not as complete as a full restart, but pretty complete
 
 
-
-
 # run the full FRS Florida model --------------------------------
 
 source(here::here("Florida FRS master.R")) # load the model
