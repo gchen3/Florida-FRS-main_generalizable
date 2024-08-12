@@ -4,9 +4,7 @@
 
 # reset environment -------------------------------------------------------
 
-source(here::here("tools", "functions.R"))
-
-resetEnvironment() # not as complete as a full restart, but pretty complete
+# DO THIS MANUALLY !!!!!  Ctrl-Shift-F10 to restart RStudio and clear the environment
 
 
 # run the full FRS Florida model --------------------------------
@@ -24,6 +22,8 @@ save.image(here::here("new_results", "new_workspace.RData"))
 
 # run tests --------------------------------
 source(here::here("run_tests.R"))
+
+
 
 
 

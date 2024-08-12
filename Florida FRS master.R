@@ -18,10 +18,14 @@ source("utility_functions.R") # only creates functions - no live code
 source("Florida FRS model input.R") # only reads data and sets variable values - no functions
 
 #Get benefit data and model
-source("Florida FRS benefit model.R")
+# replace separate "Florida FRS benefit model.R" into functions and actions
+# source("Florida FRS benefit model.R")
+source("Florida FRS benefit model_functions.R") # only creates functions - no live code
+source("Florida FRS benefit model_actions.R") # only creates objects - no functions
 
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
-source("Florida FRS workforce model.R")
+source("Florida FRS workforce model.R") # only creates function - no live code
+
 get_wf_data(class_name = "regular")
 get_wf_data(class_name = "special")
 get_wf_data(class_name = "admin")
@@ -39,8 +43,8 @@ eco_wf_data <- readRDS("eco_wf_data.rds")
 eso_wf_data <- readRDS("eso_wf_data.rds")
 judges_wf_data <- readRDS("judges_wf_data.rds")
 senior_management_wf_data <- readRDS("senior_management_wf_data.rds")
-source("Florida FRS liability model.R")
 
+source("Florida FRS liability model.R") # only creates function - no live code
 
 #Get funding model
 source("Florida FRS funding model.R")
