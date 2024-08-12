@@ -9,8 +9,10 @@ editor_options:
 -   DONE - Modify FRS to make sure it runs on Windows (change number of cores)
 -   DONE - Save ALL Reason results from baseline run
 -   DONE - Establish initial tests to see whether the model as modified reproduces Reason baseline results
--   Separate functions from action -- make sure that all sourced files are only functions or constants. Let functions do the action.
+
+-   Separate functions from action -- make sure that all sourced files before running the model are functions. Then load constants and let functions do the action.
     -   DONE - Separate "Florida FRS benefit model.R" into separate files for functions and actions
+    -   DONE - Separate "Florida FRS funding model.R" into separate files for functions and actions
 -   Isolate constants
 -   Localize all functions - make sure all data used in functions is passed in as arguments
 -   Modularize - break large functions into smaller pieces
