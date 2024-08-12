@@ -58,6 +58,7 @@ rsconnect/
 new_results/
 reason_results/
 
+*.html
 *.rds
 
 
