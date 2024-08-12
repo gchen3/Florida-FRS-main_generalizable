@@ -13,6 +13,8 @@ library(purrr)
 library(devtools)
 library(testthat)
 
+library(lintr)
+
 library(checkmate)
 library(codetools)
 library(flow)
