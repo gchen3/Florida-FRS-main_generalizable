@@ -2,16 +2,16 @@
 
 library(testthat)
 
-test_that("Compare baseline_funding expect_equal", {
-  objname <- "baseline_funding"
+test_that("Compare male_mp_final_table expect_equal", {
+  objname <- "male_mp_final_table"
   cat("\nTesting object: ", objname, "\n")
   old_object <- get(objname, envir = oldws)
   new_object <- get(objname, envir = newws)
   expect_equal(new_object, old_object, info = paste("Mismatch in", objname))
 })
 
-test_that("Compare baseline_liability expect_equal", {
-  objname <- "baseline_liability"
+test_that("Compare female_mp_final_table expect_equal", {
+  objname <- "female_mp_final_table"
   cat("\nTesting object: ", objname, "\n")
   old_object <- get(objname, envir = oldws)
   new_object <- get(objname, envir = newws)
