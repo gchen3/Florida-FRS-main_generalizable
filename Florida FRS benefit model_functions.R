@@ -60,7 +60,7 @@ get_salary_headcount_table <- function(salary_table, headcount_table, total_acti
 
 #tier 3: for new hires joining as of new_year_
 
-get_tier <- function(class_name, entry_year, age, yos){
+get_tier <- function(class_name, entry_year, age, yos, new_year){
   tier = if_else(entry_year < 2011,
                      case_when(
                        class_name %in% c("special", "admin") & (yos >= 25 | (age >= 55 & yos >= 6) | (age >= 52 & yos >= 25)) ~ "tier_1_norm",
@@ -70,7 +70,7 @@ get_tier <- function(class_name, entry_year, age, yos){
                        yos >= 6 ~ "tier_1_vested",
                        .default = "tier_1_non_vested"
                      ),
-                     if_else(entry_year < new_year_,
+                     if_else(entry_year < new_year,
                              case_when(
                                class_name %in% c("special", "admin") & (yos >= 30 | (age >= 60 & yos >= 8)) ~ "tier_2_norm",
                                yos >= 33 | (age >= 65 & yos >= 8) ~ "tier_2_norm",
@@ -192,7 +192,7 @@ get_mort_table <- function(class_name, base_mort_table, male_mp_final_table, fem
     left_join(male_mp_final_table, by = c("dist_age" = "age", "dist_year" = "year")) %>% 
     left_join(female_mp_final_table, by = c("dist_age" = "age", "dist_year" = "year")) %>% 
     mutate(
-      tier_at_dist_age = get_tier(class_name, entry_year, dist_age, yos),
+      tier_at_dist_age = get_tier(class_name, entry_year, dist_age, yos, new_year_),
       
       male_mort = if_else(str_detect(tier_at_dist_age, "vested"), employee_male,
                           healthy_retiree_male) * male_mp_cumprod_adj,
@@ -352,7 +352,7 @@ get_separation_table <- function(class_name){
     fill(contains("retire_rate"), .direction="downup") %>% 
     ungroup() %>% 
     mutate(
-      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos),
+      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, new_year_),
       separation_rate = case_when(
         tier_at_term_age %in% c("tier_3_norm", "tier_2_norm") ~ normal_retire_rate_tier_2,
         tier_at_term_age %in% c("tier_3_early", "tier_2_early") ~ early_retire_rate_tier_2,
@@ -423,7 +423,7 @@ get_benefit_data <- function(
     mutate(
       term_age = entry_age + yos,
       # term_year = entry_year + yos,
-      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos)
+      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, new_year_)
       ) %>% 
     filter(term_age <= max_age_) %>% 
     arrange(entry_year, entry_age, yos) %>% 
