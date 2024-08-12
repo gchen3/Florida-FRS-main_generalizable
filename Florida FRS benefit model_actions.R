@@ -75,8 +75,8 @@ base_regular_mort_table <- (base_general_mort_table + base_teacher_mort_table)/2
 male_mp_table <- clean_mp_table(male_mp_table_, extend_2_yrs = T)
 female_mp_table <- clean_mp_table(female_mp_table_, extend_2_yrs = T)
 
-male_mp_final_table <- get_mp_final_table(male_mp_table, "male", 2010, age_range_)
-female_mp_final_table <- get_mp_final_table(female_mp_table, "female", 2010, age_range_)
+male_mp_final_table <- get_mp_final_table(male_mp_table, "male", 2010, age_range_, year_range_)
+female_mp_final_table <- get_mp_final_table(female_mp_table, "female", 2010, age_range_, year_range_)
 
 #.. mortality tables by class -----------------------------------------------
 
