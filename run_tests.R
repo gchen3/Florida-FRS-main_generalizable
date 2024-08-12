@@ -17,4 +17,4 @@ test_dir("tests/testthat")
 
 # run this with source("run_tests.R") in the console
 
-# source("tests/testthat.R")
+#   # Load setup once
