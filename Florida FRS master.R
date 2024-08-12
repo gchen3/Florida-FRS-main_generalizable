@@ -11,23 +11,20 @@ library(janitor)
 library(rio)
 library(parallel)
 
+
+# Functions ---------------------------------------------------------------
+
 #Get actuarial and financial functions
 source("utility_functions.R") # only creates functions - no live code
 
-#Get model inputs and assumptions
-source("Florida FRS model input.R") # only reads data and sets variable values - no functions
-
-#Get benefit data and model
+#Get benefit model
 # replace separate "Florida FRS benefit model.R" into functions and actions
 # source("Florida FRS benefit model.R")
 source("Florida FRS benefit model_functions.R") # only creates functions - no live code
-source("Florida FRS benefit model_actions.R") # only creates objects - no functions
 
-#Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
+# Get workforce model
 # source("Florida FRS workforce model.R") # only creates function - no live code
 source("Florida FRS workforce model_functions.R") # only creates function - no live code
-source("Florida FRS workforce model_get_and_save_wfdata.R") # only saves objects - no functions
-source("Florida FRS workforce model_get_saved_data.R") # only gets saved data - no functions
 
 #Get liability model
 source("Florida FRS liability model.R") # only creates function - no live code
@@ -35,7 +32,21 @@ source("Florida FRS liability model.R") # only creates function - no live code
 #Get funding model
 # source("Florida FRS funding model.R")
 source("Florida FRS funding model_functions.R") # only creates function - no live code
+
+
+
+
+# Actions -----------------------------------------------------------------
+
+#Get model inputs and assumptions
+source("Florida FRS model input.R") # only reads data and sets variable values - no functions
+source("Florida FRS benefit model_actions.R") # only creates objects - no functions
+#Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
+source("Florida FRS workforce model_get_and_save_wfdata.R") # only saves objects - no functions
+source("Florida FRS workforce model_get_saved_data.R") # only gets saved data - no functions
+# Get funding data
 source("Florida FRS funding model_actions.R") # only creates objects - no functions
+
 
 
 ##############################################TESTING############################################
