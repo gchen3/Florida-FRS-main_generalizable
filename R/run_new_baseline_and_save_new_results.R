@@ -35,6 +35,9 @@ newnames # almost 300 objects!; already sorted by name
 
 # get(objnames[119], envir=rws) # how to get an object from the workspace
 
+# run tests --------------------------------
+source(here::here("run_tests.R"))
+
 
 # get baseline_funding list old and new --------------------------------
 
