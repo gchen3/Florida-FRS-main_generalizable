@@ -15,6 +15,43 @@
 # retire_refund_ratio = retire_refund_ratio_
 # cal_factor = cal_factor_
 
+get_annuity_factor_table <- function(
+    mort_table,
+    salary_benefit_table,
+    dr_new, dr_current,
+    cola_tier_1_active_constant, cola_tier_1_active, cola_tier_2_active, cola_tier_3_active
+    ) {
+      #Survival Probability and Annuity Factor for active members
+  ann_factor_table <- mort_table %>% 
+    #Semi join the salary_benefit_able to reduce the size of the data that needs to be calculated
+    semi_join(salary_benefit_table, by = c("entry_year", "entry_age")) %>%
+    mutate(
+      dr = if_else(str_detect(tier_at_dist_age, "tier_3"), dr_new, dr_current),
+      yos_b4_2011 = pmin(pmax(2011 - entry_year, 0), yos),
+      cola = case_when(
+        #Tier 1 cola (current policy) = 3% * YOS before 2011 / Total YOS
+        str_detect(tier_at_dist_age, "tier_1") & cola_tier_1_active_constant == "no" ~ if_else(yos > 0, cola_tier_1_active * yos_b4_2011 / yos, 0),
+        str_detect(tier_at_dist_age, "tier_1") & cola_tier_1_active_constant == "yes" ~ cola_tier_1_active,
+        str_detect(tier_at_dist_age, "tier_2") ~ cola_tier_2_active,
+        str_detect(tier_at_dist_age, "tier_3") ~ cola_tier_3_active
+      )
+    ) %>% 
+    group_by(entry_year, entry_age, yos) %>% 
+    mutate(
+      cum_dr = cumprod(1 + lag(dr, default = 0)),
+      cum_mort = cumprod(1 - lag(mort_final, default = 0)),
+      cum_cola = cumprod(1 + lag(cola, default = 0)),
+      cum_mort_dr = cum_mort / cum_dr,
+      cum_mort_dr_cola = cum_mort_dr * cum_cola,
+      #ann_factor below is the annuity factor at distribution (retirement) age
+      ann_factor = rev(cumsum(rev(cum_mort_dr_cola))) / cum_mort_dr_cola
+    ) %>% 
+    ungroup()
+  
+  return(ann_factor_table)
+}
+
+
 get_salary_benefit_table <- function(class_name,
                                      entrant_profile_table,
                                      class_salary_growth_table,
@@ -53,6 +90,8 @@ get_salary_benefit_table <- function(class_name,
     ) %>% 
     ungroup() %>% 
     filter(!is.na(salary))
+  
+  return(salary_benefit_table)
 }
 
 
@@ -92,33 +131,13 @@ get_benefit_data <- function(
                                                    yos_range=yos_range_,
                                                    new_year=new_year_,
                                                    max_age=max_age_)
-  #Survival Probability and Annuity Factor for active members
-  ann_factor_table <- mort_table %>% 
-    #Semi join the salary_benefit_able to reduce the size of the data that needs to be calculated
-    semi_join(salary_benefit_table, by = c("entry_year", "entry_age")) %>%
-    mutate(
-      dr = if_else(str_detect(tier_at_dist_age, "tier_3"), dr_new, dr_current),
-      yos_b4_2011 = pmin(pmax(2011 - entry_year, 0), yos),
-      cola = case_when(
-        #Tier 1 cola (current policy) = 3% * YOS before 2011 / Total YOS
-        str_detect(tier_at_dist_age, "tier_1") & cola_tier_1_active_constant == "no" ~ if_else(yos > 0, cola_tier_1_active * yos_b4_2011 / yos, 0),
-        str_detect(tier_at_dist_age, "tier_1") & cola_tier_1_active_constant == "yes" ~ cola_tier_1_active,
-        str_detect(tier_at_dist_age, "tier_2") ~ cola_tier_2_active,
-        str_detect(tier_at_dist_age, "tier_3") ~ cola_tier_3_active
-      )
-    ) %>% 
-    group_by(entry_year, entry_age, yos) %>% 
-    mutate(
-      cum_dr = cumprod(1 + lag(dr, default = 0)),
-      cum_mort = cumprod(1 - lag(mort_final, default = 0)),
-      cum_cola = cumprod(1 + lag(cola, default = 0)),
-      cum_mort_dr = cum_mort / cum_dr,
-      cum_mort_dr_cola = cum_mort_dr * cum_cola,
-      #ann_factor below is the annuity factor at distribution (retirement) age
-      ann_factor = rev(cumsum(rev(cum_mort_dr_cola))) / cum_mort_dr_cola
-    ) %>% 
-    ungroup()
   
+  ann_factor_table <- get_annuity_factor_table(
+    mort_table,
+    salary_benefit_table,
+    dr_new, dr_current,
+    cola_tier_1_active_constant, cola_tier_1_active, cola_tier_2_active, cola_tier_3_active)
+
   #Survival Probability and Annuity Factor for current retirees
   ann_factor_retire_table <- mort_retire_table %>% 
     mutate(
