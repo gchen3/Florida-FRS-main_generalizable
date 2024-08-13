@@ -52,6 +52,13 @@ get_annuity_factor_table <- function(
 }
 
 
+get_class_salary_growth_table(salary_growth_table){
+  class_salary_growth_table <- salary_growth_table %>% 
+    select(yos, contains(class_name)) %>% 
+    rename(cumprod_salary_increase = 2)
+  return(class_salary_growth_table)
+}
+
 get_salary_benefit_table <- function(class_name,
                                      entrant_profile_table,
                                      class_salary_growth_table,
@@ -117,11 +124,9 @@ get_benefit_data <- function(
   assign("mort_table", get(paste0(class_name, "_mort_table")))
   assign("mort_retire_table", get(paste0(class_name, "_mort_retire_table")))
   assign("sep_rate_table", get(paste0(class_name, "_separation_rate_table")))
-  
-  class_salary_growth_table <- salary_growth_table %>% 
-    select(yos, contains(class_name)) %>% 
-    rename(cumprod_salary_increase = 2)
 
+  class_salary_growth_table <- get_class_salary_growth_table(salary_growth_table)
+  
   salary_benefit_table <- get_salary_benefit_table(class_name,
                                                    entrant_profile_table,
                                                    class_salary_growth_table,
