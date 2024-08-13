@@ -52,7 +52,7 @@ get_annuity_factor_table <- function(
 }
 
 
-get_class_salary_growth_table(salary_growth_table){
+get_class_salary_growth_table <- function(salary_growth_table){
   class_salary_growth_table <- salary_growth_table %>% 
     select(yos, contains(class_name)) %>% 
     rename(cumprod_salary_increase = 2)
