@@ -15,6 +15,33 @@
 # retire_refund_ratio = retire_refund_ratio_
 # cal_factor = cal_factor_
 
+get_annuity_factor_retire_table <- function(
+    mort_retire_table,
+    dr_current,
+    one_time_cola,
+    cola_current_retire,
+    cola_current_retire_one,
+    new_year) {
+  #Survival Probability and Annuity Factor for current retirees
+  ann_factor_retire_table <- mort_retire_table %>% 
+    mutate(
+      dr = dr_current,
+      cola_type = if_else(one_time_cola == TRUE, "one_time", "normal"),
+      cola = if_else(cola_type == "one_time", 
+                     if_else(year == new_year, cola_current_retire_one, 0),
+                     cola_current_retire)
+    ) %>% 
+    group_by(base_age) %>% 
+    mutate(
+      cum_dr = cumprod(1 + lag(dr, default = 0)),
+      cum_mort = cumprod(1 - lag(mort_final, default = 0)),
+      cum_mort_dr = cum_mort / cum_dr,
+      ann_factor_retire = annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = one_time_cola)
+    )
+  return(ann_factor_retire_table)
+}
+
+
 get_annuity_factor_table <- function(
     mort_table,
     salary_benefit_table,
@@ -51,115 +78,10 @@ get_annuity_factor_table <- function(
   return(ann_factor_table)
 }
 
-
-get_class_salary_growth_table <- function(salary_growth_table, class_name){
-  class_salary_growth_table <- salary_growth_table %>% 
-    select(yos, contains(class_name)) %>% 
-    rename(cumprod_salary_increase = 2)
-  return(class_salary_growth_table)
-}
-
-get_salary_benefit_table <- function(class_name,
-                                     entrant_profile_table,
-                                     class_salary_growth_table,
-                                     salary_headcount_table,
-                                     entry_year_range,
-                                     yos_range,
-                                     new_year,
-                                     max_age){
-  #Create a long-form table of entry year, entry age, and yos and merge with salary data
-  #Note that "age" in the salary_table is active age
-  # entry_age = entrant_profile_table$entry_age
-  salary_benefit_table <- expand_grid(entry_year = entry_year_range, 
-                                      entry_age = entrant_profile_table$entry_age, 
-                                      yos = yos_range) %>% 
-    mutate(
-      term_age = entry_age + yos,
-      # term_year = entry_year + yos,
-      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, new_year)
-    ) %>% 
-    filter(term_age <= max_age) %>% 
-    arrange(entry_year, entry_age, yos) %>% 
-    left_join(entrant_profile_table, by = "entry_age") %>% 
-    left_join(class_salary_growth_table, by = "yos") %>% 
-    #Join salary_head_count_table by entry_year and entry_age only to get historical entry_salary
-    left_join(salary_headcount_table %>% select(entry_year, entry_age, entry_salary), by = c("entry_year", "entry_age")) %>%
-    mutate(
-      salary = if_else(entry_year <= max(salary_headcount_table$entry_year), entry_salary * cumprod_salary_increase,
-                       start_sal * cumprod_salary_increase * (1 + payroll_growth_)^(entry_year - max(salary_headcount_table$entry_year))),
-      fas_period = if_else(str_detect(tier_at_term_age, "tier_1"), 5, 8)
-    ) %>% 
-    group_by(entry_year, entry_age) %>% 
-    mutate(
-      fas = baseR.rollmean(salary, fas_period),
-      db_ee_cont = db_ee_cont_rate_ * salary,
-      db_ee_balance = get_cum_fv(db_ee_interest_rate_, db_ee_cont),
-    ) %>% 
-    ungroup() %>% 
-    filter(!is.na(salary))
-  
-  return(salary_benefit_table)
-}
-
-
-get_benefit_data <- function(
-    class_name = class_name_,
-    dr_current = dr_current_,
-    dr_new = dr_new_,
-    cola_tier_1_active_constant = cola_tier_1_active_constant_,
-    cola_tier_1_active = cola_tier_1_active_,
-    cola_tier_2_active = cola_tier_2_active_,
-    cola_tier_3_active = cola_tier_3_active_,
-    cola_current_retire = cola_current_retire_,
-    cola_current_retire_one = cola_current_retire_one_,
-    one_time_cola = one_time_cola_,
-    retire_refund_ratio = retire_refund_ratio_,
-    cal_factor = cal_factor_,
-    salary_growth_table
-) {
-  
-  class_name <- str_replace(class_name, " ", "_")
-  
-  assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table")))
-  assign("salary_headcount_table", get(paste0(class_name, "_salary_headcount_table")))
-  assign("mort_table", get(paste0(class_name, "_mort_table")))
-  assign("mort_retire_table", get(paste0(class_name, "_mort_retire_table")))
-  assign("sep_rate_table", get(paste0(class_name, "_separation_rate_table")))
-
-  class_salary_growth_table <- get_class_salary_growth_table(salary_growth_table, class_name)
-  
-  salary_benefit_table <- get_salary_benefit_table(class_name,
-                                                   entrant_profile_table,
-                                                   class_salary_growth_table,
-                                                   salary_headcount_table,
-                                                   # caution these are globals
-                                                   entry_year_range=entry_year_range_,
-                                                   yos_range=yos_range_,
-                                                   new_year=new_year_,
-                                                   max_age=max_age_)
-  
-  ann_factor_table <- get_annuity_factor_table(
-    mort_table,
-    salary_benefit_table,
-    dr_new, dr_current,
-    cola_tier_1_active_constant, cola_tier_1_active, cola_tier_2_active, cola_tier_3_active)
-
-  #Survival Probability and Annuity Factor for current retirees
-  ann_factor_retire_table <- mort_retire_table %>% 
-    mutate(
-      dr = dr_current,
-      cola_type = if_else(one_time_cola == T, "one_time", "normal"),
-      cola = if_else(cola_type == "one_time", if_else(year == new_year_, cola_current_retire_one, 0),
-                     cola_current_retire)
-    ) %>% 
-    group_by(base_age) %>% 
-    mutate(
-      cum_dr = cumprod(1 + lag(dr, default = 0)),
-      cum_mort = cumprod(1 - lag(mort_final, default = 0)),
-      cum_mort_dr = cum_mort / cum_dr,
-      ann_factor_retire = annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = one_time_cola)
-    )
-
+get_benefit_table <- function(ann_factor_table, 
+                              salary_benefit_table,
+                              class_name,
+                              cal_factor){
   benefit_table <- ann_factor_table %>%
     mutate(
       term_age = entry_age + yos, .before = term_year,
@@ -278,8 +200,121 @@ get_benefit_data <- function(
       pvfb_db_at_term_age = db_benefit * ann_factor_term
       
     )
+  return(benefit_table)  
+}
 
- 
+
+get_class_salary_growth_table <- function(salary_growth_table, class_name){
+  class_salary_growth_table <- salary_growth_table %>% 
+    select(yos, contains(class_name)) %>% 
+    rename(cumprod_salary_increase = 2)
+  return(class_salary_growth_table)
+}
+
+get_salary_benefit_table <- function(class_name,
+                                     entrant_profile_table,
+                                     class_salary_growth_table,
+                                     salary_headcount_table,
+                                     entry_year_range,
+                                     yos_range,
+                                     new_year,
+                                     max_age){
+  #Create a long-form table of entry year, entry age, and yos and merge with salary data
+  #Note that "age" in the salary_table is active age
+  # entry_age = entrant_profile_table$entry_age
+  salary_benefit_table <- expand_grid(entry_year = entry_year_range, 
+                                      entry_age = entrant_profile_table$entry_age, 
+                                      yos = yos_range) %>% 
+    mutate(
+      term_age = entry_age + yos,
+      # term_year = entry_year + yos,
+      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, new_year)
+    ) %>% 
+    filter(term_age <= max_age) %>% 
+    arrange(entry_year, entry_age, yos) %>% 
+    left_join(entrant_profile_table, by = "entry_age") %>% 
+    left_join(class_salary_growth_table, by = "yos") %>% 
+    #Join salary_head_count_table by entry_year and entry_age only to get historical entry_salary
+    left_join(salary_headcount_table %>% select(entry_year, entry_age, entry_salary), by = c("entry_year", "entry_age")) %>%
+    mutate(
+      salary = if_else(entry_year <= max(salary_headcount_table$entry_year), entry_salary * cumprod_salary_increase,
+                       start_sal * cumprod_salary_increase * (1 + payroll_growth_)^(entry_year - max(salary_headcount_table$entry_year))),
+      fas_period = if_else(str_detect(tier_at_term_age, "tier_1"), 5, 8)
+    ) %>% 
+    group_by(entry_year, entry_age) %>% 
+    mutate(
+      fas = baseR.rollmean(salary, fas_period),
+      db_ee_cont = db_ee_cont_rate_ * salary,
+      db_ee_balance = get_cum_fv(db_ee_interest_rate_, db_ee_cont),
+    ) %>% 
+    ungroup() %>% 
+    filter(!is.na(salary))
+  
+  return(salary_benefit_table)
+}
+
+
+get_benefit_data <- function(
+    class_name = class_name_,
+    dr_current = dr_current_,
+    dr_new = dr_new_,
+    cola_tier_1_active_constant = cola_tier_1_active_constant_,
+    cola_tier_1_active = cola_tier_1_active_,
+    cola_tier_2_active = cola_tier_2_active_,
+    cola_tier_3_active = cola_tier_3_active_,
+    cola_current_retire = cola_current_retire_,
+    cola_current_retire_one = cola_current_retire_one_,
+    one_time_cola = one_time_cola_,
+    retire_refund_ratio = retire_refund_ratio_,
+    cal_factor = cal_factor_,
+    salary_growth_table
+) {
+  
+  class_name <- str_replace(class_name, " ", "_")
+  
+  assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table")))
+  assign("salary_headcount_table", get(paste0(class_name, "_salary_headcount_table")))
+  assign("mort_table", get(paste0(class_name, "_mort_table")))
+  assign("mort_retire_table", get(paste0(class_name, "_mort_retire_table")))
+  assign("sep_rate_table", get(paste0(class_name, "_separation_rate_table")))
+
+  class_salary_growth_table <- get_class_salary_growth_table(salary_growth_table, class_name)
+  
+  salary_benefit_table <- get_salary_benefit_table(class_name,
+                                                   entrant_profile_table,
+                                                   class_salary_growth_table,
+                                                   salary_headcount_table,
+                                                   # caution these are globals
+                                                   entry_year_range=entry_year_range_,
+                                                   yos_range=yos_range_,
+                                                   new_year=new_year_,
+                                                   max_age=max_age_)
+  
+  ann_factor_table <- get_annuity_factor_table(
+    mort_table,
+    salary_benefit_table,
+    dr_new, 
+    dr_current,
+    cola_tier_1_active_constant,
+    cola_tier_1_active, 
+    cola_tier_2_active, 
+    cola_tier_3_active)
+
+  ann_factor_retire_table <- get_annuity_factor_retire_table(
+    mort_retire_table,
+    dr_current,
+    one_time_cola,
+    cola_current_retire,
+    cola_current_retire_one,
+    new_year=new_year_ # note GLOBAL
+  )
+  
+  benefit_table <- get_benefit_table(
+    ann_factor_table,
+    salary_benefit_table,
+    class_name,
+    cal_factor)
+
   #Determine the ultimate distribution age for each member (the age when they're assumed to retire/get a refund, given their termination age)
   dist_age_table <- benefit_table %>% 
     group_by(entry_year, entry_age, term_age) %>% 
@@ -304,8 +339,7 @@ get_benefit_data <- function(
       db_benefit = if_else(is.na(db_benefit), 0, db_benefit),
       pvfb_db_at_term_age = if_else(is.na(pvfb_db_at_term_age), 0, pvfb_db_at_term_age)
     )
-  
-  ##################################################################################################
+
   
   ####### Benefit Accrual & Normal Cost #######
   
