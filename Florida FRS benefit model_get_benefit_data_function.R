@@ -15,6 +15,33 @@
 # retire_refund_ratio = retire_refund_ratio_
 # cal_factor = cal_factor_
 
+get_annuity_factor_retire_table <- function(
+    mort_retire_table,
+    dr_current,
+    one_time_cola,
+    cola_current_retire,
+    cola_current_retire_one,
+    new_year) {
+  #Survival Probability and Annuity Factor for current retirees
+  ann_factor_retire_table <- mort_retire_table %>% 
+    mutate(
+      dr = dr_current,
+      cola_type = if_else(one_time_cola == TRUE, "one_time", "normal"),
+      cola = if_else(cola_type == "one_time", 
+                     if_else(year == new_year, cola_current_retire_one, 0),
+                     cola_current_retire)
+    ) %>% 
+    group_by(base_age) %>% 
+    mutate(
+      cum_dr = cumprod(1 + lag(dr, default = 0)),
+      cum_mort = cumprod(1 - lag(mort_final, default = 0)),
+      cum_mort_dr = cum_mort / cum_dr,
+      ann_factor_retire = annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = one_time_cola)
+    )
+  return(ann_factor_retire_table)
+}
+
+
 get_annuity_factor_table <- function(
     mort_table,
     salary_benefit_table,
@@ -141,24 +168,21 @@ get_benefit_data <- function(
   ann_factor_table <- get_annuity_factor_table(
     mort_table,
     salary_benefit_table,
-    dr_new, dr_current,
-    cola_tier_1_active_constant, cola_tier_1_active, cola_tier_2_active, cola_tier_3_active)
+    dr_new, 
+    dr_current,
+    cola_tier_1_active_constant,
+    cola_tier_1_active, 
+    cola_tier_2_active, 
+    cola_tier_3_active)
 
-  #Survival Probability and Annuity Factor for current retirees
-  ann_factor_retire_table <- mort_retire_table %>% 
-    mutate(
-      dr = dr_current,
-      cola_type = if_else(one_time_cola == T, "one_time", "normal"),
-      cola = if_else(cola_type == "one_time", if_else(year == new_year_, cola_current_retire_one, 0),
-                     cola_current_retire)
-    ) %>% 
-    group_by(base_age) %>% 
-    mutate(
-      cum_dr = cumprod(1 + lag(dr, default = 0)),
-      cum_mort = cumprod(1 - lag(mort_final, default = 0)),
-      cum_mort_dr = cum_mort / cum_dr,
-      ann_factor_retire = annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = one_time_cola)
-    )
+  ann_factor_retire_table <- get_annuity_factor_retire_table(
+    mort_retire_table,
+    dr_current,
+    one_time_cola,
+    cola_current_retire,
+    cola_current_retire_one,
+    new_year=new_year_ # note GLOBAL
+  )
 
   benefit_table <- ann_factor_table %>%
     mutate(

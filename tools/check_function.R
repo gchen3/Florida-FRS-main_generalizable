@@ -16,6 +16,8 @@ fun <- get_early_retire_rate_table
 
 fun <- get_separation_table
 
+fun <- get_annuity_factor_retire_table
+
 codetools::checkUsage(fun)
 
 codetools::findGlobals(fun, merge = FALSE)
