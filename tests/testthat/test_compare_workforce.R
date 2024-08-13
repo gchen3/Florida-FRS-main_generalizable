@@ -2,7 +2,7 @@
 
 # library(testthat)
 
-cat("\n")
+cat("\n\n")
 print("running workforce data tests")
 
 classes <- c("regular", "special", "admin", "eco", "eso", "judges", "senior_management")

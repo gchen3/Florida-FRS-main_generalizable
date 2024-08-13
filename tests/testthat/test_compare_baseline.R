@@ -4,6 +4,7 @@
 
 cat("\n\n")
 print("running baseline results tests")
+cat("\n")
 
 test_that("Compare baseline_funding expect_equal", {
   objname <- "baseline_funding"

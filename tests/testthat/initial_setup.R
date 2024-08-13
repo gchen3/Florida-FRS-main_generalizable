@@ -10,6 +10,7 @@ load(oldpath, oldws <- new.env())
 newpath <- here::here("new_results", "new_workspace.RData")
 load(newpath, newws <- new.env())
 
+cat("\n")
 print("ready to begin tests...")
 
 # Schedule cleanup of the old environment

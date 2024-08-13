@@ -7,7 +7,7 @@ print("running separation-rate table tests")
 
 classes <- c("regular", "special", "admin", "eco", "eso", "judges", "senior_management")
 
-cat("\n\n")
+cat("\n")
 print("separation-rate table tests")
 
 test_that(" separation-rate table matches Reason",{
