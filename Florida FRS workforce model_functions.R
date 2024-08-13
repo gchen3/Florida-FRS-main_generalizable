@@ -29,8 +29,6 @@ get_wf_data <- function(
     salary_growth_table
 ) {
   
-  #Get benefit data
-  browser()
   benefit_data <- get_benefit_data(
     class_name = class_name,
     dr_current = dr_current,
@@ -43,7 +41,7 @@ get_wf_data <- function(
     one_time_cola = one_time_cola,
     retire_refund_ratio = retire_refund_ratio,
     cal_factor = cal_factor,
-    salary_growth_table
+    salary_growth_table=salary_growth_table
   )
   
   class_name <- str_replace(class_name, " ", "_")
@@ -51,8 +49,7 @@ get_wf_data <- function(
   assign("salary_headcount_table", get(paste0(class_name, "_salary_headcount_table")))
   assign("mort_table", get(paste0(class_name, "_mort_table")))
   assign("separation_rate_table", get(paste0(class_name, "_separation_rate_table")))
-  
-  
+
   
   #Initialize empty workforce projection arrays
   entry_age_range <- entrant_profile_table$entry_age
