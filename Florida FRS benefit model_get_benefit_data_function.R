@@ -211,6 +211,25 @@ get_class_salary_growth_table <- function(salary_growth_table, class_name){
   return(class_salary_growth_table)
 }
 
+get_dist_age_table <- function(benefit_table){
+  #Determine the ultimate distribution age for each member (the age when they're assumed to retire/get a refund, given their termination age)
+  dist_age_table <- benefit_table %>% 
+    group_by(entry_year, entry_age, term_age) %>% 
+    summarise(
+      earliest_norm_retire_age = n() - sum(is_norm_retire_elig) + min(dist_age),
+      term_status = tier_at_term_age[1]
+    ) %>% 
+    ungroup() %>%
+    mutate(
+      dist_age = if_else(
+        str_detect(term_status, "vested") & !str_detect(term_status, "non_vested"), earliest_norm_retire_age, term_age
+      )
+    ) %>% 
+    select(entry_year, entry_age, term_age, dist_age)
+  
+  return(dist_age_table)
+}
+
 get_salary_benefit_table <- function(class_name,
                                      entrant_profile_table,
                                      class_salary_growth_table,
@@ -315,20 +334,7 @@ get_benefit_data <- function(
     class_name,
     cal_factor)
 
-  #Determine the ultimate distribution age for each member (the age when they're assumed to retire/get a refund, given their termination age)
-  dist_age_table <- benefit_table %>% 
-    group_by(entry_year, entry_age, term_age) %>% 
-    summarise(
-      earliest_norm_retire_age = n() - sum(is_norm_retire_elig) + min(dist_age),
-      term_status = tier_at_term_age[1]
-    ) %>% 
-    ungroup() %>%
-    mutate(
-      dist_age = if_else(
-        str_detect(term_status, "vested") & !str_detect(term_status, "non_vested"), earliest_norm_retire_age, term_age
-        )
-    ) %>% 
-    select(entry_year, entry_age, term_age, dist_age)
+  dist_age_table <- get_dist_age_table(benefit_table)
   
   #Retain only the final distribution ages in the final_benefit_table
   final_benefit_table <- benefit_table %>% 
