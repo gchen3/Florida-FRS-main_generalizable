@@ -1,4 +1,4 @@
-# tests/testthat/setup.R
+# tests/initial_stuff.R
 
 print("loading the Reason results and new results environments...")
 
@@ -9,6 +9,8 @@ load(oldpath, oldws <- new.env())
 # Load the new workspace environment
 newpath <- here::here("new_results", "new_workspace.RData")
 load(newpath, newws <- new.env())
+
+print("ready to begin tests...")
 
 # Schedule cleanup of the old environment
 # withr::defer({
@@ -21,5 +23,3 @@ load(newpath, newws <- new.env())
 #   rm(list = ls(envir = newws), envir = newws)
 #   rm(newws)
 # }, envir = globalenv())
-
-print("ready to begin tests...")
