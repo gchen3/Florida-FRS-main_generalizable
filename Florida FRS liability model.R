@@ -48,7 +48,8 @@ get_liability_data <- function(
     cola_current_retire_one = cola_current_retire_one,
     one_time_cola = one_time_cola,
     retire_refund_ratio = retire_refund_ratio,
-    cal_factor = cal_factor)
+    cal_factor = cal_factor,
+    salary_growth_table)
   
   
   class_name <- str_replace(class_name, " ", "_")
