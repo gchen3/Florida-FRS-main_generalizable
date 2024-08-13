@@ -1,17 +1,20 @@
 # run_tests.R
 
 library(testthat)
+options(testthat.edition = 3)
 
 run_tests <- function() {
   # Load setup once
-  source("tests/testthat/initial_setup.R")
+  source(here::here("tests", "testthat", "initial_setup.R"))
 
   # Run tests
-  test_file("tests/testthat/test_compare_baseline.R")
-  test_file("tests/testthat/test_compare_salary_headcount.R")
-  test_file("tests/testthat/test_compare_mortality.R")
-  test_file("tests/testthat/test_compare_separation.R")
-  cat("\n\n")
+  # reporters: ListReporter, ProgressReporter, SummaryReporter, TapReporter, JunitReporter, CheckReporter
+  test_file("tests/testthat/test_compare_baseline.R", reporter = CompactProgressReporter)
+  test_file("tests/testthat/test_compare_salary_headcount_entrants_profile.R", reporter = CompactProgressReporter)
+  test_file("tests/testthat/test_compare_mortality.R", reporter = CompactProgressReporter)
+  test_file("tests/testthat/test_compare_separation.R", reporter = CompactProgressReporter)
+  test_file("tests/testthat/test_compare_workforce.R", reporter = CompactProgressReporter)
+  cat("\n")
   # Add more test files as needed
 }
 

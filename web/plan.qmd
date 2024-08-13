@@ -16,9 +16,12 @@ editor_options:
     -   DONE - Rename "Florida FRS workforce model.R" to "Florida FRS workforce model_functions.R" and create separate files for creating and saving workforce data, and for loading previously saved workforce data
     -   DONE - restructure "Florida FRS master.R" so that all functions are loaded, then constants loaded, then objects are created
 
--   Localize all functions - make sure all data used in functions is passed in as arguments
+-   Localize all functions - make sure all data used in functions is passed in as arguments, no reliance on global variables
     -   DONE - localize get_salary_headcount_table() function and eliminate duplicate calls
-    -   localize get_tier()
+    -   DONE - localize get_tier()
+    -   DONE - localize get_separation_table
+    -   break up get_benefit_data to make localization easier
+    
 
 -   Isolate constants
 -   Modularize - break large functions into smaller pieces

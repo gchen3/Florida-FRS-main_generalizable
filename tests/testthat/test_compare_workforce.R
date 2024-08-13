@@ -1,18 +1,18 @@
-# tests/testthat/test_compare_separation.R
+# tests/testthat/test_compare_workforce.R
 
 # library(testthat)
 
-cat("\n")
-print("running separation-rate table tests")
+cat("\n\n")
+print("running workforce data tests")
 
 classes <- c("regular", "special", "admin", "eco", "eso", "judges", "senior_management")
 
-cat("\n")
-print("separation-rate table tests")
+cat("\n\n")
+print("wf_data table tests")
 
-test_that(" separation-rate table matches Reason",{
+test_that(" wf_data table matches Reason",{
   walk(classes, function(class) {
-    objname <- paste0(class, "_separation_rate_table")
+    objname <- paste0(class, "_wf_data")
     cat("\nTesting object: ", objname, "\n")
     old_object <- get(objname, envir = oldws)
     new_object <- get(objname, envir = newws)
