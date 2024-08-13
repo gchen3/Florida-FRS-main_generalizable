@@ -15,6 +15,47 @@
 # retire_refund_ratio = retire_refund_ratio_
 # cal_factor = cal_factor_
 
+get_salary_benefit_table <- function(class_name,
+                                     entrant_profile_table,
+                                     class_salary_growth_table,
+                                     salary_headcount_table,
+                                     entry_year_range,
+                                     yos_range,
+                                     new_year,
+                                     max_age){
+  #Create a long-form table of entry year, entry age, and yos and merge with salary data
+  #Note that "age" in the salary_table is active age
+  # entry_age = entrant_profile_table$entry_age
+  salary_benefit_table <- expand_grid(entry_year = entry_year_range, 
+                                      entry_age = entrant_profile_table$entry_age, 
+                                      yos = yos_range) %>% 
+    mutate(
+      term_age = entry_age + yos,
+      # term_year = entry_year + yos,
+      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, new_year)
+    ) %>% 
+    filter(term_age <= max_age) %>% 
+    arrange(entry_year, entry_age, yos) %>% 
+    left_join(entrant_profile_table, by = "entry_age") %>% 
+    left_join(class_salary_growth_table, by = "yos") %>% 
+    #Join salary_head_count_table by entry_year and entry_age only to get historical entry_salary
+    left_join(salary_headcount_table %>% select(entry_year, entry_age, entry_salary), by = c("entry_year", "entry_age")) %>%
+    mutate(
+      salary = if_else(entry_year <= max(salary_headcount_table$entry_year), entry_salary * cumprod_salary_increase,
+                       start_sal * cumprod_salary_increase * (1 + payroll_growth_)^(entry_year - max(salary_headcount_table$entry_year))),
+      fas_period = if_else(str_detect(tier_at_term_age, "tier_1"), 5, 8)
+    ) %>% 
+    group_by(entry_year, entry_age) %>% 
+    mutate(
+      fas = baseR.rollmean(salary, fas_period),
+      db_ee_cont = db_ee_cont_rate_ * salary,
+      db_ee_balance = get_cum_fv(db_ee_interest_rate_, db_ee_cont),
+    ) %>% 
+    ungroup() %>% 
+    filter(!is.na(salary))
+}
+
+
 get_benefit_data <- function(
     class_name = class_name_,
     dr_current = dr_current_,
@@ -42,35 +83,15 @@ get_benefit_data <- function(
     select(yos, contains(class_name)) %>% 
     rename(cumprod_salary_increase = 2)
 
-  #Create a long-form table of entry year, entry age, and yos and merge with salary data
-  #Note that "age" in the salary_table is active age
-  salary_benefit_table <- expand_grid(entry_year = entry_year_range_, entry_age = entrant_profile_table$entry_age, yos = yos_range_) %>% 
-    mutate(
-      term_age = entry_age + yos,
-      # term_year = entry_year + yos,
-      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, new_year_)
-      ) %>% 
-    filter(term_age <= max_age_) %>% 
-    arrange(entry_year, entry_age, yos) %>% 
-    left_join(entrant_profile_table, by = "entry_age") %>% 
-    left_join(class_salary_growth_table, by = "yos") %>% 
-    #Join salary_head_count_table by entry_year and entry_age only to get historical entry_salary
-    left_join(salary_headcount_table %>% select(entry_year, entry_age, entry_salary), by = c("entry_year", "entry_age")) %>%
-    mutate(
-      salary = if_else(entry_year <= max(salary_headcount_table$entry_year), entry_salary * cumprod_salary_increase,
-                       start_sal * cumprod_salary_increase * (1 + payroll_growth_)^(entry_year - max(salary_headcount_table$entry_year))),
-      fas_period = if_else(str_detect(tier_at_term_age, "tier_1"), 5, 8)
-    ) %>% 
-    group_by(entry_year, entry_age) %>% 
-    mutate(
-      fas = baseR.rollmean(salary, fas_period),
-      db_ee_cont = db_ee_cont_rate_ * salary,
-      db_ee_balance = get_cum_fv(db_ee_interest_rate_, db_ee_cont),
-    ) %>% 
-    ungroup() %>% 
-    filter(!is.na(salary))
-
-  
+  salary_benefit_table <- get_salary_benefit_table(class_name,
+                                                   entrant_profile_table,
+                                                   class_salary_growth_table,
+                                                   salary_headcount_table,
+                                                   # caution these are globals
+                                                   entry_year_range=entry_year_range_,
+                                                   yos_range=yos_range_,
+                                                   new_year=new_year_,
+                                                   max_age=max_age_)
   #Survival Probability and Annuity Factor for active members
   ann_factor_table <- mort_table %>% 
     #Semi join the salary_benefit_able to reduce the size of the data that needs to be calculated
