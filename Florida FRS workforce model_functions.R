@@ -25,10 +25,12 @@ get_wf_data <- function(
     cola_current_retire_one = cola_current_retire_one_,
     one_time_cola = one_time_cola_,
     retire_refund_ratio = retire_refund_ratio_,
-    cal_factor = cal_factor_
+    cal_factor = cal_factor_,
+    salary_growth_table
 ) {
   
   #Get benefit data
+  browser()
   benefit_data <- get_benefit_data(
     class_name = class_name,
     dr_current = dr_current,
