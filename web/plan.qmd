@@ -42,6 +42,7 @@ Make sure all data used in functions is passed in as arguments, no reliance on g
 -   DONE - localize get_benefit_data except for assign statements (TO BE VERIFIED 100%)
 
 -   separate get_wf_data (in "Florida FRS workforce model_functions.R") into smaller functions
+    -   DONE - moved workforce array loop to separate function
 
 -   localize workforce model functions
 

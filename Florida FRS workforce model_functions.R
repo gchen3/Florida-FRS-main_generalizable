@@ -179,19 +179,6 @@ get_wf_data <- function(
   active_int_matrix <- xtabs(count ~ entry_age + age, active_int_df) # should we store this as a sparse array?
   
   wf_active[,,1] <- active_int_matrix # djb: wf_active dimensions are entry_age x age x year -- so fill in first year (2022) wf_active[,,"2022"]
-  
-  # active_int_pop <- c(2000, 8000, 8000, 7000, 8000, 9000, 8000, 7000, 6000, 5000)
-  # 
-  # active_int_ea <- data.frame(ea = SalaryEntry$entry_age, age = SalaryEntry$entry_age, n_active = active_int_pop)
-  # 
-  # active_int <- expand_grid(ea, age) %>% 
-  #   left_join(active_int_ea) %>% 
-  #   replace(is.na(.), 0) %>% 
-  #   pivot_wider(names_from = age, values_from = n_active) %>% 
-  #   select(-1)
-  # 
-  # wf_active[,,1] <- as.matrix(active_int)
-  
 
   # Create probability arrays ----
   
@@ -270,59 +257,21 @@ get_wf_data <- function(
   
   refund_array <- xtabs(refund ~ entry_age + age + year + term_year, refund_df)
   
-  # Transition matrix to shift the population to the right by 1 age after 1 year ----
-  
-  #  TM <-  diag(length(age_range) + 1)[-1, -(length(age_range) + 1)] 
-  
-  # Workforce projection loop ----
-  # for (i in 2:length(year_range)) {
-  #   active2term <- wf_active[,,i-1] * sep_array[,,i-1]   #calculate the # of newly terminated actives. 2-dimensional array
-  #   
-  #   wf_active[,,i] <- (wf_active[,,i-1] - active2term) %*% TM  #deduct terminated members from the active workforce and shift the wf_active matrix to the right by one year
-  #   
-  #   new_entrants <- add_new_entrants(g = pop_growth_, ne_dist = entrant_profile_table$entrant_dist, wf1 = wf_active[,,i-1],
-  #                                    wf2 = wf_active[,,i], ea = entry_age_range, age = age_range, position_matrix = position_matrix)  #new entrants matrix to be added to the active workforce
-  # 
-  #   wf_active[,,i] = wf_active[,,i] + new_entrants  #add new entrants
-  #   
-  #   term2death <- wf_term[,,i-1,] * mort_array_term[,,i-1,] #3-dimensional array
-  #   
-  #   wf_term[,,i,] <- apply(wf_term[,,i-1,] - term2death, 3, function(x) x %*% TM) %>% array(term_dim[-3]) 
-  #   
-  #   wf_term[,,i,i] <- active2term %*% TM   #add newly terminated members the term population
-  #   
-  #   term2refund <- wf_term[,,i,i] * refund_array[,,i,i]  #calculate the # of newly refunded members. 2-dimensional array
-  #   
-  #   wf_term[,,i,i] <- wf_term[,,i,i] - term2refund
-  #   
-  #   wf_refund[,,i,i] <- term2refund
-  #   
-  #   term2retire <- wf_term[,,i,] * retire_array[,,i,]  #calculate the # of newly retired members. 3-dimensional array
-  #   
-  #   wf_term[,,i,] <- wf_term[,,i,] - term2retire
-  #   
-  #   retire2death <- apply(wf_retire[,,i-1,,], 4, function(x) x * mort_array_term[,,i-1,]) %>% array(retire_dim[-3])   #4-dimensional array
-  #   
-  #   wf_retire[,,i,,] <- apply(wf_retire[,,i-1,,] - retire2death, c(3,4), function(x) x %*% TM) %>% array(retire_dim[-3])
-  #   
-  #   wf_retire[,,i,,i] <- term2retire
-  #   
-  # }
-  
   a <- proc.time()
-  alist <- loop_through_arrays(wf_active,
-                               wf_term, 
-                               wf_refund, 
-                               wf_retire,
-                               mort_array_term,
-                               sep_array,
-                               retire_array,
-                               refund_array,
-                               age_range,
-                               entry_age_range,
-                               year_range,
-                               entrant_profile_table,
-                               pop_growth=pop_growth_)  # djb: !!GLOBAL!!
+  array_list <- loop_through_arrays(
+    wf_active,
+    wf_term, 
+    wf_refund, 
+    wf_retire,
+    mort_array_term,
+    sep_array,
+    retire_array,
+    refund_array,
+    age_range,
+    entry_age_range,
+    year_range,
+    entrant_profile_table,
+    pop_growth=pop_growth_)  # djb: !!GLOBAL!!
   b <- proc.time()
   cat("\nloop_through_arrays user system elapsed: ", b - a)
     
