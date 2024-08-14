@@ -6,25 +6,76 @@ editor_options:
 
 # Preliminary plan for generalizing the Reason FRS Model
 
+The ultimate goal of this part of the project is to have a generalized model using FRS data in a common consistent format (format that could be created for other plans, too) that (1) can reproduce the results of the Reason FRS model, but (2) can also be extended to other plans. See the section below on "End goal: Revamp structure into packages" for more information on this.
+
+After the Reason FRS model is generalized and can be adapted for other models, we'll also look for improvements and extensions that will benefit modeling of other plans.
+
+## Setup to prepare for generalization
+
 -   DONE - Modify FRS to make sure it runs on Windows (change number of cores)
 -   DONE - Save ALL Reason results from baseline run
 -   DONE - Establish initial tests to see whether the model as modified reproduces Reason baseline results
 
--   Separate functions from action -- make sure that all sourced files before running the model are functions. Then load constants and let functions do the action.
-    -   DONE - Separate "Florida FRS benefit model.R" into separate files for functions and actions
-    -   DONE - Separate "Florida FRS funding model.R" into separate files for functions and actions
-    -   DONE - Rename "Florida FRS workforce model.R" to "Florida FRS workforce model_functions.R" and create separate files for creating and saving workforce data, and for loading previously saved workforce data
-    -   DONE - restructure "Florida FRS master.R" so that all functions are loaded, then constants loaded, then objects are created
+## Separate functions from action
 
--   Localize all functions - make sure all data used in functions is passed in as arguments, no reliance on global variables
-    -   DONE - localize get_salary_headcount_table() function and eliminate duplicate calls
-    -   DONE - localize get_tier()
-    -   DONE - localize get_separation_table
-    
-    -   DONE - break up get_benefit_data to make localization easier
-    -   **TODO** - get rid of all assign statements, after other files are localized
-    
+Make sure that all files that are sourced before running the model contain only functions.
 
--   Isolate constants
--   Modularize - break large functions into smaller pieces
--   Restructure data to be generalizable - e.g., stacked data frames in a common format
+After functions are sourced, load constants and then call functions to do the action.
+
+-   DONE - Separate "Florida FRS benefit model.R" into separate files for functions and actions
+-   DONE - Separate "Florida FRS funding model.R" into separate files for functions and actions
+-   DONE - Rename "Florida FRS workforce model.R" to "Florida FRS workforce model_functions.R" and create separate files for creating and saving workforce data, and for loading previously saved workforce data
+-   DONE - restructure "Florida FRS master.R" so that all functions are loaded, then constants loaded, then objects are created
+
+## Localize all functions
+
+Make sure all data used in functions is passed in as arguments, no reliance on global variables
+
+-   DONE - localize get_salary_headcount_table() function and eliminate duplicate calls
+
+-   DONE - localize get_tier()
+
+-   DONE - localize get_separation_table
+
+-   DONE - break up get_benefit_data to make localization easier
+
+-   DONE - localize get_benefit_data except for assign statements (TO BE VERIFIED 100%)
+
+-   separate get_wf_data (in "Florida FRS workforce model_functions.R") into smaller functions
+
+-   localize workforce model functions
+
+-   **TODO** - get rid of all assign statements, after other files are localized
+
+## Organize and isolate constants
+
+Separate constants into 2 categories: (1) plan-specific constants, such as targets for calibrating a model.
+
+## Restructure data to be generalizable
+
+Rewrite many functions to use stacked data frames in a common format.
+
+## Code streamlining
+
+Go back and do a review of code to look for opportunities to avoid duplication.
+
+## End goal: Revamp structure into packages
+
+The goal is to have 3 packages:
+
+-   `pentools` -- actuarial and other functions that might be needed in creating data or models
+-   `pendata` -- restructures indiosyncratic system-specific pension data into common, consistent formats that can be used in a pension model.
+        -   Plan-specific calibration steps should occur here.
+        -   Converting workforce data to annual data, rather than, for example, data in 5-year increments should be done here, too.
+-   `penmodel` -- model that uses the data created by pendata
+
+This will require further generalization in order to deal with as many idiosyncrasies of individual plans as possible.
+
+There will be some issues to consider regarding which data should be included in pendata vs. what should be developed in penmodel. In general, pendata should have data that does not change (pretty much ever), but penmodel may develop additional data based on the raw elements in pendata. We want penmodel to be flexible enough to modify data if we consider the change to be a policy choice or an important actuarial decision. For example, pendata should have mortality tables for individual plans as well as standard actuarial tables (e.g., RP-2014), and it also should have mortality improvement scales (standard scales should as those maintained by the Society of Actuaries). However, we probably should not created improved mortality tables in pendata. Rather, penmodel should have the ability to use the mortality tables and mortality improvement scales in pendata to create improved mortality tables for a specific plan, using tools in pentools that are available to both pendata and penmodel.
+
+## Follow-on work
+
+Once we have a preliminary generalized model, there will be additional steps:
+
+-   Improved methods, where appropriate
+-   Add features so that it can be extended to other plans
