@@ -2,6 +2,140 @@
 
 # workforce helper functions --------------------------------------------------------
 
+initialize_arrays <- function(
+    age_range,
+    entry_age_range,
+    year_range,
+    term_year_range,
+    retire_year_range,
+    salary_headcount_table,
+    mort_table,
+    separation_rate_table,
+    benefit_val_table,
+    retire_refund_ratio
+    ){
+  # Define array dimensions and names ----
+  active_dim <- c(length(entry_age_range), length(age_range), length(year_range))
+  active_dim_names <- list(entry_age = entry_age_range, 
+                           age = age_range, 
+                           year = year_range)
+  
+  term_dim <- c(length(entry_age_range), length(age_range), length(year_range), length(term_year_range))
+  term_dim_names <- list(entry_age = entry_age_range, 
+                         age = age_range, 
+                         year = year_range, 
+                         term_year = term_year_range)
+  
+  retire_dim <- c(length(entry_age_range), length(age_range), length(year_range), length(term_year_range), length(retire_year_range))
+  retire_dim_names <- list(entry_age = entry_age_range,
+                           age = age_range, 
+                           year = year_range, 
+                           term_year = term_year_range, 
+                           retire_year = retire_year_range)
+  
+  wf_active <- array(0, dim = active_dim, dimnames = active_dim_names)
+  wf_term <- array(0, dim = term_dim, dimnames = term_dim_names)
+  wf_refund <- wf_term
+  wf_retire <- array(0, dim = retire_dim, dimnames = retire_dim_names)
+  
+  # Initial active population ----
+  active_int_df <- expand_grid(entry_age = entry_age_range, 
+                               age = age_range) %>%
+    left_join(salary_headcount_table, by = c("entry_age", "age")) %>%
+    replace(is.na(.), 0) %>%
+    select(entry_age, age, count)
+  
+  active_int_matrix <- xtabs(count ~ entry_age + age, active_int_df) # should we store this as a sparse array?
+  
+  wf_active[,,1] <- active_int_matrix # djb: wf_active dimensions are entry_age x age x year -- so fill in first year (2022) wf_active[,,"2022"]
+  
+  # Create probability arrays ----
+  
+  #.. Mortality probability array (4 dimensions: entry_age, age, year, term_year) ----
+  mort_df_term <- expand_grid(entry_age = entry_age_range,
+                              age = age_range, 
+                              year = year_range, 
+                              term_year = term_year_range) %>% 
+    left_join(mort_table, by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year")) %>% 
+    mutate(mort = if_else(is.na(mort_final), 0, mort_final))
+  
+  mort_array_term <- xtabs(mort ~ entry_age + age + year + term_year, mort_df_term)
+  
+  #.. Separation probability array (3 dimensions: entry_age, age, year) ----
+  sep_df <- expand_grid(entry_age = entry_age_range,
+                        age = age_range, 
+                        year = year_range) %>% 
+    mutate(entry_year = year - (age - entry_age)) %>% 
+    left_join(separation_rate_table, by = c("entry_age", "age" = "term_age", "entry_year")) %>% 
+    select(entry_age, age, year, separation_rate) %>% 
+    mutate(separation_rate = if_else(is.na(separation_rate), 0, separation_rate))
+  
+  sep_array <- xtabs(separation_rate ~ entry_age + age + year, sep_df)
+  
+  #.. Refund and retirement probability arrays ----
+  
+  optimal_retire <- benefit_val_table %>% 
+    # rename(term_age = Age) %>% 
+    select(entry_year, entry_age, term_age, yos, dist_age, ben_decision) %>% 
+    mutate(refund = case_when(ben_decision == "refund" ~ 1,     # use case_when instead of ifelse to handle NA values better
+                              ben_decision == "mix" ~ 1 - retire_refund_ratio,
+                              .default = 0),
+           retire = case_when(ben_decision == "retire" ~ 1,
+                              ben_decision == "mix" ~ 1,
+                              .default = 0),
+           refund_age = term_age)
+  
+  #.... Retire probability array (4 dimensions: entry_age, age, year, term_year) ----
+  retire_df <- expand_grid(entry_age = entry_age_range,
+                           age = age_range, 
+                           year = year_range, 
+                           term_year = term_year_range) %>% 
+    mutate(
+      entry_year = year - (age - entry_age),
+      term_age = age - (year - term_year),
+      yos = term_age - entry_age) %>% 
+    filter(year - term_year >= 0, yos >= 0) %>% 
+    left_join(optimal_retire, by = c("entry_age",
+                                     "age" = "dist_age",
+                                     "entry_year",
+                                     "term_age",
+                                     "yos")) %>% 
+    mutate(retire = if_else(is.na(retire), 0, retire))
+  
+  retire_array <- xtabs(retire ~ entry_age + age + year + term_year, retire_df) 
+  
+  #.... Refund probability array (4 dimensions: entry_age, age, year, term_year) ----
+  # Note that employees get refunds in the same year they get terminated.
+  refund_df <- expand_grid(entry_age = entry_age_range,
+                           age = age_range, 
+                           year = year_range, 
+                           term_year = term_year_range) %>% 
+    mutate(
+      entry_year = year - (age - entry_age),
+      term_age = age - (year - term_year),
+      yos = term_age - entry_age
+    ) %>% 
+    filter(year - term_year >= 0, yos >= 0) %>% 
+    left_join(optimal_retire, by = c("entry_age",
+                                     "age" = "refund_age",
+                                     "entry_year",
+                                     "term_age",
+                                     "yos")) %>% 
+    mutate(refund = if_else(is.na(refund), 0, refund))
+  # djb: is there any reason we shouldn't combine retire_df and refund_df? same structure and methods; wide or stacked
+  
+  refund_array <- xtabs(refund ~ entry_age + age + year + term_year, refund_df)
+  
+  return(list(wf_active=wf_active,
+              wf_term=wf_term, 
+              wf_refund=wf_refund, 
+              wf_retire=wf_retire,
+              mort_array_term=mort_array_term,
+              sep_array=sep_array,
+              retire_array=retire_array,
+              refund_array=refund_array))
+}
+
 
 loop_through_arrays <- function(wf_active,
                                 wf_term, 
@@ -141,121 +275,31 @@ get_wf_data <- function(
   assign("salary_headcount_table", get(paste0(class_name, "_salary_headcount_table")))
   assign("mort_table", get(paste0(class_name, "_mort_table")))
   assign("separation_rate_table", get(paste0(class_name, "_separation_rate_table")))
-
   
-  # Initialize empty workforce projection arrays ----
+  # Get age, entry_age, year, term_year, and retire_year ranges needed for array initialization ----
   entry_age_range <- entrant_profile_table$entry_age # djb: note that there are gaps in these ages
   age_range <- min(entry_age_range):max(age_range_)
   year_range <- start_year_:(start_year_ + model_period_)   #test now, fix this later
   term_year_range <- year_range
   retire_year_range <- year_range
   
-  # Define array dimensions and names ----
-  active_dim <- c(length(entry_age_range), length(age_range), length(year_range))
-  active_dim_names <- list(entry_age = entry_age_range, age = age_range, year = year_range)
-  
-  term_dim <- c(length(entry_age_range), length(age_range), length(year_range), length(term_year_range))
-  term_dim_names <- list(entry_age = entry_age_range, age = age_range, year = year_range, term_year = term_year_range)
-  
-  retire_dim <- c(length(entry_age_range), length(age_range), length(year_range), length(term_year_range), length(retire_year_range))
-  retire_dim_names <- list(entry_age = entry_age_range,
-                           age = age_range, 
-                           year = year_range, 
-                           term_year = term_year_range, 
-                           retire_year = retire_year_range)
-  
-  wf_active <- array(0, dim = active_dim, dimnames = active_dim_names)
-  wf_term <- array(0, dim = term_dim, dimnames = term_dim_names)
-  wf_refund <- wf_term
-  wf_retire <- array(0, dim = retire_dim, dimnames = retire_dim_names)
-  
-  
-  # Initial active population ----
-  active_int_df <- expand_grid(entry_age = entry_age_range, age = age_range) %>%
-    left_join(salary_headcount_table, by = c("entry_age", "age")) %>%
-    replace(is.na(.), 0) %>%
-    select(entry_age, age, count)
-  
-  active_int_matrix <- xtabs(count ~ entry_age + age, active_int_df) # should we store this as a sparse array?
-  
-  wf_active[,,1] <- active_int_matrix # djb: wf_active dimensions are entry_age x age x year -- so fill in first year (2022) wf_active[,,"2022"]
-
-  # Create probability arrays ----
-  
-  #.. Mortality probability array (4 dimensions: entry_age, age, year, term_year) ----
-  mort_df_term <- expand_grid(entry_age = entry_age_range,
-                              age = age_range, 
-                              year = year_range, 
-                              term_year = term_year_range) %>% 
-    left_join(mort_table, by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year")) %>% 
-    mutate(mort = if_else(is.na(mort_final), 0, mort_final))
-  
-  mort_array_term <- xtabs(mort ~ entry_age + age + year + term_year, mort_df_term)
-  
-  #.. Separation probability array (3 dimensions: entry_age, age, year) ----
-  sep_df <- expand_grid(entry_age = entry_age_range,
-                        age = age_range, 
-                        year = year_range) %>% 
-    mutate(entry_year = year - (age - entry_age)) %>% 
-    left_join(separation_rate_table, by = c("entry_age", "age" = "term_age", "entry_year")) %>% 
-    select(entry_age, age, year, separation_rate) %>% 
-    mutate(separation_rate = if_else(is.na(separation_rate), 0, separation_rate))
-  
-  sep_array <- xtabs(separation_rate ~ entry_age + age + year, sep_df)
-  
-  #.. Refund and retirement probability arrays ----
-  
-  optimal_retire <- benefit_data$benefit_val_table %>% 
-    # rename(term_age = Age) %>% 
-    select(entry_year, entry_age, term_age, yos, dist_age, ben_decision) %>% 
-    mutate(refund = case_when(ben_decision == "refund" ~ 1,     #use case_when instead of ifelse to handle NA values better
-                              ben_decision == "mix" ~ 1 - retire_refund_ratio,
-                              .default = 0),
-           retire = case_when(ben_decision == "retire" ~ 1,
-                              ben_decision == "mix" ~ 1,
-                              .default = 0),
-           refund_age = term_age)
-  
-  #.... Retire probability array (4 dimensions: entry_age, age, year, term_year) ----
-  retire_df <- expand_grid(entry_age = entry_age_range,
-                           age = age_range, 
-                           year = year_range, 
-                           term_year = term_year_range) %>% 
-    mutate(
-      entry_year = year - (age - entry_age),
-      term_age = age - (year - term_year),
-      yos = term_age - entry_age) %>% 
-    filter(year - term_year >= 0, yos >= 0) %>% 
-    left_join(optimal_retire, by = c("entry_age",
-                                     "age" = "dist_age",
-                                     "entry_year",
-                                     "term_age",
-                                     "yos")) %>% 
-    mutate(retire = if_else(is.na(retire), 0, retire))
-  
-  retire_array <- xtabs(retire ~ entry_age + age + year + term_year, retire_df) 
-  
-  #.... Refund probability array (4 dimensions: entry_age, age, year, term_year) ----
-  # Note that employees get refunds in the same year they get terminated.
-  refund_df <- expand_grid(entry_age = entry_age_range,
-                           age = age_range, 
-                           year = year_range, 
-                           term_year = term_year_range) %>% 
-    mutate(
-      entry_year = year - (age - entry_age),
-      term_age = age - (year - term_year),
-      yos = term_age - entry_age
-      ) %>% 
-    filter(year - term_year >= 0, yos >= 0) %>% 
-    left_join(optimal_retire, by = c("entry_age",
-                                     "age" = "refund_age",
-                                     "entry_year",
-                                     "term_age",
-                                     "yos")) %>% 
-    mutate(refund = if_else(is.na(refund), 0, refund))
-  # djb: is there any reason we shouldn't combine retire_df and refund_df? same structure and methods; wide or stacked
-  
-  refund_array <- xtabs(refund ~ entry_age + age + year + term_year, refund_df)
+  # Initialize empty workforce projection arrays ----
+  a <- proc.time()
+  init_list <- initialize_arrays(
+    age_range,
+    entry_age_range,
+    year_range,
+    term_year_range,
+    retire_year_range,
+    salary_headcount_table,
+    mort_table,
+    separation_rate_table,
+    benefit_val_table=benefit_data$benefit_val_table,
+    retire_refund_ratio
+  )
+  list2env(init_list, envir = environment()) # djb: copy each element of alist into the current environment
+  b <- proc.time()
+  cat("\ninitialize_arrays user system elapsed: ", b - a)
   
   a <- proc.time()
   array_list <- loop_through_arrays(
@@ -275,7 +319,7 @@ get_wf_data <- function(
   b <- proc.time()
   cat("\nloop_through_arrays user system elapsed: ", b - a)
     
-  list2env(alist, envir = environment()) # djb: copy each element of alist into the current environment
+  list2env(array_list, envir = environment()) # djb: copy each element of alist into the current environment
   
   # Convert the multidimensional arrays to data frames ----
   wf_active_df <- data.frame(expand.grid(entry_age = entry_age_range, 
@@ -300,7 +344,7 @@ get_wf_data <- function(
   
   # Since the wf_retire array is too big to handle using the above method, we
   # need to split it into smaller parts for processing
-  wf_retire_list <- list()  #empty list to save retire workforce data in the for loop
+  wf_retire_list <- list()  # empty list to save retire workforce data in the for loop
   
   for (i in seq_along(entrant_profile_table$entry_age)) {
     wf_retire_name <- paste0("wf_retire_", entrant_profile_table$entry_age[i])

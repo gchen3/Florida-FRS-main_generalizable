@@ -14,42 +14,61 @@ library(parallel)
 
 # Functions ---------------------------------------------------------------
 
+print("Start loading model data, parameters, and functions...")
+
 #Get actuarial and financial functions
+print("sourcing utility_functions.R...")
 source("utility_functions.R") # only creates functions - no live code
 
 #Get benefit model
 # replace separate "Florida FRS benefit model.R" into functions and actions
 # source("Florida FRS benefit model.R")
 # source("Florida FRS benefit model_functions.R") # only creates functions - no live code
+print("sourcing Florida FRS benefit model_helper_functions.R...")
 source("Florida FRS benefit model_helper_functions.R") # only creates functions - no live code
+
+print("sourcing Florida FRS benefit model_get_benefit_data_function.R...")
 source("Florida FRS benefit model_get_benefit_data_function.R") # only creates functions - no live code
 
 # Get workforce model
 # source("Florida FRS workforce model.R") # only creates function - no live code
+print("sourcing Florida FRS workforce model_functions....")
 source("Florida FRS workforce model_functions.R") # only creates function - no live code
 
 #Get liability model
+print("sourcing Florida FRS liability model.R...")
 source("Florida FRS liability model.R") # only creates function - no live code
 
 #Get funding model
 # source("Florida FRS funding model.R")
+print("sourcing Florida FRS funding model_functions.R...")
 source("Florida FRS funding model_functions.R") # only creates function - no live code
-
-
 
 
 # Actions -----------------------------------------------------------------
 
 #Get model inputs and assumptions
-source("Florida FRS model input.R") # only reads data and sets variable values - no functions
+print("Start data construction based on system data and model parameters...")
+
+#Get model inputs and assumptions
+print("sourcing Florida FRS model input.R...")
+system.time(source("Florida FRS model input.R")) # only reads data and sets variable values - no functions
+
+print("sourcing Florida FRS benefit model_actions.R...")
 system.time(source("Florida FRS benefit model_actions.R")) # only creates objects - no functions
+
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
+print("sourcing Florida FRS workforce model_get_and_save_wfdata.R...")
 system.time(source("Florida FRS workforce model_get_and_save_wfdata.R")) # only saves objects - no functions
-source("Florida FRS workforce model_get_saved_data.R") # only gets saved data - no functions
+
+print("sourcing Florida FRS workforce model_get_saved_data.R...")
+system.time(source("Florida FRS workforce model_get_saved_data.R")) # only gets saved data - no functions
+
 # Get funding data
+print("sourcing Florida FRS funding model_actions.R...")
 system.time(source("Florida FRS funding model_actions.R")) # only creates objects - no functions
 
-
+print("Done building model...")
 
 ##############################################TESTING############################################
 
