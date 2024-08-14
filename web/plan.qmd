@@ -43,6 +43,7 @@ Make sure all data used in functions is passed in as arguments, no reliance on g
 
 -   separate get_wf_data (in "Florida FRS workforce model_functions.R") into smaller functions
     -   DONE - moved workforce array loop to separate function
+    -   DONE - moved workforce array initialization to separate function
 
 -   localize workforce model functions
 
