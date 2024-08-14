@@ -5,6 +5,8 @@
 
 # Ctrl-Shift-F10 to restart RStudio and clear the environment
 
+a <- proc.time()
+
 source(here::here("Florida FRS master.R")) # load and run the full FRS Florida model
 
 # generate baseline results
@@ -15,3 +17,6 @@ save.image(here::here("new_results", "new_workspace.RData")) # save the entire w
 
 source(here::here("run_tests.R")) # run tests
 
+b <- proc.time()
+
+b - a

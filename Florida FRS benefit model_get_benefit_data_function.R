@@ -15,6 +15,21 @@
 # retire_refund_ratio = retire_refund_ratio_
 # cal_factor = cal_factor_
 
+get_agg_norm_cost_table <- function(
+  indv_norm_cost_table,
+  salary_headcount_table,
+  salary_benefit_table){
+  
+  agg_norm_cost_table <- indv_norm_cost_table %>% 
+    left_join(salary_headcount_table, by = c("entry_year", "entry_age")) %>% 
+    left_join(salary_benefit_table %>% select(entry_year, entry_age, yos, salary), by = c("entry_year", "entry_age", "yos")) %>% 
+    filter(!is.na(count)) %>% 
+    summarise(
+      agg_normal_cost = sum(indv_norm_cost * salary * count) / sum(salary * count)
+    )
+  return(agg_norm_cost_table)
+}
+
 get_annuity_factor_retire_table <- function(
     mort_retire_table,
     dr_current,
@@ -203,6 +218,50 @@ get_benefit_table <- function(ann_factor_table,
   return(benefit_table)  
 }
 
+get_benefit_val_table <- function(
+    salary_benefit_table,
+    final_benefit_table,
+    sep_rate_table,
+    dr_current,
+    dr_new,
+    retire_refund_ratio){
+  
+  benefit_val_table <- salary_benefit_table %>% 
+    left_join(final_benefit_table, by = c("entry_year", "entry_age", "term_age")) %>%
+    left_join(sep_rate_table) %>%
+    mutate(
+      #note that the tier below applies at termination age only
+      dr = if_else(str_detect(tier_at_term_age, "tier_3"), dr_new, dr_current),
+      sep_type = get_sep_type(tier_at_term_age),
+      ben_decision = if_else(yos == 0, 
+                             NA, 
+                             if_else(sep_type == "retire", "retire",
+                                     if_else(sep_type == "vested", "mix", "refund"))),
+      pvfb_db_wealth_at_term_age = case_when(
+        sep_type == "retire" ~ pvfb_db_at_term_age,
+        sep_type == "vested" ~ (retire_refund_ratio * pvfb_db_at_term_age + (1 - retire_refund_ratio) * db_ee_balance),
+        sep_type == "non_vested" ~ db_ee_balance
+      )
+    ) %>% 
+    group_by(entry_year, entry_age) %>%
+    mutate(
+      #calculate the present value of future DB benefits at current age (discount the annual DB benefits back to current age)
+      pvfb_db_wealth_at_current_age = get_pvfb(sep_rate_vec = separation_rate, interest_vec = dr, value_vec = pvfb_db_wealth_at_term_age),
+      
+      #calculate the present value of future salary at current age (discount the annual salary back to current age)
+      pvfs_at_current_age = get_pvfs(remaining_prob_vec = remaining_prob, interest_vec = dr, sal_vec = salary),
+      
+      #calculate the individual normal cost rate at current age
+      indv_norm_cost = pvfb_db_wealth_at_current_age[yos == 0] / pvfs_at_current_age[yos == 0],
+      
+      #calculate the present value of future normal cost at current age (discount the annual normal cost back to current age)
+      pvfnc_db = indv_norm_cost * pvfs_at_current_age
+    ) %>% 
+    ungroup()
+  
+  return(benefit_val_table)
+}
+
 
 get_class_salary_growth_table <- function(salary_growth_table, class_name){
   class_salary_growth_table <- salary_growth_table %>% 
@@ -210,6 +269,39 @@ get_class_salary_growth_table <- function(salary_growth_table, class_name){
     rename(cumprod_salary_increase = 2)
   return(class_salary_growth_table)
 }
+
+get_dist_age_table <- function(benefit_table){
+  #Determine the ultimate distribution age for each member (the age when they're assumed to retire/get a refund, given their termination age)
+  dist_age_table <- benefit_table %>% 
+    group_by(entry_year, entry_age, term_age) %>% 
+    summarise(
+      earliest_norm_retire_age = n() - sum(is_norm_retire_elig) + min(dist_age),
+      term_status = tier_at_term_age[1]
+    ) %>% 
+    ungroup() %>%
+    mutate(
+      dist_age = if_else(
+        str_detect(term_status, "vested") & !str_detect(term_status, "non_vested"), earliest_norm_retire_age, term_age
+      )
+    ) %>% 
+    select(entry_year, entry_age, term_age, dist_age)
+  
+  return(dist_age_table)
+}
+
+get_final_benefit_table <- function(benefit_table, dist_age_table){
+  #Retain only the final distribution ages in the final_benefit_table
+  final_benefit_table <- benefit_table %>% 
+    semi_join(dist_age_table) %>% 
+    select(entry_year, entry_age, term_age, dist_age, db_benefit, pvfb_db_at_term_age, ann_factor_term) %>% 
+    mutate(
+      #NA benefit values (because the member is not vested) are replaced with 0
+      db_benefit = if_else(is.na(db_benefit), 0, db_benefit),
+      pvfb_db_at_term_age = if_else(is.na(pvfb_db_at_term_age), 0, pvfb_db_at_term_age)
+    )
+  return(final_benefit_table)
+}
+
 
 get_salary_benefit_table <- function(class_name,
                                      entrant_profile_table,
@@ -253,6 +345,9 @@ get_salary_benefit_table <- function(class_name,
   return(salary_benefit_table)
 }
 
+
+
+# get_benefit_data -- primary function ------------------------------------
 
 get_benefit_data <- function(
     class_name = class_name_,
@@ -315,78 +410,31 @@ get_benefit_data <- function(
     class_name,
     cal_factor)
 
-  #Determine the ultimate distribution age for each member (the age when they're assumed to retire/get a refund, given their termination age)
-  dist_age_table <- benefit_table %>% 
-    group_by(entry_year, entry_age, term_age) %>% 
-    summarise(
-      earliest_norm_retire_age = n() - sum(is_norm_retire_elig) + min(dist_age),
-      term_status = tier_at_term_age[1]
-    ) %>% 
-    ungroup() %>%
-    mutate(
-      dist_age = if_else(
-        str_detect(term_status, "vested") & !str_detect(term_status, "non_vested"), earliest_norm_retire_age, term_age
-        )
-    ) %>% 
-    select(entry_year, entry_age, term_age, dist_age)
+  dist_age_table <- get_dist_age_table(benefit_table)
   
-  #Retain only the final distribution ages in the final_benefit_table
-  final_benefit_table <- benefit_table %>% 
-    semi_join(dist_age_table) %>% 
-    select(entry_year, entry_age, term_age, dist_age, db_benefit, pvfb_db_at_term_age, ann_factor_term) %>% 
-    mutate(
-      #NA benefit values (because the member is not vested) are replaced with 0
-      db_benefit = if_else(is.na(db_benefit), 0, db_benefit),
-      pvfb_db_at_term_age = if_else(is.na(pvfb_db_at_term_age), 0, pvfb_db_at_term_age)
-    )
-
+  final_benefit_table <- get_final_benefit_table(benefit_table, dist_age_table)
   
-  ####### Benefit Accrual & Normal Cost #######
+  ## Benefit Accrual & Normal Cost #######
   
-  benefit_val_table <- salary_benefit_table %>% 
-    left_join(final_benefit_table, by = c("entry_year", "entry_age", "term_age")) %>%
-    left_join(sep_rate_table) %>%
-    mutate(
-      #note that the tier below applies at termination age only
-      dr = if_else(str_detect(tier_at_term_age, "tier_3"), dr_new, dr_current),
-      sep_type = get_sep_type(tier_at_term_age),
-      ben_decision = if_else(yos == 0, NA, if_else(sep_type == "retire", "retire",
-                                                   if_else(sep_type == "vested", "mix", "refund"))),
-      pvfb_db_wealth_at_term_age = case_when(
-        sep_type == "retire" ~ pvfb_db_at_term_age,
-        sep_type == "vested" ~ (retire_refund_ratio * pvfb_db_at_term_age + (1 - retire_refund_ratio) * db_ee_balance),
-        sep_type == "non_vested" ~ db_ee_balance
-        )
-    ) %>% 
-    group_by(entry_year, entry_age) %>%
-    mutate(
-      #calculate the present value of future DB benefits at current age (discount the annual DB benefits back to current age)
-      pvfb_db_wealth_at_current_age = get_pvfb(sep_rate_vec = separation_rate, interest_vec = dr, value_vec = pvfb_db_wealth_at_term_age),
-      
-      #calculate the present value of future salary at current age (discount the annual salary back to current age)
-      pvfs_at_current_age = get_pvfs(remaining_prob_vec = remaining_prob, interest_vec = dr, sal_vec = salary),
-      
-      #calculate the individual normal cost rate at current age
-      indv_norm_cost = pvfb_db_wealth_at_current_age[yos == 0] / pvfs_at_current_age[yos == 0],
-      
-      #calculate the present value of future normal cost at current age (discount the annual normal cost back to current age)
-      pvfnc_db = indv_norm_cost * pvfs_at_current_age
-    ) %>% 
-    ungroup()
+  benefit_val_table <- get_benefit_val_table(
+    salary_benefit_table,
+    final_benefit_table,
+    sep_rate_table,
+    dr_current,
+    dr_new,
+    retire_refund_ratio)
   
+  # next step too small to need its own function
   indv_norm_cost_table <- benefit_val_table %>% 
     filter(yos == 0) %>% 
     select(entry_year, entry_age, indv_norm_cost)
+  
+  agg_norm_cost_table <- get_agg_norm_cost_table(
+    indv_norm_cost_table,
+    salary_headcount_table,
+    salary_benefit_table)
     
-  
-  agg_norm_cost_table <- indv_norm_cost_table %>% 
-    left_join(salary_headcount_table, by = c("entry_year", "entry_age")) %>% 
-    left_join(salary_benefit_table %>% select(entry_year, entry_age, yos, salary), by = c("entry_year", "entry_age", "yos")) %>% 
-    filter(!is.na(count)) %>% 
-    summarise(
-      agg_normal_cost = sum(indv_norm_cost * salary * count) / sum(salary * count)
-    )
-  
+  # return list of tables ----
   output <- list(
     ann_factor_table = ann_factor_table,
     ann_factor_retire_table = ann_factor_retire_table,
