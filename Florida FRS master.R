@@ -42,12 +42,12 @@ source("Florida FRS funding model_functions.R") # only creates function - no liv
 
 #Get model inputs and assumptions
 source("Florida FRS model input.R") # only reads data and sets variable values - no functions
-source("Florida FRS benefit model_actions.R") # only creates objects - no functions
+system.time(source("Florida FRS benefit model_actions.R")) # only creates objects - no functions
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
-source("Florida FRS workforce model_get_and_save_wfdata.R") # only saves objects - no functions
+system.time(source("Florida FRS workforce model_get_and_save_wfdata.R")) # only saves objects - no functions
 source("Florida FRS workforce model_get_saved_data.R") # only gets saved data - no functions
 # Get funding data
-source("Florida FRS funding model_actions.R") # only creates objects - no functions
+system.time(source("Florida FRS funding model_actions.R")) # only creates objects - no functions
 
 
 
