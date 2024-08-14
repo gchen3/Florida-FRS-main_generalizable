@@ -223,7 +223,8 @@ get_benefit_val_table <- function(
     final_benefit_table,
     sep_rate_table,
     dr_current,
-    dr_new){
+    dr_new,
+    retire_refund_ratio){
   
   benefit_val_table <- salary_benefit_table %>% 
     left_join(final_benefit_table, by = c("entry_year", "entry_age", "term_age")) %>%
@@ -420,7 +421,8 @@ get_benefit_data <- function(
     final_benefit_table,
     sep_rate_table,
     dr_current,
-    dr_new)
+    dr_new,
+    retire_refund_ratio)
   
   # next step too small to need its own function
   indv_norm_cost_table <- benefit_val_table %>% 
