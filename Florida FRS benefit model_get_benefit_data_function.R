@@ -15,6 +15,21 @@
 # retire_refund_ratio = retire_refund_ratio_
 # cal_factor = cal_factor_
 
+get_agg_norm_cost_table <- function(
+  indv_norm_cost_table,
+  salary_headcount_table,
+  salary_benefit_table){
+  
+  agg_norm_cost_table <- indv_norm_cost_table %>% 
+    left_join(salary_headcount_table, by = c("entry_year", "entry_age")) %>% 
+    left_join(salary_benefit_table %>% select(entry_year, entry_age, yos, salary), by = c("entry_year", "entry_age", "yos")) %>% 
+    filter(!is.na(count)) %>% 
+    summarise(
+      agg_normal_cost = sum(indv_norm_cost * salary * count) / sum(salary * count)
+    )
+  return(agg_norm_cost_table)
+}
+
 get_annuity_factor_retire_table <- function(
     mort_retire_table,
     dr_current,
@@ -407,19 +422,17 @@ get_benefit_data <- function(
     dr_current,
     dr_new)
   
+  # next step too small to need its own function
   indv_norm_cost_table <- benefit_val_table %>% 
     filter(yos == 0) %>% 
     select(entry_year, entry_age, indv_norm_cost)
+  
+  agg_norm_cost_table <- get_agg_norm_cost_table(
+    indv_norm_cost_table,
+    salary_headcount_table,
+    salary_benefit_table)
     
-  
-  agg_norm_cost_table <- indv_norm_cost_table %>% 
-    left_join(salary_headcount_table, by = c("entry_year", "entry_age")) %>% 
-    left_join(salary_benefit_table %>% select(entry_year, entry_age, yos, salary), by = c("entry_year", "entry_age", "yos")) %>% 
-    filter(!is.na(count)) %>% 
-    summarise(
-      agg_normal_cost = sum(indv_norm_cost * salary * count) / sum(salary * count)
-    )
-  
+  # return list of tables ----
   output <- list(
     ann_factor_table = ann_factor_table,
     ann_factor_retire_table = ann_factor_retire_table,
