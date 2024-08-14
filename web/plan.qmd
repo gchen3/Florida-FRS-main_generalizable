@@ -20,7 +20,9 @@ editor_options:
     -   DONE - localize get_salary_headcount_table() function and eliminate duplicate calls
     -   DONE - localize get_tier()
     -   DONE - localize get_separation_table
-    -   break up get_benefit_data to make localization easier
+    
+    -   DONE - break up get_benefit_data to make localization easier
+    -   **TODO** - get rid of all assign statements, after other files are localized
     
 
 -   Isolate constants
