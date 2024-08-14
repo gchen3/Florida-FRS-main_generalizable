@@ -203,6 +203,16 @@ get_benefit_table <- function(ann_factor_table,
   return(benefit_table)  
 }
 
+get_benefit_val_table <- function(
+    salary_benefit_table,
+    final_benefit_table,
+    sep_rate_table,
+    dr_current,
+    dr_new){
+  
+  return(benefit_val_table)
+}
+
 
 get_class_salary_growth_table <- function(salary_growth_table, class_name){
   class_salary_growth_table <- salary_growth_table %>% 
@@ -353,6 +363,12 @@ get_benefit_data <- function(
   final_benefit_table <- get_final_benefit_table(benefit_table, dist_age_table)
   
   ####### Benefit Accrual & Normal Cost #######
+  benefit_val_table <- get_benefit_val_table(
+    salary_benefit_table,
+    final_benefit_table,
+    sep_rate_table,
+    dr_current,
+    dr_new)
   
   benefit_val_table <- salary_benefit_table %>% 
     left_join(final_benefit_table, by = c("entry_year", "entry_age", "term_age")) %>%
@@ -361,8 +377,10 @@ get_benefit_data <- function(
       #note that the tier below applies at termination age only
       dr = if_else(str_detect(tier_at_term_age, "tier_3"), dr_new, dr_current),
       sep_type = get_sep_type(tier_at_term_age),
-      ben_decision = if_else(yos == 0, NA, if_else(sep_type == "retire", "retire",
-                                                   if_else(sep_type == "vested", "mix", "refund"))),
+      ben_decision = if_else(yos == 0, 
+                             NA, 
+                             if_else(sep_type == "retire", "retire",
+                                     if_else(sep_type == "vested", "mix", "refund"))),
       pvfb_db_wealth_at_term_age = case_when(
         sep_type == "retire" ~ pvfb_db_at_term_age,
         sep_type == "vested" ~ (retire_refund_ratio * pvfb_db_at_term_age + (1 - retire_refund_ratio) * db_ee_balance),
