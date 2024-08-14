@@ -1,6 +1,6 @@
 
 
-# helper functions --------------------------------------------------------
+# workforce helper functions --------------------------------------------------------
 
 
 
@@ -62,7 +62,7 @@ get_wf_data <- function(
 
   
   # Initialize empty workforce projection arrays ----
-  entry_age_range <- entrant_profile_table$entry_age
+  entry_age_range <- entrant_profile_table$entry_age # djb: note that there are gaps in these ages
   age_range <- min(entry_age_range):max(age_range_)
   year_range <- start_year_:(start_year_ + model_period_)   #test now, fix this later
   term_year_range <- year_range
@@ -90,9 +90,9 @@ get_wf_data <- function(
     replace(is.na(.), 0) %>%
     select(entry_age, age, count)
   
-  active_int_matrix <- xtabs(count ~ entry_age + age, active_int_df)
+  active_int_matrix <- xtabs(count ~ entry_age + age, active_int_df) # should we store this as a sparse array?
   
-  wf_active[,,1] <- active_int_matrix
+  wf_active[,,1] <- active_int_matrix # djb: wf_active dimensions are entry_age x age x year -- so fill in first year (2022) wf_active[,,"2022"]
   
   # active_int_pop <- c(2000, 8000, 8000, 7000, 8000, 9000, 8000, 7000, 6000, 5000)
   # 
@@ -108,21 +108,26 @@ get_wf_data <- function(
   
   # Position matrix to add new hires ----
   position_matrix <- expand_grid(entry_age = entry_age_range, age = age_range) %>% 
-    mutate(new = if_else(entry_age == age, 1, 0))
+    mutate(new = if_else(entry_age == age, 1, 0)) # djb: only 11 cells of 1,133 have 1
   
-  position_matrix <- xtabs(new ~ entry_age + age, position_matrix)
+  position_matrix <- xtabs(new ~ entry_age + age, position_matrix) # djb: has 0 or 1; note xtab can create sparse matrices
   
-  # Create probability array ----
+  # Create probability arrays ----
   
-  #.. Mortality probability array (4 dimensions) ----
-  mort_df_term <- expand_grid(entry_age = entry_age_range, age = age_range, year = year_range, term_year = term_year_range) %>% 
+  #.. Mortality probability array (4 dimensions: entry_age, age, year, term_year) ----
+  mort_df_term <- expand_grid(entry_age = entry_age_range,
+                              age = age_range, 
+                              year = year_range, 
+                              term_year = term_year_range) %>% 
     left_join(mort_table, by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year")) %>% 
     mutate(mort = if_else(is.na(mort_final), 0, mort_final))
   
   mort_array_term <- xtabs(mort ~ entry_age + age + year + term_year, mort_df_term)
   
-  #.. Separation probability array (3 dimensions): ----
-  sep_df <- expand_grid(entry_age = entry_age_range, age = age_range, year = year_range) %>% 
+  #.. Separation probability array (3 dimensions: entry_age, age, year) ----
+  sep_df <- expand_grid(entry_age = entry_age_range,
+                        age = age_range, 
+                        year = year_range) %>% 
     mutate(entry_year = year - (age - entry_age)) %>% 
     left_join(separation_rate_table, by = c("entry_age", "age" = "term_age", "entry_year")) %>% 
     select(entry_age, age, year, separation_rate) %>% 
@@ -143,8 +148,11 @@ get_wf_data <- function(
                               .default = 0),
            refund_age = term_age)
   
-  #.... Retire probability array (4 dimensions) ----
-  retire_df <- expand_grid(entry_age = entry_age_range, age = age_range, year = year_range, term_year = term_year_range) %>% 
+  #.... Retire probability array (4 dimensions: entry_age, age, year, term_year) ----
+  retire_df <- expand_grid(entry_age = entry_age_range,
+                           age = age_range, 
+                           year = year_range, 
+                           term_year = term_year_range) %>% 
     mutate(
       entry_year = year - (age - entry_age),
       term_age = age - (year - term_year),
@@ -159,8 +167,12 @@ get_wf_data <- function(
   
   retire_array <- xtabs(retire ~ entry_age + age + year + term_year, retire_df) 
   
-  #.... Refund probability array (4 dimensions). Note that employees get refunds in the same year they get terminated. ----
-  refund_df <- expand_grid(entry_age = entry_age_range, age = age_range, year = year_range, term_year = term_year_range) %>% 
+  #.... Refund probability array (4 dimensions: entry_age, age, year, term_year) ----
+  # Note that employees get refunds in the same year they get terminated.
+  refund_df <- expand_grid(entry_age = entry_age_range,
+                           age = age_range, 
+                           year = year_range, 
+                           term_year = term_year_range) %>% 
     mutate(
       entry_year = year - (age - entry_age),
       term_age = age - (year - term_year),
@@ -173,6 +185,7 @@ get_wf_data <- function(
                                      "term_age",
                                      "yos")) %>% 
     mutate(refund = if_else(is.na(refund), 0, refund))
+  # djb: is there any reason we shouldn't combine retire_df and refund_df? same structure and methods; wide or stacked
   
   refund_array <- xtabs(refund ~ entry_age + age + year + term_year, refund_df)
   
