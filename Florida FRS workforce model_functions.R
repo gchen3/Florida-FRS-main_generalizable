@@ -1,6 +1,15 @@
-#################################################################
+
+
+# helper functions --------------------------------------------------------
+
+
+
+
+# main workforce model function -------------------------------------------
+
+################################################################## #
 ##                       Workforce Model                       ##
-#################################################################
+################################################################## #
 
 # class_name = class_name_
 # dr_current = dr_current_
@@ -44,6 +53,7 @@ get_wf_data <- function(
     salary_growth_table=salary_growth_table
   )
   
+  # TODO: replace assign statements with formal arguments to get_wf_data
   class_name <- str_replace(class_name, " ", "_")
   assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table")))
   assign("salary_headcount_table", get(paste0(class_name, "_salary_headcount_table")))
@@ -51,14 +61,14 @@ get_wf_data <- function(
   assign("separation_rate_table", get(paste0(class_name, "_separation_rate_table")))
 
   
-  #Initialize empty workforce projection arrays
+  # Initialize empty workforce projection arrays ----
   entry_age_range <- entrant_profile_table$entry_age
   age_range <- min(entry_age_range):max(age_range_)
   year_range <- start_year_:(start_year_ + model_period_)   #test now, fix this later
   term_year_range <- year_range
   retire_year_range <- year_range
   
-  
+  # Define array dimensions and names ----
   active_dim <- c(length(entry_age_range), length(age_range), length(year_range))
   active_dim_names <- list(entry_age = entry_age_range, age = age_range, year = year_range)
   
@@ -74,7 +84,7 @@ get_wf_data <- function(
   wf_retire <- array(0, dim = retire_dim, dimnames = retire_dim_names)
   
   
-  #Initial active population
+  # Initial active population ----
   active_int_df <- expand_grid(entry_age = entry_age_range, age = age_range) %>%
     left_join(salary_headcount_table, by = c("entry_age", "age")) %>%
     replace(is.na(.), 0) %>%
@@ -96,22 +106,22 @@ get_wf_data <- function(
   # 
   # wf_active[,,1] <- as.matrix(active_int)
   
-  #Position matrix to add new hires
+  # Position matrix to add new hires ----
   position_matrix <- expand_grid(entry_age = entry_age_range, age = age_range) %>% 
     mutate(new = if_else(entry_age == age, 1, 0))
   
   position_matrix <- xtabs(new ~ entry_age + age, position_matrix)
   
-  ##Create probability array
+  # Create probability array ----
   
-  #Mortality probability array (4 dimensions)
+  #.. Mortality probability array (4 dimensions) ----
   mort_df_term <- expand_grid(entry_age = entry_age_range, age = age_range, year = year_range, term_year = term_year_range) %>% 
     left_join(mort_table, by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year")) %>% 
     mutate(mort = if_else(is.na(mort_final), 0, mort_final))
   
   mort_array_term <- xtabs(mort ~ entry_age + age + year + term_year, mort_df_term)
   
-  #Separation probability array (3 dimensions): 
+  #.. Separation probability array (3 dimensions): ----
   sep_df <- expand_grid(entry_age = entry_age_range, age = age_range, year = year_range) %>% 
     mutate(entry_year = year - (age - entry_age)) %>% 
     left_join(separation_rate_table, by = c("entry_age", "age" = "term_age", "entry_year")) %>% 
@@ -120,11 +130,12 @@ get_wf_data <- function(
   
   sep_array <- xtabs(separation_rate ~ entry_age + age + year, sep_df)
   
-  #Refund and retirement probability arrays
+  #.. Refund and retirement probability arrays ----
+  
   optimal_retire <- benefit_data$benefit_val_table %>% 
     # rename(term_age = Age) %>% 
     select(entry_year, entry_age, term_age, yos, dist_age, ben_decision) %>% 
-    mutate(refund = case_when(ben_decision == "refund" ~ 1,     #use case_when instead of ifselse to handle NA values better
+    mutate(refund = case_when(ben_decision == "refund" ~ 1,     #use case_when instead of ifelse to handle NA values better
                               ben_decision == "mix" ~ 1 - retire_refund_ratio,
                               .default = 0),
            retire = case_when(ben_decision == "retire" ~ 1,
@@ -132,7 +143,7 @@ get_wf_data <- function(
                               .default = 0),
            refund_age = term_age)
   
-  #Retire probability array (4 dimensions)
+  #.... Retire probability array (4 dimensions) ----
   retire_df <- expand_grid(entry_age = entry_age_range, age = age_range, year = year_range, term_year = term_year_range) %>% 
     mutate(
       entry_year = year - (age - entry_age),
@@ -148,7 +159,7 @@ get_wf_data <- function(
   
   retire_array <- xtabs(retire ~ entry_age + age + year + term_year, retire_df) 
   
-  #Refund probability array (4 dimensions). Note that employees get refunds in the same year they get terminated. 
+  #.... Refund probability array (4 dimensions). Note that employees get refunds in the same year they get terminated. ----
   refund_df <- expand_grid(entry_age = entry_age_range, age = age_range, year = year_range, term_year = term_year_range) %>% 
     mutate(
       entry_year = year - (age - entry_age),
@@ -165,11 +176,11 @@ get_wf_data <- function(
   
   refund_array <- xtabs(refund ~ entry_age + age + year + term_year, refund_df)
   
-  #Transition matrix to shift the population to the right by 1 age after 1 year
+  # Transition matrix to shift the population to the right by 1 age after 1 year ----
+  
   TM <-  diag(length(age_range) + 1)[-1, -(length(age_range) + 1)] 
   
-  
-  #Workforce projection
+  # Workforce projection loop ----
   for (i in 2:length(year_range)) {
     active2term <- wf_active[,,i-1] * sep_array[,,i-1]   #calculate the # of newly terminated actives. 2-dimensional array
     
@@ -205,7 +216,7 @@ get_wf_data <- function(
   }
   
   
-  #####Convert the multidimensional arrays into data frames 
+  # Convert the multidimensional arrays to data frames ----
   wf_active_df <- data.frame(expand.grid(entry_age = entry_age_range, 
                                          age = age_range, 
                                          year = year_range), 
@@ -223,7 +234,11 @@ get_wf_data <- function(
                                          term_year = term_year_range), n_refund = as.vector(wf_refund)) %>% 
     filter(age >= entry_age, year >= term_year)
   
-  #Since the wf_retire array is too big to handle using the above method, we need to split it into smaller parts for processing
+  
+  # split large wf_retire_array into smaller parts for processing ----
+  
+  # Since the wf_retire array is too big to handle using the above method, we
+  # need to split it into smaller parts for processing
   wf_retire_list <- list()  #empty list to save retire workforce data in the for loop
   
   for (i in seq_along(entrant_profile_table$entry_age)) {
@@ -235,11 +250,12 @@ get_wf_data <- function(
     wf_retire_list <- append(wf_retire_list, list(get(wf_retire_name)))
   }
   
-  #Combine all retire data frames from the retire list into one retire data frame 
+  #.. Combine all retire data frames from the retire list into one retire data frame ----
   wf_retire_df <- rbindlist(wf_retire_list) %>% 
     select(entry_age, age, year, term_year, retire_year, n_retire)
   
   
+  # save wf_data list of data frames ----
   wf_data <- list(wf_active_df = wf_active_df,
                   wf_term_df = wf_term_df,
                   wf_refund_df = wf_refund_df,
