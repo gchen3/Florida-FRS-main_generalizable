@@ -210,6 +210,39 @@ get_benefit_val_table <- function(
     dr_current,
     dr_new){
   
+  benefit_val_table <- salary_benefit_table %>% 
+    left_join(final_benefit_table, by = c("entry_year", "entry_age", "term_age")) %>%
+    left_join(sep_rate_table) %>%
+    mutate(
+      #note that the tier below applies at termination age only
+      dr = if_else(str_detect(tier_at_term_age, "tier_3"), dr_new, dr_current),
+      sep_type = get_sep_type(tier_at_term_age),
+      ben_decision = if_else(yos == 0, 
+                             NA, 
+                             if_else(sep_type == "retire", "retire",
+                                     if_else(sep_type == "vested", "mix", "refund"))),
+      pvfb_db_wealth_at_term_age = case_when(
+        sep_type == "retire" ~ pvfb_db_at_term_age,
+        sep_type == "vested" ~ (retire_refund_ratio * pvfb_db_at_term_age + (1 - retire_refund_ratio) * db_ee_balance),
+        sep_type == "non_vested" ~ db_ee_balance
+      )
+    ) %>% 
+    group_by(entry_year, entry_age) %>%
+    mutate(
+      #calculate the present value of future DB benefits at current age (discount the annual DB benefits back to current age)
+      pvfb_db_wealth_at_current_age = get_pvfb(sep_rate_vec = separation_rate, interest_vec = dr, value_vec = pvfb_db_wealth_at_term_age),
+      
+      #calculate the present value of future salary at current age (discount the annual salary back to current age)
+      pvfs_at_current_age = get_pvfs(remaining_prob_vec = remaining_prob, interest_vec = dr, sal_vec = salary),
+      
+      #calculate the individual normal cost rate at current age
+      indv_norm_cost = pvfb_db_wealth_at_current_age[yos == 0] / pvfs_at_current_age[yos == 0],
+      
+      #calculate the present value of future normal cost at current age (discount the annual normal cost back to current age)
+      pvfnc_db = indv_norm_cost * pvfs_at_current_age
+    ) %>% 
+    ungroup()
+  
   return(benefit_val_table)
 }
 
@@ -297,6 +330,9 @@ get_salary_benefit_table <- function(class_name,
 }
 
 
+
+# get_benefit_data -- primary function ------------------------------------
+
 get_benefit_data <- function(
     class_name = class_name_,
     dr_current = dr_current_,
@@ -362,46 +398,14 @@ get_benefit_data <- function(
   
   final_benefit_table <- get_final_benefit_table(benefit_table, dist_age_table)
   
-  ####### Benefit Accrual & Normal Cost #######
+  ## Benefit Accrual & Normal Cost #######
+  
   benefit_val_table <- get_benefit_val_table(
     salary_benefit_table,
     final_benefit_table,
     sep_rate_table,
     dr_current,
     dr_new)
-  
-  benefit_val_table <- salary_benefit_table %>% 
-    left_join(final_benefit_table, by = c("entry_year", "entry_age", "term_age")) %>%
-    left_join(sep_rate_table) %>%
-    mutate(
-      #note that the tier below applies at termination age only
-      dr = if_else(str_detect(tier_at_term_age, "tier_3"), dr_new, dr_current),
-      sep_type = get_sep_type(tier_at_term_age),
-      ben_decision = if_else(yos == 0, 
-                             NA, 
-                             if_else(sep_type == "retire", "retire",
-                                     if_else(sep_type == "vested", "mix", "refund"))),
-      pvfb_db_wealth_at_term_age = case_when(
-        sep_type == "retire" ~ pvfb_db_at_term_age,
-        sep_type == "vested" ~ (retire_refund_ratio * pvfb_db_at_term_age + (1 - retire_refund_ratio) * db_ee_balance),
-        sep_type == "non_vested" ~ db_ee_balance
-        )
-    ) %>% 
-    group_by(entry_year, entry_age) %>%
-    mutate(
-      #calculate the present value of future DB benefits at current age (discount the annual DB benefits back to current age)
-      pvfb_db_wealth_at_current_age = get_pvfb(sep_rate_vec = separation_rate, interest_vec = dr, value_vec = pvfb_db_wealth_at_term_age),
-      
-      #calculate the present value of future salary at current age (discount the annual salary back to current age)
-      pvfs_at_current_age = get_pvfs(remaining_prob_vec = remaining_prob, interest_vec = dr, sal_vec = salary),
-      
-      #calculate the individual normal cost rate at current age
-      indv_norm_cost = pvfb_db_wealth_at_current_age[yos == 0] / pvfs_at_current_age[yos == 0],
-      
-      #calculate the present value of future normal cost at current age (discount the annual normal cost back to current age)
-      pvfnc_db = indv_norm_cost * pvfs_at_current_age
-    ) %>% 
-    ungroup()
   
   indv_norm_cost_table <- benefit_val_table %>% 
     filter(yos == 0) %>% 
