@@ -37,8 +37,17 @@ devtools::document()
 
 
 # create tests ----
-use_test("pv")
+use_test("functions")
 
+
+# run tests ----
+
+# .rs.restartR() # if needed
+
+devtools::load_all()
+testthat::test_file("tests/testthat/test-functions.R")
+
+devtools::test()
 
 # before build - if needed - delete Rcheck ----
 
