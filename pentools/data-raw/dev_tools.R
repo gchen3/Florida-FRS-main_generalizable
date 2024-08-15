@@ -27,6 +27,15 @@ usethis::use_import_from("pname", "fname")
 # load package to be developed ----
 load_all()
 
+# write and document functions ----
+
+# Once the function definition exists, put your cursor somewhere in it and do
+# Code > Insert Roxygen Skeleton to get a great head start on the roxygen
+# comment. Alt-Ctrl-Shift-R
+
+devtools::document()
+
+
 # create tests ----
 use_test("pv")
 
@@ -51,6 +60,7 @@ clean_rcheck_directory(rcheck_dir)
 check(build_args = c("--no-build-vignettes", "--no-manual"), args = "--no-build-vignettes --no-manual")
 
 # build and install ----
+remove.packages("pentools")
 build(path = tempdir())  # don't create tarball
 install() # install from source
 
