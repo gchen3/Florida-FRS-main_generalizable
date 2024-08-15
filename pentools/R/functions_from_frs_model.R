@@ -1,13 +1,7 @@
 # library(zoo)
 
-#Present Value function
-pv <- function(rate, g = 0, nper, pmt, t = 1) {
-  r <- (1 + rate)/(1 + g) - 1
-  PV <- pmt/r * (1 - (1 / (1 + r)^nper)) / (1 + g) * (1 + rate)^(1 - t)
-  return(PV)
-}
-
 #Rolling Present Value function. Note that the first value in the pmt_vec vector must be zero.
+#' @export
 roll_pv <- function(rate, g = 0, nper, pmt_vec, t = 1) {
   pv_vec <- double(length(pmt_vec))
   for (i in 1:length(pv_vec)) {
@@ -24,6 +18,7 @@ roll_pv <- function(rate, g = 0, nper, pmt_vec, t = 1) {
 
 
 #NPV function
+#' @export
 npv = function(rate, cashflows) {
   for(i in 1:length(cashflows)){
     if(i == 1){
@@ -38,6 +33,7 @@ npv = function(rate, cashflows) {
 
 
 #rolling NPV function
+#' @export
 roll_npv <- function(rate, cashflows) {
   npv_vec <- double(length = length(cashflows))
   for (i in 1:(length(cashflows)-1)) {
@@ -50,6 +46,7 @@ roll_npv <- function(rate, cashflows) {
 
 #Amo payment functions
 #pmt0 = basic amo payment calculation, assuming payment beginning of period
+#' @export
 get_pmt0 <- function(r, nper, pv) {
   if (r == 0) {
     a <- pv/nper
@@ -61,12 +58,14 @@ get_pmt0 <- function(r, nper, pv) {
 }
 
 #pmt = amo payment function with growth rate and timing added; t = 1 for end of period payment, 0.5 for half period, and 0 for beginning of period.
+#' @export
 get_pmt <- function(r, g = 0, nper, pv, t = 1) {
   a <- get_pmt0((1+r)/(1+g) - 1, nper, pv*(1+r)^t)
   return(a)
 }
 
 #Funding period function
+#' @export
 NPER <- function(r,g,pv,t,pmt){
   PV <- pv*(1+r)^t
   R <- (1+r)/(1+g) - 1
@@ -80,6 +79,7 @@ NPER <- function(r,g,pv,t,pmt){
 # NPER(0.07, g = 0, pv = 5000, t = 1, pmt = 1000)
 
 #Cumulative future values function (with interest being a single value)
+#' @export
 get_cum_fv <- function(interest, cashflow, first_value = 0){
   cumvalue <- double(length = length(cashflow))
   cumvalue[1] <- first_value
@@ -91,6 +91,7 @@ get_cum_fv <- function(interest, cashflow, first_value = 0){
 
 
 #Cumulative future values function (with interest being a vector)
+#' @export
 cumFV2 <- function(interest_vec, cashflow, first_value = 0){
   cumvalue <- double(length = length(cashflow))
   cumvalue[1] <- first_value
@@ -101,9 +102,10 @@ cumFV2 <- function(interest_vec, cashflow, first_value = 0){
 }
 
 
-#Rolling mean function (a lot faster than zoo's rollmean)
-#note that this roll mean function assumes a "lagged" data vector
+#' @export
 baseR.rollmean <- function(data, window_vec) {
+  # Rolling mean function (a lot faster than zoo's rollmean)
+  # note that this roll mean function assumes a "lagged" data vector
   n <- length(data)
   y <- double(n)
   for (i in 1:n) {
@@ -119,6 +121,7 @@ baseR.rollmean <- function(data, window_vec) {
 
 
 #Geometric average return function
+#' @export
 geo_return <- function(x, na.rm = F) {
   if (na.rm == T) {
     x = na.omit(x)
@@ -129,6 +132,7 @@ geo_return <- function(x, na.rm = F) {
 
 
 #Estimate geometric average return from arithmetic return and standard deviation (annualized)
+#' @export
 est_geo_return <- function(mean_return, sd_return){
   geo_return <- mean_return - sd_return^2/(2*(1+mean_return))
   return(geo_return)
@@ -136,10 +140,12 @@ est_geo_return <- function(mean_return, sd_return){
 
 
 #Estimate arithmetic return from geometric return and standard deviation (annualized)
+#' @export
 root_geo_return <- function(mean_return, sd_return, geometric_return){
   est_geo_return(mean_return, sd_return) - geometric_return
 }
 
+#' @export
 est_arith_return <- function(geometric_return, sd_return){
   x <- uniroot(f = root_geo_return,
           interval = c(-1,1),
@@ -150,12 +156,13 @@ est_arith_return <- function(geometric_return, sd_return){
 
 
 #Function to determine the interest crediting rate of a cash balance plan
+#' @export
 smooth_return <- function(returns, floor, cap, upside_share) {
   x <- min(max(floor, floor + upside_share * (geo_return(returns) - floor)), cap)
   return(x)
 }
 
-
+#' @export
 expected_icr <- function(geometric_return, sd_return, smooth_period, floor, cap, upside_share, n_periods = 30, n_simulations = 10000) {
   mean_return <- est_arith_return(geometric_return, sd_return)
   simulated_returns <- matrix(rnorm(n_simulations * n_periods, mean = mean_return, sd = sd_return), nrow = n_periods, ncol = n_simulations)
@@ -172,6 +179,7 @@ expected_icr <- function(geometric_return, sd_return, smooth_period, floor, cap,
 
 
 #Adding new entrants function
+#' @export
 add_new_entrants <- function(g, ne_dist, wf1, wf2, ea, age, position_matrix){
   #g is the assumed population growth of the plan
   #ne_dist is a vector representing the distribution of new entrants for each entry age
@@ -188,6 +196,7 @@ add_new_entrants <- function(g, ne_dist, wf1, wf2, ea, age, position_matrix){
 
 
 #Recursive growing function (with lag)
+#' @export
 recur_grow <- function(x, g) {
   if (length(x) > 1) {
     for (i in 2:length(x)) {
@@ -198,6 +207,7 @@ recur_grow <- function(x, g) {
 }
 
 #Recursive growing function (no lag)
+#' @export
 recur_grow2 <- function(x, g) {
   if (length(x) > 1) {
     for (i in 2:length(x)) {
@@ -208,6 +218,7 @@ recur_grow2 <- function(x, g) {
 }
 
 #Recursive growing function with a single base and a fixed growth rate
+#' @export
 recur_grow3 <- function(x, g, nper) {
   x_vec <- double(length = nper)
   x_vec[1] <- x
@@ -223,6 +234,7 @@ recur_grow3 <- function(x, g, nper) {
 #Present Value of Future Benefits (PVFB) function (to be applied to a vector of "Pension Wealth") for active members
 #sep_rate_vec is a vector containing separation rates. interest_vec is a discount rate (ARR) vector. value_vect is a vector containing the present values of pension benefits at separation ages.
 #The purpose of this function is to calculate the PVFB at each active age (not just the entry age)
+#' @export
 get_pvfb <- function(sep_rate_vec, interest_vec, value_vec) {
   PVFB <- double(length = length(value_vec))
   for (i in 1:length(value_vec)) {
@@ -240,6 +252,7 @@ get_pvfb <- function(sep_rate_vec, interest_vec, value_vec) {
 
 #Present Value of Future Benefits for Cash Balance function
 #We need to a separate PVFB function to deal with cash balance benefits due to the fact actual ICR may differ from assumed ICR
+#' @export
 PVFB_CB <- function(ee_bal_vec, er_bal_vec, ee_cont_vec, er_cont_vec, icr, yos_vec, vesting_period,
                     surv_icr_vec, annuity_acr_vec, annuity_adj_vec,
                     sep_type_vec, sep_rate_vec, interest_vec, retire_refund_ratio) {
@@ -284,6 +297,7 @@ PVFB_CB <- function(ee_bal_vec, er_bal_vec, ee_cont_vec, er_cont_vec, icr, yos_v
 
 #Present Value of Future Salaries (PVFS) function (to be applied to a vector of salaries)
 #remaining_prob_vec is a vector containing the remaining probabilities. interest_vec is a discount rate (ARR) vector. sal_vec is a vector containing the salaries.
+#' @export
 get_pvfs <- function(remaining_prob_vec, interest_vec, sal_vec) {
   PVFS <- double(length = length(sal_vec))
   for (i in 1:length(sal_vec)) {
@@ -300,6 +314,7 @@ get_pvfs <- function(remaining_prob_vec, interest_vec, sal_vec) {
 
 #Annuity factor for current retirees' benefits
 #We need this function to calculate the annuity factors when a constant COLA is granted after the first year
+#' @export
 annfactor <- function(surv_DR_vec, cola_vec, one_time_cola = F){
   annfactor_vec <- double(length(surv_DR_vec))
   for (i in 1:length(annfactor_vec)) {
@@ -316,6 +331,4 @@ annfactor <- function(surv_DR_vec, cola_vec, one_time_cola = F){
   }
   return(annfactor_vec)
 }
-
-
 
