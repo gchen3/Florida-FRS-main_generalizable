@@ -168,14 +168,14 @@ senior_management_total_active_member_ <- 7610
 
 
 #7. Import key data tables
-FileName <- 'Florida FRS inputs.xlsx'
+FileName <- 'refactor/Florida FRS inputs.xlsx'
 
-base_teacher_mort_table_ <- read_excel("pub-2010-headcount-mort-rates.xlsx", sheet = "PubT.H-2010")
-base_safety_mort_table_ <- read_excel("pub-2010-headcount-mort-rates.xlsx", sheet = "PubS.H-2010")
-base_general_mort_table_ <- read_excel("pub-2010-headcount-mort-rates.xlsx", sheet = "PubG.H-2010")
+base_teacher_mort_table_ <- read_excel("refactor/pub-2010-headcount-mort-rates.xlsx", sheet = "PubT.H-2010")
+base_safety_mort_table_ <- read_excel("refactor/pub-2010-headcount-mort-rates.xlsx", sheet = "PubS.H-2010")
+base_general_mort_table_ <- read_excel("refactor/pub-2010-headcount-mort-rates.xlsx", sheet = "PubG.H-2010")
 
-male_mp_table_ <- read_excel("mortality-improvement-scale-mp-2018-rates.xlsx", sheet = "Male")
-female_mp_table_ <- read_excel("mortality-improvement-scale-mp-2018-rates.xlsx", sheet = "Female")
+male_mp_table_ <- read_excel("refactor/mortality-improvement-scale-mp-2018-rates.xlsx", sheet = "Male")
+female_mp_table_ <- read_excel("refactor/mortality-improvement-scale-mp-2018-rates.xlsx", sheet = "Female")
 
 salary_growth_table_ <- read_excel(FileName, sheet = "Salary Growth")
 
@@ -209,14 +209,14 @@ senior_management_headcount_table_ <- read_excel(FileName, sheet="HeadCount Dist
 
 # Retirement rate tables
 
-drop_entry_tier_1_table_ <- read_excel("Reports/extracted inputs/drop entry tier 1.xlsx")
-drop_entry_tier_2_table_ <- read_excel("Reports/extracted inputs/drop entry tier 2.xlsx")
+drop_entry_tier_1_table_ <- read_excel("refactor/Reports/extracted inputs/drop entry tier 1.xlsx")
+drop_entry_tier_2_table_ <- read_excel("refactor/Reports/extracted inputs/drop entry tier 2.xlsx")
 
-normal_retirement_tier_1_table_ <- read_excel("Reports/extracted inputs/normal retirement tier 1.xlsx")
-normal_retirement_tier_2_table_ <- read_excel("Reports/extracted inputs/normal retirement tier 2.xlsx")
+normal_retirement_tier_1_table_ <- read_excel("refactor/Reports/extracted inputs/normal retirement tier 1.xlsx")
+normal_retirement_tier_2_table_ <- read_excel("refactor/Reports/extracted inputs/normal retirement tier 2.xlsx")
 
-early_retirement_tier_1_table_ <- read_excel("Reports/extracted inputs/early retirement tier 1.xlsx")
-early_retirement_tier_2_table_ <- read_excel("Reports/extracted inputs/early retirement tier 2.xlsx")
+early_retirement_tier_1_table_ <- read_excel("refactor/Reports/extracted inputs/early retirement tier 1.xlsx")
+early_retirement_tier_2_table_ <- read_excel("refactor/Reports/extracted inputs/early retirement tier 2.xlsx")
 
 #Termination rate tables
 

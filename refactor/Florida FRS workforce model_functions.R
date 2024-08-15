@@ -366,7 +366,7 @@ get_wf_data <- function(
                   wf_refund_df = wf_refund_df,
                   wf_retire_df = wf_retire_df)
   
-  saveRDS(wf_data, paste0(class_name, "_wf_data.rds"))
+  saveRDS(wf_data, here::here("refactor", paste0(class_name, "_wf_data.rds")))
   
 }
 
