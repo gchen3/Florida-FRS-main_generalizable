@@ -54,7 +54,7 @@ test_that(" mortality retirement table matches Reason",{
     cat("\n")
   })})
 
-cat("\n\n")
+cat("\n")
 
 # walk(classes, function(class) {
 #   test_that(sprintf("Compare mortality table for class: %s", class), {

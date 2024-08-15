@@ -31,7 +31,7 @@ test_that(" entrant profile table matches Reason",{
     cat("\n")
   })})
 
-cat("\n\n")
+cat("\n")
 
 # run with 
 #   testthat::test_dir("tests/testthat", reporter = ListReporter)
