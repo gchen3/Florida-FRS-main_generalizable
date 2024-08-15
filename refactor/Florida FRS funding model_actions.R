@@ -1,8 +1,20 @@
 
+get_all_classes_funding_list <- function(class_names){
+  funding_list <- lapply(class_names, get_funding_table)
+  names(funding_list) <- class_names
+  
+  return(funding_list)
+}
 
+
+
+
+# groups for class names:
 class_names <- init_funding_data$class
-funding_list <- lapply(class_names, get_funding_table)
-names(funding_list) <- class_names
+class_names_no_drop_frs <- class_names[!class_names %in% c("drop", "frs")]
+class_names_no_frs <- class_names[!class_names %in% c("frs")]
+
+funding_list <- get_all_classes_funding_list(class_names)
 
 
 #Summarize current amortization layers
@@ -15,9 +27,7 @@ current_amort_layers_table <- current_amort_layers_table_ %>%
   arrange(class, desc(amo_period)) %>% 
   ungroup()
 
-#More groups for class names:
-class_names_no_drop_frs <- class_names[!class_names %in% c("drop", "frs")]
-class_names_no_frs <- class_names[!class_names %in% c("frs")]
+
 
 
 
