@@ -75,6 +75,22 @@ This will require further generalization in order to deal with as many idiosyncr
 
 There will be some issues to consider regarding which data should be included in pendata vs. what should be developed in penmodel. In general, pendata should have data that does not change (pretty much ever), but penmodel may develop additional data based on the raw elements in pendata. We want penmodel to be flexible enough to modify data if we consider the change to be a policy choice or an important actuarial decision. For example, pendata should have mortality tables for individual plans as well as standard actuarial tables (e.g., RP-2014), and it also should have mortality improvement scales (standard scales should as those maintained by the Society of Actuaries). However, we probably should not created improved mortality tables in pendata. Rather, penmodel should have the ability to use the mortality tables and mortality improvement scales in pendata to create improved mortality tables for a specific plan, using tools in pentools that are available to both pendata and penmodel.
 
+## pentools package
+
+-   DONE - Create pentools package
+-   DONE - Move functions from "Florida FRS benefit model_functions.R" to pentools package
+
+## pendata package
+-   Create pendata package
+-   Convert FRS data to stacked format
+-   Generalize to other plans
+
+## penmodel package
+-   Create penmodel package
+-   Make sure it can FRS model using FRS data from pendata
+-   Generalize to other plans
+
+
 ## Follow-on work
 
 Once we have a preliminary generalized model, there will be additional steps:
