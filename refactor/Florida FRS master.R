@@ -1,7 +1,7 @@
 rm(list = ls())
 
 #Loading required libraries ------------------
-library("readxl")
+library(readxl)
 library(tidyverse)
 library(zoo)
 library(profvis)
@@ -11,14 +11,19 @@ library(janitor)
 library(rio)
 library(parallel)
 
+# load pension-specific libraries
+# For first time installing package, or each time package is updated, install as follows
+# devtools::install(pkg = here::here("pentools"))
+library(pentools) # use this instead of sourcing utility_functions.R
 
 # Functions ---------------------------------------------------------------
 
 print("Start loading model data, parameters, and functions...")
 
 #Get actuarial and financial functions
-print("sourcing utility_functions.R...")
-source(here::here("refactor", "utility_functions.R")) # only creates functions - no live code
+# print("NOT sourcing utility_functions.R but loading pentools...")
+# source(here::here("refactor", "utility_functions.R")) # only creates functions - no live code
+
 
 #Get benefit model
 # replace separate "Florida FRS benefit model.R" into functions and actions
