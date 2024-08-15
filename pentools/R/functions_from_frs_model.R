@@ -73,6 +73,7 @@ NPER <- function(r,g,pv,t,pmt){
 # NPER(0.07, g = 0, pv = 5000, t = 1, pmt = 1000)
 
 #Cumulative future values function (with interest being a single value)
+#' @export
 get_cum_fv <- function(interest, cashflow, first_value = 0){
   cumvalue <- double(length = length(cashflow))
   cumvalue[1] <- first_value

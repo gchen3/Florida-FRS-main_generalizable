@@ -1,9 +1,7 @@
 
 # run the following in a CLEAN environment with the branch of interest checked out --------------------------------
 
-# RESET ENVIRONMENT MANUALLY !!!!!  
-
-# Ctrl-Shift-F10 to restart RStudio and clear the environment
+# MANUALLY RESET AND CLEAR ENVIRONMENT WITH Ctrl-Shift-F10 !!!!!  
 
 system.time(source(here::here("refactor", "Florida FRS master.R"))) # load and run the full FRS Florida model
 
