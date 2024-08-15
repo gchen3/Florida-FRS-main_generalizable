@@ -54,8 +54,8 @@ devtools::test()
 # Define the path to the .Rcheck directory
 rcheck_dir <- "../pentools.Rcheck"
 
-# Function to remove the .Rcheck directory if it exists
 clean_rcheck_directory <- function(path) {
+  # Function to remove the .Rcheck directory if it exists
   if (dir.exists(path)) {
     message("Removing existing .Rcheck directory...")
     unlink(path, recursive = TRUE)
@@ -70,8 +70,10 @@ check(build_args = c("--no-build-vignettes", "--no-manual"), args = "--no-build-
 
 # build and install ----
 remove.packages("pentools")
+clean_rcheck_directory(rcheck_dir)
+devtools::document()
 build(path = tempdir())  # don't create tarball
 install() # install from source
 
-
+# end ----
 
