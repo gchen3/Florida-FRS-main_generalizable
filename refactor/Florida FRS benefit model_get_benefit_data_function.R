@@ -37,6 +37,7 @@ get_annuity_factor_retire_table <- function(
     cola_current_retire,
     cola_current_retire_one,
     new_year) {
+  
   #Survival Probability and Annuity Factor for current retirees
   ann_factor_retire_table <- mort_retire_table %>% 
     mutate(
@@ -63,7 +64,7 @@ get_annuity_factor_table <- function(
     dr_new, dr_current,
     cola_tier_1_active_constant, cola_tier_1_active, cola_tier_2_active, cola_tier_3_active
     ) {
-      #Survival Probability and Annuity Factor for active members
+      # Survival Probability and Annuity Factor for active members
   ann_factor_table <- mort_table %>% 
     #Semi join the salary_benefit_able to reduce the size of the data that needs to be calculated
     semi_join(salary_benefit_table, by = c("entry_year", "entry_age")) %>%
@@ -72,10 +73,14 @@ get_annuity_factor_table <- function(
       yos_b4_2011 = pmin(pmax(2011 - entry_year, 0), yos),
       cola = case_when(
         #Tier 1 cola (current policy) = 3% * YOS before 2011 / Total YOS
-        str_detect(tier_at_dist_age, "tier_1") & cola_tier_1_active_constant == "no" ~ if_else(yos > 0, cola_tier_1_active * yos_b4_2011 / yos, 0),
-        str_detect(tier_at_dist_age, "tier_1") & cola_tier_1_active_constant == "yes" ~ cola_tier_1_active,
-        str_detect(tier_at_dist_age, "tier_2") ~ cola_tier_2_active,
-        str_detect(tier_at_dist_age, "tier_3") ~ cola_tier_3_active
+        str_detect(tier_at_dist_age, "tier_1") & cola_tier_1_active_constant == "no" ~ 
+          if_else(yos > 0, cola_tier_1_active * yos_b4_2011 / yos, 0),
+        str_detect(tier_at_dist_age, "tier_1") & cola_tier_1_active_constant == "yes" ~ 
+          cola_tier_1_active,
+        str_detect(tier_at_dist_age, "tier_2") ~ 
+          cola_tier_2_active,
+        str_detect(tier_at_dist_age, "tier_3") ~ 
+          cola_tier_3_active
       )
     ) %>% 
     group_by(entry_year, entry_age, yos) %>% 
@@ -85,13 +90,14 @@ get_annuity_factor_table <- function(
       cum_cola = cumprod(1 + lag(cola, default = 0)),
       cum_mort_dr = cum_mort / cum_dr,
       cum_mort_dr_cola = cum_mort_dr * cum_cola,
-      #ann_factor below is the annuity factor at distribution (retirement) age
+      # ann_factor below is the annuity factor at distribution (retirement) age
       ann_factor = rev(cumsum(rev(cum_mort_dr_cola))) / cum_mort_dr_cola
     ) %>% 
     ungroup()
   
   return(ann_factor_table)
 }
+
 
 get_benefit_table <- function(ann_factor_table, 
                               salary_benefit_table,
@@ -103,8 +109,8 @@ get_benefit_table <- function(ann_factor_table,
       class_name = class_name,
       is_norm_retire_elig = str_detect(tier_at_dist_age, "norm")
     ) %>%
-    #dist_age is distribution age, and dist_year is distribution year.
-    #distribution age means the age when the member starts to accept benefits (either a refund or a pension)
+    # dist_age is distribution age, and dist_year is distribution year.
+    # distribution age means the age when the member starts to accept benefits (either a refund or a pension)
     left_join(salary_benefit_table,
               by = c("entry_year", "entry_age", "yos", "term_age")) %>%
     mutate(
@@ -218,6 +224,7 @@ get_benefit_table <- function(ann_factor_table,
   return(benefit_table)  
 }
 
+
 get_benefit_val_table <- function(
     salary_benefit_table,
     final_benefit_table,
@@ -264,14 +271,17 @@ get_benefit_val_table <- function(
 
 
 get_class_salary_growth_table <- function(salary_growth_table, class_name){
+  
   class_salary_growth_table <- salary_growth_table %>% 
     select(yos, contains(class_name)) %>% 
     rename(cumprod_salary_increase = 2)
+  
   return(class_salary_growth_table)
 }
 
+
 get_dist_age_table <- function(benefit_table){
-  #Determine the ultimate distribution age for each member (the age when they're assumed to retire/get a refund, given their termination age)
+  # Determine the ultimate distribution age for each member (the age when they're assumed to retire/get a refund, given their termination age)
   dist_age_table <- benefit_table %>% 
     group_by(entry_year, entry_age, term_age) %>% 
     summarise(
@@ -281,7 +291,9 @@ get_dist_age_table <- function(benefit_table){
     ungroup() %>%
     mutate(
       dist_age = if_else(
-        str_detect(term_status, "vested") & !str_detect(term_status, "non_vested"), earliest_norm_retire_age, term_age
+        str_detect(term_status, "vested") & !str_detect(term_status, "non_vested"),
+        earliest_norm_retire_age, 
+        term_age
       )
     ) %>% 
     select(entry_year, entry_age, term_age, dist_age)
@@ -289,7 +301,9 @@ get_dist_age_table <- function(benefit_table){
   return(dist_age_table)
 }
 
+
 get_final_benefit_table <- function(benefit_table, dist_age_table){
+  
   #Retain only the final distribution ages in the final_benefit_table
   final_benefit_table <- benefit_table %>% 
     semi_join(dist_age_table) %>% 
@@ -299,6 +313,7 @@ get_final_benefit_table <- function(benefit_table, dist_age_table){
       db_benefit = if_else(is.na(db_benefit), 0, db_benefit),
       pvfb_db_at_term_age = if_else(is.na(pvfb_db_at_term_age), 0, pvfb_db_at_term_age)
     )
+  
   return(final_benefit_table)
 }
 

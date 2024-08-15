@@ -36,7 +36,23 @@ print(functions_with_defaults_names)
 
 new_year_
 
+
+# djb check this out globals ----
 get_mort_table new_year_
+
+see globals passed to get_salary_benefit_table within get_benefit_data but not passed to get_benefit_data
+and to get_annuity_factor_retire_table
+
+get_wf_data has default globals instead should pass
+get_liability_data also
+get_funding_data also
+FIRST:: INTERNAL functions in get_funding_data use globals
+A LOT OF WORK TO DO ON GET FUNDING DATA
+
+get_funding_table needs init_funding_data
+
+# end ----
+
 
 > function_names
 [1] "clean_mp_table"                         "clean_retire_rate_table"                "get_agg_norm_cost_table"               

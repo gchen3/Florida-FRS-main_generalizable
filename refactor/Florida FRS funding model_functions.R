@@ -15,9 +15,10 @@ get_all_classes_funding_list <- function(class_names){
   return(funding_list)
 }
 
-get_current_amort_layers_summary_table <- function(current_amort_layers_table_){
+get_current_amort_layers_summary_table <- function(current_amort_layers_table){
+  
   #Summarize current amortization layers
-  current_amort_layers_table <- current_amort_layers_table_ %>% 
+  current_amort_layers_table <- current_amort_layers_table %>% 
     mutate(amo_period = if_else(amo_period == "n/a", "20", amo_period),
            amo_period = as.numeric(amo_period)) %>% 
     group_by(class, amo_period) %>%
