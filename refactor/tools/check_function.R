@@ -17,6 +17,7 @@ fun <- get_early_retire_rate_table
 fun <- get_separation_table
 
 fun <- get_annuity_factor_retire_table
+fun <- loop_through_arrays
 
 codetools::checkUsage(fun)
 

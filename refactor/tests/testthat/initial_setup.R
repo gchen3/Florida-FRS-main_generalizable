@@ -3,11 +3,11 @@
 print("loading the Reason results and new results environments...")
 
 # Load the old workspace environment
-oldpath <- here::here("reason_results", "reason_workspace.RData")
+oldpath <- here::here("refactor", "reason_results", "reason_workspace.RData")
 load(oldpath, oldws <- new.env())
 
 # Load the new workspace environment
-newpath <- here::here("new_results", "new_workspace.RData")
+newpath <- here::here("refactor", "new_results", "new_workspace.RData")
 load(newpath, newws <- new.env())
 
 cat("\n")

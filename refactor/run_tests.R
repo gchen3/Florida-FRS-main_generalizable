@@ -3,17 +3,19 @@
 library(testthat)
 options(testthat.edition = 3)
 
+tdir <- here::here("refactor", "tests", "testthat")
+
 run_tests <- function() {
   # Load setup once
-  source(here::here("tests", "testthat", "initial_setup.R"))
+  source(here::here(tdir, "initial_setup.R"))
 
   # Run tests
   # reporters: ListReporter, ProgressReporter, SummaryReporter, TapReporter, JunitReporter, CheckReporter
-  test_file("tests/testthat/test_compare_baseline.R", reporter = CompactProgressReporter)
-  test_file("tests/testthat/test_compare_salary_headcount_entrants_profile.R", reporter = CompactProgressReporter)
-  test_file("tests/testthat/test_compare_mortality.R", reporter = CompactProgressReporter)
-  test_file("tests/testthat/test_compare_separation.R", reporter = CompactProgressReporter)
-  test_file("tests/testthat/test_compare_workforce.R", reporter = CompactProgressReporter)
+  test_file(here::here(tdir, "test_compare_baseline.R"), reporter = CompactProgressReporter)
+  test_file(here::here(tdir, "test_compare_salary_headcount_entrants_profile.R"), reporter = CompactProgressReporter)
+  test_file(here::here(tdir, "test_compare_mortality.R"), reporter = CompactProgressReporter)
+  test_file(here::here(tdir, "test_compare_separation.R"), reporter = CompactProgressReporter)
+  test_file(here::here(tdir, "test_compare_workforce.R"), reporter = CompactProgressReporter)
   cat("\n")
   # Add more test files as needed
 }
