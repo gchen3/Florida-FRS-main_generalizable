@@ -25,7 +25,7 @@ Present value of a future payment
 }
 \examples{
 pv(.1, g=0, nper=1, pmt=100, t=1) # 90.90909
-pv(.1, g=0, nper=1, pmt=100, t=2) # 82.64463
+pv(.1, g=0, nper=1, pmt=100, t=2) # 82.644628
 pv(.1, g=0, nper=2, pmt=100, t=2) # 157.7761
 pv(.1, g=.05, nper=2, pmt=100, t=2) # 161.5327
 }

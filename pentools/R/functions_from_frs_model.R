@@ -94,9 +94,10 @@ cumFV2 <- function(interest_vec, cashflow, first_value = 0){
 }
 
 
-#Rolling mean function (a lot faster than zoo's rollmean)
-#note that this roll mean function assumes a "lagged" data vector
+#' @export
 baseR.rollmean <- function(data, window_vec) {
+  # Rolling mean function (a lot faster than zoo's rollmean)
+  # note that this roll mean function assumes a "lagged" data vector
   n <- length(data)
   y <- double(n)
   for (i in 1:n) {
