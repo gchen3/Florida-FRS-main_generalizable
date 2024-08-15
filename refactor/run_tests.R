@@ -16,6 +16,7 @@ run_tests <- function() {
   test_file(here::here(tdir, "test_compare_mortality.R"), reporter = CompactProgressReporter)
   test_file(here::here(tdir, "test_compare_separation.R"), reporter = CompactProgressReporter)
   test_file(here::here(tdir, "test_compare_workforce.R"), reporter = CompactProgressReporter)
+  test_file(here::here(tdir, "test_compare_amortization.R"), reporter = CompactProgressReporter)
   cat("\n")
   # Add more test files as needed
 }

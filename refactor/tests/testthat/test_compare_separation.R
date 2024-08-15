@@ -2,7 +2,7 @@
 
 # library(testthat)
 
-cat("\n")
+cat("\n\n")
 print("running separation-rate table tests")
 
 classes <- c("regular", "special", "admin", "eco", "eso", "judges", "senior_management")
@@ -20,4 +20,4 @@ test_that(" separation-rate table matches Reason",{
     # cat("\n")
   })})
 
-
+cat("\n\n")

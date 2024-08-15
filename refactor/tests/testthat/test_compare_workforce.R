@@ -7,7 +7,7 @@ print("running workforce data tests")
 
 classes <- c("regular", "special", "admin", "eco", "eso", "judges", "senior_management")
 
-cat("\n\n")
+cat("\n")
 print("wf_data table tests")
 
 test_that(" wf_data table matches Reason",{
@@ -20,4 +20,4 @@ test_that(" wf_data table matches Reason",{
     # cat("\n")
   })})
 
-
+cat("\n\n")
