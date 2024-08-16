@@ -8,8 +8,8 @@
 # these functions are NOT needed in the get_funding_data function, but are called before it is called
 
 
-get_all_classes_funding_list <- function(class_names){
-  funding_list <- lapply(class_names, get_funding_table)
+get_all_classes_funding_list <- function(class_names, init_funding_data){
+  funding_list <- lapply(class_names, get_funding_table, init_funding_data)
   names(funding_list) <- class_names
   
   return(funding_list)
@@ -33,7 +33,7 @@ get_current_amort_layers_summary_table <- function(current_amort_layers_table){
 
 #### Data preparation
 #Create 9 empty data frames from the init_funding_data (representing 7 classes, DROP, and FRS system), then put them in a list to store funding outputs for these entities
-get_funding_table <- function(class_name) {
+get_funding_table <- function(class_name, init_funding_data) {
   funding_table <- init_funding_data %>% 
     filter(class == class_name) %>% 
     select(-class) %>%

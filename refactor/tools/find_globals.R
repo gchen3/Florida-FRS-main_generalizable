@@ -38,7 +38,8 @@ new_year_
 
 
 # djb check this out globals ----
-get_mort_table new_year_
+# DONE get_mort_table new_year_
+# DONE get_funding_table needs init_funding_data
 
 see globals passed to get_salary_benefit_table within get_benefit_data but not passed to get_benefit_data
 and to get_annuity_factor_retire_table
@@ -49,7 +50,7 @@ get_funding_data also
 FIRST:: INTERNAL functions in get_funding_data use globals
 A LOT OF WORK TO DO ON GET FUNDING DATA
 
-get_funding_table needs init_funding_data
+
 
 # end ----
 
