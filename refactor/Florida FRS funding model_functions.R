@@ -8,7 +8,9 @@
 # these functions are NOT needed in the get_funding_data function, but are called before it is called
 
 
-get_all_classes_funding_list <- function(class_names, init_funding_data){
+get_all_classes_funding_list <- function(init_funding_data,
+                                         class_names=FIXED_CLASS_NAMES){
+  
   funding_list <- lapply(class_names, get_funding_table, init_funding_data)
   names(funding_list) <- class_names
   
@@ -33,11 +35,11 @@ get_current_amort_layers_summary_table <- function(current_amort_layers_table){
 
 #### Data preparation
 #Create 9 empty data frames from the init_funding_data (representing 7 classes, DROP, and FRS system), then put them in a list to store funding outputs for these entities
-get_funding_table <- function(class_name, init_funding_data) {
+get_funding_table <- function(class_name, init_funding_data, model_period=model_period_) {
   funding_table <- init_funding_data %>% 
     filter(class == class_name) %>% 
     select(-class) %>%
-    add_row(year = (start_year_ + 1):(start_year_ + model_period_))
+    add_row(year = (start_year_ + 1):(start_year_ + model_period))
   
   funding_table[is.na(funding_table)] <- 0
   
@@ -69,6 +71,14 @@ get_funding_table <- function(class_name, init_funding_data) {
 
 
 get_funding_data <- function(
+    funding_list,
+    current_amort_layers_table,
+    # globals
+    class_names_no_frs=FIXED_CLASS_NAMES_NO_FRS,
+    class_names_no_drop_frs=FIXED_CLASS_NAMES_NO_DROP_FRS,
+    funding_lag=funding_lag_,
+    model_period=model_period_,
+    
     dr_current = dr_current_,
     dr_new = dr_new_,
     cola_tier_1_active_constant = cola_tier_1_active_constant_,
@@ -90,12 +100,12 @@ get_funding_data <- function(
     amo_pay_growth = amo_pay_growth_,
     amo_method = amo_method_
 ) {
-  
-  
+
   ####Produce liability outputs for each class (except DROP and FRS system)
-  
   #Use mclapply to run the liability model in parallel. May not work properly with Windows OS or API. Switch back to lapply if needed. When working, mclapply will be about twice as fast as lapply.
-  liability_list <- mclapply(X = class_names_no_drop_frs, FUN = get_liability_data, mc.cores = 1, # change mc.cores from 4 to 1 so it will run on Windows
+  liability_list <- mclapply(X = class_names_no_drop_frs, 
+                             FUN = get_liability_data,
+                             # prob could remove names of arguments now that mc.cores is last
                              dr_current = dr_current,
                              dr_new = dr_new,
                              cola_tier_1_active_constant = cola_tier_1_active_constant,
@@ -109,21 +119,24 @@ get_funding_data <- function(
                              cal_factor = cal_factor,
                              #inputs below are for the liability model
                              non_special_db_new_ratio = non_special_db_new_ratio,
-                             special_db_new_ratio = special_db_new_ratio)
+                             special_db_new_ratio = special_db_new_ratio,
+                             # change mc.cores from 4 to 1 so it will run on Windows
+                             mc.cores = 1)
+   
   
   names(liability_list) <- class_names_no_drop_frs
   
+  # djb: examine the drop comments below
   #Create a "liability" data for the DROP plan
   #This is a makeshift solution for now. Proper modeling of the DROP plan will be done in the future.
   # drop_liability_output <- funding_list[["drop"]]
-  
-  
-      
-  
-  ####Model calibration 
+  # browser()
+  #### Model calibration 
   for (class in class_names_no_drop_frs) {
+    
     fund_data <- funding_list[[class]]
     liab_data <- liability_list[[class]]
+    
     #payroll calibration
     fund_data$payroll_db_legacy_ratio <- lag(liab_data$payroll_db_legacy_est / liab_data$total_payroll_est) #use lag to align with the funding mechanism
     fund_data$payroll_db_new_ratio <- lag(liab_data$payroll_db_new_est / liab_data$total_payroll_est)
@@ -131,7 +144,7 @@ get_funding_data <- function(
     fund_data$payroll_dc_new_ratio <- lag(liab_data$payroll_dc_new_est / liab_data$total_payroll_est)
     
     #normal cost calibration/projection
-    nc_cal <- get(str_replace(paste0(class, "_nc_cal_"), " ", "_"))
+    nc_cal <- get(str_replace(paste0(class, "_nc_cal_"), " ", "_")) #djb - wow, this gets a global variable
     fund_data$nc_rate_db_legacy <- lag(liab_data$nc_rate_db_legacy_est * nc_cal)
     fund_data$nc_rate_db_new <- lag(liab_data$nc_rate_db_new_est * nc_cal)
     
@@ -141,14 +154,13 @@ get_funding_data <- function(
     fund_data$ual_ava_legacy[1] <- fund_data$aal_legacy[1] - fund_data$ava_legacy[1]
     fund_data$total_ual_ava[1] <- fund_data$total_aal[1] - fund_data$total_ava[1]
     
-    
     funding_list[[class]] <- fund_data
   }
   
-  
+  # browser()
   ####Set up amo period sequences
   #Determine the number of columns for the amo period tables
-  amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + funding_lag_)
+  amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + funding_lag)
   
   #Create two lists, one for the current hire amo periods, and one for new hire amo periods
   #Current hire amo periods list construction:
@@ -157,21 +169,21 @@ get_funding_data <- function(
       filter(class == class_name)
     
     current_periods <- class_amo_layers_table$amo_period
-    future_periods <- amo_period_new + funding_lag_
+    future_periods <- amo_period_new + funding_lag
     length(current_periods) <- amo_col_num
     length(future_periods) <- amo_col_num
     
     current_hire_amo_period_table <- rbind(current_periods, matrix(future_periods, 
-                                                                   nrow = model_period_,
+                                                                   nrow = model_period,
                                                                    ncol = amo_col_num,
-                                                                   byrow = T))
+                                                                   byrow = TRUE))
     
     rownames(current_hire_amo_period_table) <- NULL         #Remove row names
     
     #Put the amo periods on diagonal rows
     for (i in 2:nrow(current_hire_amo_period_table)) {
       for (j in 2:ncol(current_hire_amo_period_table)) {
-        current_hire_amo_period_table[i,j] <- max(current_hire_amo_period_table[i-1,j-1] - 1, 0)
+        current_hire_amo_period_table[i, j] <- max(current_hire_amo_period_table[i-1, j-1] - 1, 0)
       }
     }
     
@@ -188,13 +200,13 @@ get_funding_data <- function(
   
   #Future hire amo periods list construction:
   get_future_hire_amo_period_table <- function(class_name) {
-    future_periods <- amo_period_new + funding_lag_
+    future_periods <- amo_period_new + funding_lag
     length(future_periods) <- amo_col_num
     
     future_hire_amo_period_table <- matrix(future_periods, 
-                                           nrow = model_period_ + 1,
+                                           nrow = model_period + 1,
                                            ncol = amo_col_num,
-                                           byrow = T) 
+                                           byrow = TRUE) 
     
     #Put the amo periods on diagonal rows
     for (i in 2:nrow(future_hire_amo_period_table)) {
@@ -212,7 +224,6 @@ get_funding_data <- function(
   future_hire_amo_period_list <- lapply(class_names_no_frs, get_future_hire_amo_period_table)
   names(future_hire_amo_period_list) <- class_names_no_frs
   
-  
   #Level % or level $ for debt amortization 
   if(amo_method == "level $"){
     amo_pay_growth <- 0
@@ -221,7 +232,8 @@ get_funding_data <- function(
   ####Set up the UAAL layer and amo payment tables for current members and initialize the first UAAL layer and amo payments
   #UAAL layers tables for current members
   get_current_hire_debt_layer_table <- function(class_name) {
-    current_hire_debt_layer_table <- matrix(0, nrow = model_period_ + 1, ncol = amo_col_num + 1)
+    
+    current_hire_debt_layer_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num + 1)
     
     current_hire_debt_layers <- current_amort_layers_table %>% 
       filter(class == class_name) %>% 
@@ -240,7 +252,7 @@ get_funding_data <- function(
   #Amo payment tables for current members
   get_current_hire_amo_payment_table <- function(class_name) {
     
-    current_hire_amo_payment_table <- matrix(0, nrow = model_period_ + 1, ncol = amo_col_num)
+    current_hire_amo_payment_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num)
     init_debt_layers <- current_hire_debt_layer_list[[class_name]][1,1:amo_col_num]
     amo_periods <- current_hire_amo_period_list[[class_name]][1,1:amo_col_num]
     
@@ -249,8 +261,8 @@ get_funding_data <- function(
                                                                g = amo_pay_growth,
                                                                nper = amo_periods,
                                                                t = 0.5)
-    if (funding_lag_ > 0) {
-      current_hire_amo_payment_table[1,1:funding_lag_] <- 0
+    if (funding_lag > 0) {
+      current_hire_amo_payment_table[1,1:funding_lag] <- 0
     }
     
     return(current_hire_amo_payment_table)
@@ -262,7 +274,7 @@ get_funding_data <- function(
   ####Set up the UAL layer and amo payment tables for new members
   #UAAL layers tables for new members
   get_future_hire_debt_layer_table <- function(class_name) {
-    future_hire_debt_layer_table <- matrix(0, nrow = model_period_ + 1, ncol = amo_col_num + 1)
+    future_hire_debt_layer_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num + 1)
     return(future_hire_debt_layer_table)
   }
   
@@ -271,7 +283,7 @@ get_funding_data <- function(
   
   #Amo payment tables for new members
   get_future_hire_amo_payment_table <- function(class_name) {
-    future_hire_amo_payment_table <- matrix(0, nrow = model_period_ + 1, ncol = amo_col_num)
+    future_hire_amo_payment_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num)
     return(future_hire_amo_payment_table)
   }
   
