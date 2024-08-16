@@ -69,6 +69,7 @@ get_funding_table <- function(class_name, init_funding_data) {
 
 
 get_funding_data <- function(
+    funding_list = funding_list,
     dr_current = dr_current_,
     dr_new = dr_new_,
     cola_tier_1_active_constant = cola_tier_1_active_constant_,
@@ -97,6 +98,7 @@ get_funding_data <- function(
   #Use mclapply to run the liability model in parallel. May not work properly with Windows OS or API. Switch back to lapply if needed. When working, mclapply will be about twice as fast as lapply.
   liability_list <- mclapply(X = class_names_no_drop_frs, 
                              FUN = get_liability_data,
+                             # prob could remove names of arguments now that mc.cores is last
                              dr_current = dr_current,
                              dr_new = dr_new,
                              cola_tier_1_active_constant = cola_tier_1_active_constant,
@@ -120,9 +122,6 @@ get_funding_data <- function(
   #Create a "liability" data for the DROP plan
   #This is a makeshift solution for now. Proper modeling of the DROP plan will be done in the future.
   # drop_liability_output <- funding_list[["drop"]]
-  
-  
-      
   
   ####Model calibration 
   for (class in class_names_no_drop_frs) {
