@@ -1,8 +1,93 @@
 
-get_wf_data(class_name = "regular", salary_growth_table=salary_growth_table)
-get_wf_data(class_name = "special", salary_growth_table=salary_growth_table)
-get_wf_data(class_name = "admin", salary_growth_table=salary_growth_table)
-get_wf_data(class_name = "eco", salary_growth_table=salary_growth_table)
-get_wf_data(class_name = "eso", salary_growth_table=salary_growth_table)
-get_wf_data(class_name = "judges", salary_growth_table=salary_growth_table)
-get_wf_data(class_name = "senior management", salary_growth_table=salary_growth_table)
+get_wf_data(class_name = "regular", 
+            dr_current = dr_current_,
+            dr_new = dr_new_,
+            cola_tier_1_active = cola_tier_1_active_,
+            cola_tier_2_active = cola_tier_2_active_,
+            cola_tier_3_active = cola_tier_3_active_,
+            cola_current_retire = cola_current_retire_,
+            cola_current_retire_one = cola_current_retire_one_,
+            one_time_cola = one_time_cola_,
+            retire_refund_ratio = retire_refund_ratio_,
+            cal_factor = cal_factor_,
+            salary_growth_table=salary_growth_table)
+
+get_wf_data(class_name = "special", 
+            dr_current = dr_current_,
+            dr_new = dr_new_,
+            cola_tier_1_active = cola_tier_1_active_,
+            cola_tier_2_active = cola_tier_2_active_,
+            cola_tier_3_active = cola_tier_3_active_,
+            cola_current_retire = cola_current_retire_,
+            cola_current_retire_one = cola_current_retire_one_,
+            one_time_cola = one_time_cola_,
+            retire_refund_ratio = retire_refund_ratio_,
+            cal_factor = cal_factor_,
+            salary_growth_table=salary_growth_table)
+
+get_wf_data(class_name = "admin", 
+            dr_current = dr_current_,
+            dr_new = dr_new_,
+            cola_tier_1_active = cola_tier_1_active_,
+            cola_tier_2_active = cola_tier_2_active_,
+            cola_tier_3_active = cola_tier_3_active_,
+            cola_current_retire = cola_current_retire_,
+            cola_current_retire_one = cola_current_retire_one_,
+            one_time_cola = one_time_cola_,
+            retire_refund_ratio = retire_refund_ratio_,
+            cal_factor = cal_factor_,
+            salary_growth_table=salary_growth_table)
+
+get_wf_data(class_name = "eco", 
+            dr_current = dr_current_,
+            dr_new = dr_new_,
+            cola_tier_1_active = cola_tier_1_active_,
+            cola_tier_2_active = cola_tier_2_active_,
+            cola_tier_3_active = cola_tier_3_active_,
+            cola_current_retire = cola_current_retire_,
+            cola_current_retire_one = cola_current_retire_one_,
+            one_time_cola = one_time_cola_,
+            retire_refund_ratio = retire_refund_ratio_,
+            cal_factor = cal_factor_,
+            salary_growth_table=salary_growth_table)
+
+get_wf_data(class_name = "eso", 
+            dr_current = dr_current_,
+            dr_new = dr_new_,
+            cola_tier_1_active = cola_tier_1_active_,
+            cola_tier_2_active = cola_tier_2_active_,
+            cola_tier_3_active = cola_tier_3_active_,
+            cola_current_retire = cola_current_retire_,
+            cola_current_retire_one = cola_current_retire_one_,
+            one_time_cola = one_time_cola_,
+            retire_refund_ratio = retire_refund_ratio_,
+            cal_factor = cal_factor_,
+            salary_growth_table=salary_growth_table)
+
+get_wf_data(class_name = "judges", 
+            dr_current = dr_current_,
+            dr_new = dr_new_,
+            cola_tier_1_active = cola_tier_1_active_,
+            cola_tier_2_active = cola_tier_2_active_,
+            cola_tier_3_active = cola_tier_3_active_,
+            cola_current_retire = cola_current_retire_,
+            cola_current_retire_one = cola_current_retire_one_,
+            one_time_cola = one_time_cola_,
+            retire_refund_ratio = retire_refund_ratio_,
+            cal_factor = cal_factor_,
+            salary_growth_table=salary_growth_table)
+
+get_wf_data(class_name = "senior management", 
+            dr_current = dr_current_,
+            dr_new = dr_new_,
+            cola_tier_1_active = cola_tier_1_active_,
+            cola_tier_2_active = cola_tier_2_active_,
+            cola_tier_3_active = cola_tier_3_active_,
+            cola_current_retire = cola_current_retire_,
+            cola_current_retire_one = cola_current_retire_one_,
+            one_time_cola = one_time_cola_,
+            retire_refund_ratio = retire_refund_ratio_,
+            cal_factor = cal_factor_,
+            salary_growth_table=salary_growth_table)
+
+

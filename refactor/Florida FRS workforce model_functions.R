@@ -240,17 +240,17 @@ loop_through_arrays <- function(wf_active,
 # cal_factor = cal_factor_
 
 get_wf_data <- function(
-    class_name = class_name_,
-    dr_current = dr_current_,
-    dr_new = dr_new_,
-    cola_tier_1_active = cola_tier_1_active_,
-    cola_tier_2_active = cola_tier_2_active_,
-    cola_tier_3_active = cola_tier_3_active_,
-    cola_current_retire = cola_current_retire_,
-    cola_current_retire_one = cola_current_retire_one_,
-    one_time_cola = one_time_cola_,
-    retire_refund_ratio = retire_refund_ratio_,
-    cal_factor = cal_factor_,
+    class_name,
+    dr_current,
+    dr_new,
+    cola_tier_1_active,
+    cola_tier_2_active,
+    cola_tier_3_active,
+    cola_current_retire,
+    cola_current_retire_one,
+    one_time_cola,
+    retire_refund_ratio,
+    cal_factor,
     salary_growth_table
 ) {
   
