@@ -40,11 +40,12 @@ new_year_
 # djb check this out globals ----
 # DONE get_mort_table new_year_
 # DONE get_funding_table needs init_funding_data
+# DONE: get_wf_data has default globals instead should pass
 
-see globals passed to get_salary_benefit_table within get_benefit_data but not passed to get_benefit_data
-and to get_annuity_factor_retire_table
+# see globals passed to get_salary_benefit_table within get_benefit_data but not
+# passed to get_benefit_data and to get_annuity_factor_retire_table
 
-get_wf_data has default globals instead should pass
+
 get_liability_data also
 get_funding_data also
 FIRST:: INTERNAL functions in get_funding_data use globals

@@ -37,20 +37,19 @@ get_liability_data <- function(
 ) {
   
   benefit_data <- get_benefit_data(    
-    class_name = class_name,
-    dr_current = dr_current,
-    dr_new = dr_new,
-    cola_tier_1_active_constant = cola_tier_1_active_constant,
-    cola_tier_1_active = cola_tier_1_active,
-    cola_tier_2_active = cola_tier_2_active,
-    cola_tier_3_active = cola_tier_3_active,
-    cola_current_retire = cola_current_retire,
-    cola_current_retire_one = cola_current_retire_one,
-    one_time_cola = one_time_cola,
-    retire_refund_ratio = retire_refund_ratio,
-    cal_factor = cal_factor,
+    class_name,
+    dr_current,
+    dr_new,
+    cola_tier_1_active_constant,
+    cola_tier_1_active,
+    cola_tier_2_active,
+    cola_tier_3_active,
+    cola_current_retire,
+    cola_current_retire_one,
+    one_time_cola,
+    retire_refund_ratio,
+    cal_factor,
     salary_growth_table)
-  
   
   class_name <- str_replace(class_name, " ", "_")
   assign("wf_data", get(paste0(class_name, "_wf_data")))

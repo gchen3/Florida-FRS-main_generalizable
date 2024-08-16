@@ -361,7 +361,6 @@ get_salary_benefit_table <- function(class_name,
 }
 
 
-
 # get_benefit_data -- primary function ------------------------------------
 
 get_benefit_data <- function(
