@@ -69,6 +69,7 @@ get_funding_table <- function(class_name, init_funding_data) {
 
 
 get_funding_data <- function(
+    class_names_no_drop_frs,
     funding_list = funding_list,
     current_amort_layers_table = current_amort_layers_table,
     dr_current = dr_current_,
