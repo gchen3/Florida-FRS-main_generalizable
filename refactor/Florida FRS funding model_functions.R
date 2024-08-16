@@ -36,6 +36,7 @@ get_current_amort_layers_summary_table <- function(current_amort_layers_table){
 get_current_hire_amo_period_table <- function(class_name,
                                               current_amort_layers_table,
                                               class_amo_layers_table,
+                                              model_period,
                                               amo_period_new,
                                               funding_lag,
                                               amo_col_num) {
@@ -169,7 +170,7 @@ get_funding_data <- function(
   #Create a "liability" data for the DROP plan
   #This is a makeshift solution for now. Proper modeling of the DROP plan will be done in the future.
   # drop_liability_output <- funding_list[["drop"]]
-  # browser()
+
   #### Model calibration 
   for (class in class_names_no_drop_frs) {
     
@@ -196,17 +197,21 @@ get_funding_data <- function(
     funding_list[[class]] <- fund_data
   }
   
-  # browser()
   ####Set up amo period sequences
   #Determine the number of columns for the amo period tables
   amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + funding_lag)
   
   #Create two lists, one for the current hire amo periods, and one for new hire amo periods
   #Current hire amo periods list construction:
-  
-  current_hire_amo_period_table <- get_current_hire_amo_period_table(class_name)
-  
-  current_hire_amo_period_list <- lapply(class_names_no_frs, get_current_hire_amo_period_table)
+
+  current_hire_amo_period_list <- lapply(class_names_no_frs, 
+                                         get_current_hire_amo_period_table,
+                                         current_amort_layers_table,
+                                         class_amo_layers_table,
+                                         model_period,
+                                         amo_period_new,
+                                         funding_lag,
+                                         amo_col_num)
   names(current_hire_amo_period_list) <- class_names_no_frs
   
   
