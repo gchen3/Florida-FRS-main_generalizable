@@ -49,15 +49,26 @@ source(here::here("refactor", "Florida FRS liability model.R")) # only creates f
 print("sourcing Florida FRS funding model_functions.R...")
 source(here::here("refactor", "Florida FRS funding model_functions.R")) # only creates function - no live code
 
+# Immutables -----------------------------------------------------------------
+
+#Get model inputs and assumptions
+print("sourcing Florida FRS model input.R...") # this gets init_funding_data
+system.time(source(here::here("refactor", "Florida FRS model input.R"))) # only reads data and sets variable values - no functions
+
+FIXED_CLASS_NAMES <- init_funding_data$class
+FIXED_CLASS_NAMES_NO_DROP_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("drop", "frs")]
+FIXED_CLASS_NAMES_NO_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("frs")]
+
+# get_fixed_class_names <- function(init_funding_data){
+#   class_names <- init_funding_data$class
+#   class_names_no_drop_frs <- class_names[!class_names %in% c("drop", "frs")]
+#   class_names_no_frs <- class_names[!class_names %in% c("frs")]
+# }
 
 # Actions -----------------------------------------------------------------
 
 #Get model inputs and assumptions
 print("Start data construction based on system data and model parameters...")
-
-#Get model inputs and assumptions
-print("sourcing Florida FRS model input.R...")
-system.time(source(here::here("refactor", "Florida FRS model input.R"))) # only reads data and sets variable values - no functions
 
 print("sourcing Florida FRS benefit model_actions.R...")
 system.time(source(here::here("refactor", "Florida FRS benefit model_actions.R"))) # only creates objects - no functions

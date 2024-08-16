@@ -36,6 +36,7 @@ get_liability_data <- function(
     special_db_new_ratio = special_db_new_ratio_
 ) {
   
+  print(paste0("processing: ", class_name))
   benefit_data <- get_benefit_data(    
     class_name,
     dr_current,

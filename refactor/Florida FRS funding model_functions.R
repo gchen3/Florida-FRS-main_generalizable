@@ -8,7 +8,9 @@
 # these functions are NOT needed in the get_funding_data function, but are called before it is called
 
 
-get_all_classes_funding_list <- function(class_names, init_funding_data){
+get_all_classes_funding_list <- function(init_funding_data,
+                                         class_names=FIXED_CLASS_NAMES){
+  
   funding_list <- lapply(class_names, get_funding_table, init_funding_data)
   names(funding_list) <- class_names
   
@@ -69,11 +71,13 @@ get_funding_table <- function(class_name, init_funding_data, model_period=model_
 
 
 get_funding_data <- function(
-    class_names_no_drop_frs=class_names_no_drop_frs,
+    funding_list,
+    current_amort_layers_table,
+    # globals
+    class_names_no_frs=FIXED_CLASS_NAMES_NO_FRS,
+    class_names_no_drop_frs=FIXED_CLASS_NAMES_NO_DROP_FRS,
     funding_lag=funding_lag_,
     model_period=model_period_,
-    funding_list = funding_list,
-    current_amort_layers_table = current_amort_layers_table,
     
     dr_current = dr_current_,
     dr_new = dr_new_,
@@ -96,10 +100,8 @@ get_funding_data <- function(
     amo_pay_growth = amo_pay_growth_,
     amo_method = amo_method_
 ) {
-  
-  
+
   ####Produce liability outputs for each class (except DROP and FRS system)
-  
   #Use mclapply to run the liability model in parallel. May not work properly with Windows OS or API. Switch back to lapply if needed. When working, mclapply will be about twice as fast as lapply.
   liability_list <- mclapply(X = class_names_no_drop_frs, 
                              FUN = get_liability_data,
@@ -128,7 +130,7 @@ get_funding_data <- function(
   #Create a "liability" data for the DROP plan
   #This is a makeshift solution for now. Proper modeling of the DROP plan will be done in the future.
   # drop_liability_output <- funding_list[["drop"]]
-  
+  # browser()
   #### Model calibration 
   for (class in class_names_no_drop_frs) {
     
@@ -142,7 +144,7 @@ get_funding_data <- function(
     fund_data$payroll_dc_new_ratio <- lag(liab_data$payroll_dc_new_est / liab_data$total_payroll_est)
     
     #normal cost calibration/projection
-    nc_cal <- get(str_replace(paste0(class, "_nc_cal_"), " ", "_"))
+    nc_cal <- get(str_replace(paste0(class, "_nc_cal_"), " ", "_")) #djb - wow, this gets a global variable
     fund_data$nc_rate_db_legacy <- lag(liab_data$nc_rate_db_legacy_est * nc_cal)
     fund_data$nc_rate_db_new <- lag(liab_data$nc_rate_db_new_est * nc_cal)
     
@@ -155,6 +157,7 @@ get_funding_data <- function(
     funding_list[[class]] <- fund_data
   }
   
+  # browser()
   ####Set up amo period sequences
   #Determine the number of columns for the amo period tables
   amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + funding_lag)
