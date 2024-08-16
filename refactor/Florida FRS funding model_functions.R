@@ -69,9 +69,11 @@ get_funding_table <- function(class_name, init_funding_data) {
 
 
 get_funding_data <- function(
-    class_names_no_drop_frs,
+    class_names_no_drop_frs=class_names_no_drop_frs,
+    funding_lag=funding_lag_,
     funding_list = funding_list,
     current_amort_layers_table = current_amort_layers_table,
+    
     dr_current = dr_current_,
     dr_new = dr_new_,
     cola_tier_1_active_constant = cola_tier_1_active_constant_,
@@ -121,11 +123,12 @@ get_funding_data <- function(
   
   names(liability_list) <- class_names_no_drop_frs
   
+  # djb: examine the drop comments below
   #Create a "liability" data for the DROP plan
   #This is a makeshift solution for now. Proper modeling of the DROP plan will be done in the future.
   # drop_liability_output <- funding_list[["drop"]]
   
-  ####Model calibration 
+  #### Model calibration 
   for (class in class_names_no_drop_frs) {
     
     fund_data <- funding_list[[class]]
@@ -153,7 +156,7 @@ get_funding_data <- function(
   
   ####Set up amo period sequences
   #Determine the number of columns for the amo period tables
-  amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + funding_lag_)
+  amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + funding_lag)
   
   #Create two lists, one for the current hire amo periods, and one for new hire amo periods
   #Current hire amo periods list construction:
@@ -162,7 +165,7 @@ get_funding_data <- function(
       filter(class == class_name)
     
     current_periods <- class_amo_layers_table$amo_period
-    future_periods <- amo_period_new + funding_lag_
+    future_periods <- amo_period_new + funding_lag
     length(current_periods) <- amo_col_num
     length(future_periods) <- amo_col_num
     
@@ -193,7 +196,7 @@ get_funding_data <- function(
   
   #Future hire amo periods list construction:
   get_future_hire_amo_period_table <- function(class_name) {
-    future_periods <- amo_period_new + funding_lag_
+    future_periods <- amo_period_new + funding_lag
     length(future_periods) <- amo_col_num
     
     future_hire_amo_period_table <- matrix(future_periods, 
@@ -254,8 +257,8 @@ get_funding_data <- function(
                                                                g = amo_pay_growth,
                                                                nper = amo_periods,
                                                                t = 0.5)
-    if (funding_lag_ > 0) {
-      current_hire_amo_payment_table[1,1:funding_lag_] <- 0
+    if (funding_lag > 0) {
+      current_hire_amo_payment_table[1,1:funding_lag] <- 0
     }
     
     return(current_hire_amo_payment_table)
