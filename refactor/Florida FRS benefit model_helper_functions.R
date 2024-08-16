@@ -196,7 +196,9 @@ get_mort_table <- function(class_name,
                            base_mort_table, 
                            male_mp_final_table, female_mp_final_table,
                            entrant_profile,
-                           entry_year_range, age_range, yos_range){
+                           entry_year_range, age_range, yos_range,
+                           new_year){
+  
   final_mort_table <- expand_grid(entry_year = entry_year_range, 
                                   entry_age = entrant_profile$entry_age, 
                                   dist_age = age_range, 
@@ -211,7 +213,7 @@ get_mort_table <- function(class_name,
     left_join(male_mp_final_table, by = c("dist_age" = "age", "dist_year" = "year")) %>% 
     left_join(female_mp_final_table, by = c("dist_age" = "age", "dist_year" = "year")) %>% 
     mutate(
-      tier_at_dist_age = get_tier(class_name, entry_year, dist_age, yos, new_year_),
+      tier_at_dist_age = get_tier(class_name, entry_year, dist_age, yos, new_year),
       
       male_mort = if_else(str_detect(tier_at_dist_age, "vested"), employee_male,
                           healthy_retiree_male) * male_mp_cumprod_adj,
@@ -223,6 +225,8 @@ get_mort_table <- function(class_name,
       ) %>% 
     #filter out the necessary variables
     select(entry_year, entry_age, dist_year, dist_age, yos, term_year, mort_final, tier_at_dist_age)
+  
+  return(final_mort_table)
 }
 
 
@@ -330,7 +334,7 @@ get_early_retire_rate_table <- function(class_name, init_early_retire_rate_table
 
 #.. separation tables ---------------------------------------------------------
 
-# age_range_, entry_year_range_, yos_range_, new_year_
+
 get_separation_table <- function(class_name,
                                  age_range, entry_year_range, yos_range, 
                                  new_year){
