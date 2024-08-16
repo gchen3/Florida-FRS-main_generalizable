@@ -33,9 +33,48 @@ get_current_amort_layers_summary_table <- function(current_amort_layers_table){
 }
 
 
+get_current_hire_amo_period_table <- function(class_name,
+                                              current_amort_layers_table,
+                                              class_amo_layers_table,
+                                              amo_period_new,
+                                              funding_lag,
+                                              amo_col_num) {
+  
+  class_amo_layers_table <- current_amort_layers_table %>% 
+    filter(class == class_name)
+  
+  current_periods <- class_amo_layers_table$amo_period
+  future_periods <- amo_period_new + funding_lag
+  length(current_periods) <- amo_col_num
+  length(future_periods) <- amo_col_num
+  
+  current_hire_amo_period_table <- rbind(current_periods, 
+                                         matrix(future_periods,
+                                                nrow = model_period,
+                                                ncol = amo_col_num,
+                                                byrow = TRUE))
+  
+  rownames(current_hire_amo_period_table) <- NULL         #Remove row names
+  
+  #Put the amo periods on diagonal rows
+  for (i in 2:nrow(current_hire_amo_period_table)) {
+    for (j in 2:ncol(current_hire_amo_period_table)) {
+      current_hire_amo_period_table[i, j] <- max(current_hire_amo_period_table[i-1, j-1] - 1, 0)
+    }
+  }
+  
+  #Turn all NAs in the table to 0s
+  current_hire_amo_period_table[is.na(current_hire_amo_period_table)] <- 0
+  
+  return(current_hire_amo_period_table)
+}
+
+
 #### Data preparation
 #Create 9 empty data frames from the init_funding_data (representing 7 classes, DROP, and FRS system), then put them in a list to store funding outputs for these entities
-get_funding_table <- function(class_name, init_funding_data, model_period=model_period_) {
+get_funding_table <- function(class_name, 
+                              init_funding_data, 
+                              model_period=model_period_) {
   funding_table <- init_funding_data %>% 
     filter(class == class_name) %>% 
     select(-class) %>%
@@ -164,35 +203,8 @@ get_funding_data <- function(
   
   #Create two lists, one for the current hire amo periods, and one for new hire amo periods
   #Current hire amo periods list construction:
-  get_current_hire_amo_period_table <- function(class_name) {
-    class_amo_layers_table <- current_amort_layers_table %>% 
-      filter(class == class_name)
-    
-    current_periods <- class_amo_layers_table$amo_period
-    future_periods <- amo_period_new + funding_lag
-    length(current_periods) <- amo_col_num
-    length(future_periods) <- amo_col_num
-    
-    current_hire_amo_period_table <- rbind(current_periods, matrix(future_periods, 
-                                                                   nrow = model_period,
-                                                                   ncol = amo_col_num,
-                                                                   byrow = TRUE))
-    
-    rownames(current_hire_amo_period_table) <- NULL         #Remove row names
-    
-    #Put the amo periods on diagonal rows
-    for (i in 2:nrow(current_hire_amo_period_table)) {
-      for (j in 2:ncol(current_hire_amo_period_table)) {
-        current_hire_amo_period_table[i, j] <- max(current_hire_amo_period_table[i-1, j-1] - 1, 0)
-      }
-    }
-    
-    #Turn all NAs in the table to 0s
-    current_hire_amo_period_table[is.na(current_hire_amo_period_table)] <- 0
-    
-    return(current_hire_amo_period_table)
-  }
   
+  current_hire_amo_period_table <- get_current_hire_amo_period_table(class_name)
   
   current_hire_amo_period_list <- lapply(class_names_no_frs, get_current_hire_amo_period_table)
   names(current_hire_amo_period_list) <- class_names_no_frs
