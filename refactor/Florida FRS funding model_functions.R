@@ -33,11 +33,11 @@ get_current_amort_layers_summary_table <- function(current_amort_layers_table){
 
 #### Data preparation
 #Create 9 empty data frames from the init_funding_data (representing 7 classes, DROP, and FRS system), then put them in a list to store funding outputs for these entities
-get_funding_table <- function(class_name, init_funding_data) {
+get_funding_table <- function(class_name, init_funding_data, model_period=model_period_) {
   funding_table <- init_funding_data %>% 
     filter(class == class_name) %>% 
     select(-class) %>%
-    add_row(year = (start_year_ + 1):(start_year_ + model_period_))
+    add_row(year = (start_year_ + 1):(start_year_ + model_period))
   
   funding_table[is.na(funding_table)] <- 0
   
