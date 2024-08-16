@@ -70,6 +70,7 @@ get_funding_table <- function(class_name, init_funding_data) {
 
 get_funding_data <- function(
     funding_list = funding_list,
+    current_amort_layers_table = current_amort_layers_table,
     dr_current = dr_current_,
     dr_new = dr_new_,
     cola_tier_1_active_constant = cola_tier_1_active_constant_,
@@ -125,8 +126,10 @@ get_funding_data <- function(
   
   ####Model calibration 
   for (class in class_names_no_drop_frs) {
+    
     fund_data <- funding_list[[class]]
     liab_data <- liability_list[[class]]
+    
     #payroll calibration
     fund_data$payroll_db_legacy_ratio <- lag(liab_data$payroll_db_legacy_est / liab_data$total_payroll_est) #use lag to align with the funding mechanism
     fund_data$payroll_db_new_ratio <- lag(liab_data$payroll_db_new_est / liab_data$total_payroll_est)
@@ -144,10 +147,8 @@ get_funding_data <- function(
     fund_data$ual_ava_legacy[1] <- fund_data$aal_legacy[1] - fund_data$ava_legacy[1]
     fund_data$total_ual_ava[1] <- fund_data$total_aal[1] - fund_data$total_ava[1]
     
-    
     funding_list[[class]] <- fund_data
   }
-  
   
   ####Set up amo period sequences
   #Determine the number of columns for the amo period tables
