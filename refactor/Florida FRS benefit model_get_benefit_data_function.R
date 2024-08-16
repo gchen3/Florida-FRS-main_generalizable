@@ -342,9 +342,11 @@ get_salary_benefit_table <- function(class_name,
     left_join(entrant_profile_table, by = "entry_age") %>% 
     left_join(class_salary_growth_table, by = "yos") %>% 
     #Join salary_head_count_table by entry_year and entry_age only to get historical entry_salary
-    left_join(salary_headcount_table %>% select(entry_year, entry_age, entry_salary), by = c("entry_year", "entry_age")) %>%
+    left_join(salary_headcount_table %>% select(entry_year, entry_age, entry_salary), 
+              by = c("entry_year", "entry_age")) %>%
     mutate(
-      salary = if_else(entry_year <= max(salary_headcount_table$entry_year), entry_salary * cumprod_salary_increase,
+      salary = if_else(entry_year <= max(salary_headcount_table$entry_year), 
+                       entry_salary * cumprod_salary_increase,
                        start_sal * cumprod_salary_increase * (1 + payroll_growth_)^(entry_year - max(salary_headcount_table$entry_year))),
       fas_period = if_else(str_detect(tier_at_term_age, "tier_1"), 5, 8)
     ) %>% 
@@ -364,18 +366,18 @@ get_salary_benefit_table <- function(class_name,
 # get_benefit_data -- primary function ------------------------------------
 
 get_benefit_data <- function(
-    class_name = class_name_,
-    dr_current = dr_current_,
-    dr_new = dr_new_,
-    cola_tier_1_active_constant = cola_tier_1_active_constant_,
-    cola_tier_1_active = cola_tier_1_active_,
-    cola_tier_2_active = cola_tier_2_active_,
-    cola_tier_3_active = cola_tier_3_active_,
-    cola_current_retire = cola_current_retire_,
-    cola_current_retire_one = cola_current_retire_one_,
-    one_time_cola = one_time_cola_,
-    retire_refund_ratio = retire_refund_ratio_,
-    cal_factor = cal_factor_,
+    class_name,
+    dr_current,
+    dr_new,
+    cola_tier_1_active_constant,
+    cola_tier_1_active,
+    cola_tier_2_active,
+    cola_tier_3_active,
+    cola_current_retire,
+    cola_current_retire_one,
+    one_time_cola,
+    retire_refund_ratio,
+    cal_factor,
     salary_growth_table
 ) {
   
