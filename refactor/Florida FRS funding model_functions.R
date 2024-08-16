@@ -95,7 +95,8 @@ get_funding_data <- function(
   ####Produce liability outputs for each class (except DROP and FRS system)
   
   #Use mclapply to run the liability model in parallel. May not work properly with Windows OS or API. Switch back to lapply if needed. When working, mclapply will be about twice as fast as lapply.
-  liability_list <- mclapply(X = class_names_no_drop_frs, FUN = get_liability_data, mc.cores = 1, # change mc.cores from 4 to 1 so it will run on Windows
+  liability_list <- mclapply(X = class_names_no_drop_frs, 
+                             FUN = get_liability_data,
                              dr_current = dr_current,
                              dr_new = dr_new,
                              cola_tier_1_active_constant = cola_tier_1_active_constant,
@@ -109,7 +110,10 @@ get_funding_data <- function(
                              cal_factor = cal_factor,
                              #inputs below are for the liability model
                              non_special_db_new_ratio = non_special_db_new_ratio,
-                             special_db_new_ratio = special_db_new_ratio)
+                             special_db_new_ratio = special_db_new_ratio,
+                             # change mc.cores from 4 to 1 so it will run on Windows
+                             mc.cores = 1)
+   
   
   names(liability_list) <- class_names_no_drop_frs
   
