@@ -1,6 +1,10 @@
 # Salary & Headcount Processing -------------------------------------------
 
-get_salary_headcount_table <- function(salary_table, headcount_table, total_active_member, salary_growth_table, class_name){
+get_salary_headcount_table <- function(salary_table,
+                                       headcount_table, 
+                                       total_active_member, 
+                                       salary_growth_table, 
+                                       class_name){
   
   class_name <- str_replace(class_name, " ", "_")
   
@@ -119,16 +123,24 @@ get_base_mort_table <- function(raw_mort_table){
                 .cols = ends_with("2")) %>% 
     #turn data into numeric 
     mutate(across(everything(), ~ as.numeric(.x)),
-           employee_female = if_else(is.na(employee_female), healthy_retiree_female, employee_female),
-           employee_male = if_else(is.na(employee_male), healthy_retiree_male, employee_male),
-           healthy_retiree_female = if_else(is.na(healthy_retiree_female), employee_female, healthy_retiree_female),
-           healthy_retiree_male = if_else(is.na(healthy_retiree_male), employee_male, healthy_retiree_male))
+           employee_female = if_else(is.na(employee_female),
+                                     healthy_retiree_female, 
+                                     employee_female),
+           employee_male = if_else(is.na(employee_male), 
+                                   healthy_retiree_male, 
+                                   employee_male),
+           healthy_retiree_female = if_else(is.na(healthy_retiree_female),
+                                            employee_female, 
+                                            healthy_retiree_female),
+           healthy_retiree_male = if_else(is.na(healthy_retiree_male), 
+                                          employee_male,
+                                          healthy_retiree_male))
   return(base_mort_table)
 }
 
 
 #Clean up mortality improvement (MP) tables
-clean_mp_table <- function(raw_mp_table, extend_2_yrs = F){
+clean_mp_table <- function(raw_mp_table, extend_2_yrs = FALSE){
   mp_table <- raw_mp_table %>%
     row_to_names(row_number = 1) %>% 
     rename(age = 1) %>%
@@ -137,7 +149,7 @@ clean_mp_table <- function(raw_mp_table, extend_2_yrs = F){
     mutate(age = replace(age, age == "≤ 20", 20)) %>% 
     mutate(across(everything(), ~ as.numeric(.x))) 
   
-  if (extend_2_yrs == T){
+  if (extend_2_yrs == TRUE){
     mp_table <- mp_table %>% 
       add_row(age=19, .before = 1) %>% 
       add_row(age=18, .before = 1) %>% 
@@ -180,9 +192,17 @@ get_mp_final_table <- function(mp_table, gender, base_year, age_range, year_rang
 
 
 ##Mortality calculations
-get_mort_table <- function(class_name, base_mort_table, male_mp_final_table, female_mp_final_table, entrant_profile,
-                           entry_year_range, age_range, yos_range){
-  final_mort_table <- expand_grid(entry_year = entry_year_range, entry_age = entrant_profile$entry_age, dist_age = age_range, yos = yos_range) %>% 
+get_mort_table <- function(class_name, 
+                           base_mort_table, 
+                           male_mp_final_table, female_mp_final_table,
+                           entrant_profile,
+                           entry_year_range, age_range, yos_range,
+                           new_year){
+  
+  final_mort_table <- expand_grid(entry_year = entry_year_range, 
+                                  entry_age = entrant_profile$entry_age, 
+                                  dist_age = age_range, 
+                                  yos = yos_range) %>% 
     mutate(
       term_year = entry_year + yos,
       dist_year = entry_year + dist_age - entry_age
@@ -193,7 +213,7 @@ get_mort_table <- function(class_name, base_mort_table, male_mp_final_table, fem
     left_join(male_mp_final_table, by = c("dist_age" = "age", "dist_year" = "year")) %>% 
     left_join(female_mp_final_table, by = c("dist_age" = "age", "dist_year" = "year")) %>% 
     mutate(
-      tier_at_dist_age = get_tier(class_name, entry_year, dist_age, yos, new_year_),
+      tier_at_dist_age = get_tier(class_name, entry_year, dist_age, yos, new_year),
       
       male_mort = if_else(str_detect(tier_at_dist_age, "vested"), employee_male,
                           healthy_retiree_male) * male_mp_cumprod_adj,
@@ -205,12 +225,15 @@ get_mort_table <- function(class_name, base_mort_table, male_mp_final_table, fem
       ) %>% 
     #filter out the necessary variables
     select(entry_year, entry_age, dist_year, dist_age, yos, term_year, mort_final, tier_at_dist_age)
+  
+  return(final_mort_table)
 }
 
 
 #Create a second mortality table for current retirees
 # age_range_, year_range_, start_year_
-get_mort_retire_table <- function(base_mort_table, male_mp_final_table, female_mp_final_table,
+get_mort_retire_table <- function(base_mort_table,
+                                  male_mp_final_table, female_mp_final_table,
                                   age_range, year_range, start_year){
   
   mort_retire_table <- expand_grid(age = age_range[age_range >= 40], year = year_range[year_range >= start_year]) %>% 
@@ -311,9 +334,10 @@ get_early_retire_rate_table <- function(class_name, init_early_retire_rate_table
 
 #.. separation tables ---------------------------------------------------------
 
-# age_range_, entry_year_range_, yos_range_, new_year_
+
 get_separation_table <- function(class_name,
-                                 age_range, entry_year_range, yos_range, new_year){
+                                 age_range, entry_year_range, yos_range, 
+                                 new_year){
   
   # class_name <- gsub(" ", "_", class_name)
   class_name <- str_replace(class_name, " ", "_")
@@ -338,7 +362,9 @@ get_separation_table <- function(class_name,
   
   long_term_rate_table <- pivot_longer(term_rate_table, cols = -yos, names_to = "age_group", values_to = "term_rate")
   
-  sep_rate_table <- expand_grid(entry_year = entry_year_range, term_age = age_range, yos = yos_range) %>% 
+  sep_rate_table <- expand_grid(entry_year = entry_year_range,
+                                term_age = age_range, 
+                                yos = yos_range) %>% 
     mutate(
       entry_age = term_age  - yos,
       term_year = entry_year + yos,

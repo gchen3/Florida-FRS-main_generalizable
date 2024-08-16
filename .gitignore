@@ -55,8 +55,8 @@ rsconnect/
 */_webpage/
 # data-raw/web/_webpage/
 
-new_results/
-reason_results/
+# new_results/
+# reason_results/
 
 *.html
 *.rds

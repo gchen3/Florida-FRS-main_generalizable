@@ -8,16 +8,15 @@ editor_options:
 
 ## links
 
--   [this project web page](https://frs-generalize.netlify.app/)
--   this project on github
-    - [main](https://github.com/donboyd5/Florida-FRS-main_generalizable) -- branch with original project, plus minor changes needed to run under Window, and with selected tools added
-    - [revised](https://github.com/donboyd5/Florida-FRS-main_generalizable/tree/revised) -- branch with changes to make it generalizable
-    - [refactor subfolder in branch revised](https://github.com/donboyd5/Florida-FRS-main_generalizable/tree/revised/refactor) -- folder with revised code
-    - [pentools subfolder in branch revised](https://github.com/donboyd5/Florida-FRS-main_generalizable/tree/revised/pentools) -- folder with code for the pentools (pension tools) package
-    - pendata subfolder in branch revised (TO COME)
-    - penmod subfolder in branch revised (TO COME)
+-   this project on github:
+    - [`main`](https://github.com/donboyd5/Florida-FRS-main_generalizable) branch -- original Reason FRS project. No changes to original other than slight modifications (1) to run under Windows, and (2) to include selected tools for analyzing project code and results.
+    - [`revised`](https://github.com/donboyd5/Florida-FRS-main_generalizable/tree/revised) branch -- changes to make it generalizable:
+        - [`refactor` subfolder](https://github.com/donboyd5/Florida-FRS-main_generalizable/tree/revised/refactor) -- revised code, moving toward a generalized model
+        - [`pentools` subfolder](https://github.com/donboyd5/Florida-FRS-main_generalizable/tree/revised/pentools) -- code for the pentools (pension tools) package
+        - `pendata` subfolder in branch revised (TO COME)
+        - `penmod subfolder in branch revised (TO COME)
 -   [penmod project web page](https://rock-reason-penmod.netlify.app) CAUTION work in progress
 -   [original pendata](https://github.com/donboyd5/pendata) CAUTION work in progress
 -   [original penmod](https://github.com/donboyd5/penmodel) CAUTION work in progress
-
+-   [web page for this project](https://frs-generalize.netlify.app/)
 
