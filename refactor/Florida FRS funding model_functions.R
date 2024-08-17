@@ -177,7 +177,7 @@ get_future_hire_debt_layer_table <- function(class_name,
   return(future_hire_debt_layer_table)
 }
 
-main_get_funding_loop <- function(funding_list,
+main_loop <- function(funding_list,
                                   liability_list,
                                   class_names_no_frs=FIXED_CLASS_NAMES_NO_FRS,
                                   class_names_no_drop_frs=FIXED_CLASS_NAMES_NO_DROP_FRS,
@@ -840,19 +840,19 @@ get_funding_data <- function(
   return_scen_index <- which(colnames(return_scenarios) == return_scen)
   
 
-  funding_list <- main_get_funding_loop(funding_list=funding_list,
-                                        liability_list=liability_list,
-                                        payroll_growth_=payroll_growth_,
-                                        amo_pay_growth=amo_pay_growth,
-                                        dr_current=dr_current,
-                                        dr_new=dr_new,
-                                        return_scen_index=return_scen_index,
-                                        current_hire_amo_payment_list=current_hire_amo_payment_list,
-                                        future_hire_amo_payment_list=future_hire_amo_payment_list,
-                                        current_hire_amo_period_list=current_hire_amo_period_list,
-                                        future_hire_amo_period_list=future_hire_amo_period_list,
-                                        current_hire_debt_layer_list=current_hire_debt_layer_list,
-                                        future_hire_debt_layer_list=future_hire_debt_layer_list)
+  funding_list <- main_loop(funding_list=funding_list,
+                            liability_list=liability_list,
+                            payroll_growth_=payroll_growth_,
+                            amo_pay_growth=amo_pay_growth,
+                            dr_current=dr_current,
+                            dr_new=dr_new,
+                            return_scen_index=return_scen_index,
+                            current_hire_amo_payment_list=current_hire_amo_payment_list,
+                            future_hire_amo_payment_list=future_hire_amo_payment_list,
+                            current_hire_amo_period_list=current_hire_amo_period_list,
+                            future_hire_amo_period_list=future_hire_amo_period_list,
+                            current_hire_debt_layer_list=current_hire_debt_layer_list,
+                            future_hire_debt_layer_list=future_hire_debt_layer_list)
   
   output <- funding_list
   # browser()
