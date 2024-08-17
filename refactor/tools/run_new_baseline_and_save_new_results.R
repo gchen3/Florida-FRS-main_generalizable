@@ -12,6 +12,9 @@ system.time(baseline_liability <- get_liability_data())
 
 system.time(save.image(here::here("refactor", "new_results", "new_workspace.RData"))) # save the entire workspace
 
-system.time(source(here::here("refactor", "run_tests.R"))) # run tests
+# run one or the other of the following tests
 
+# system.time(source(here::here("refactor", "run_tests.R"))) # run selected tests
+
+system.time(source(here::here("refactor", "run_allobjects_tests.R"))) # run tests on all objects appropriate to compare
 

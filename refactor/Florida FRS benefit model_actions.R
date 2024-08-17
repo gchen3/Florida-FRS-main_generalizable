@@ -52,6 +52,8 @@ temp <- get_salary_headcount_table(senior_management_salary_table_,
 senior_management_salary_headcount_table <- temp$salary_headcount_table
 senior_management_entrant_profile_table <- temp$entrant_profile
 
+rm(temp)
+
 
 # Retirement & Separation Conditions --------------------------------------
 
