@@ -293,63 +293,64 @@ get_funding_data <- function(
   
   #Create two lists, one for the current hire amo periods, and one for new hire amo periods
   #Current hire amo periods list construction:
-
-  current_hire_amo_period_list <- lapply(class_names_no_frs, 
-                                         get_current_hire_amo_period_table,
-                                         current_amort_layers_table,
-                                         class_amo_layers_table,
-                                         model_period,
-                                         amo_period_new,
-                                         funding_lag,
-                                         amo_col_num,
-                                         USE.NAMES = TRUE)
   
-  future_hire_amo_period_list <- lapply(class_names_no_frs, 
-                                        get_future_hire_amo_period_table,
-                                        amo_period_new,
-                                        funding_lag,
-                                        amo_col_num,
-                                        model_period,
-                                        USE.NAMES = TRUE)
+  current_hire_amo_period_list <- purrr::set_names(class_names_no_frs) |> 
+                                  purrr::map(
+                                             get_current_hire_amo_period_table,
+                                             current_amort_layers_table,
+                                             class_amo_layers_table,
+                                             model_period,
+                                             amo_period_new,
+                                             funding_lag,
+                                             amo_col_num)  
+  
+  future_hire_amo_period_list <- purrr::set_names(class_names_no_frs) |> 
+                                 purrr::map(
+                                            get_future_hire_amo_period_table,
+                                            amo_period_new,
+                                            funding_lag,
+                                            amo_col_num,
+                                            model_period)
   
   #Level % or level $ for debt amortization 
+  # djb: is this the best place for this code??
   if(amo_method == "level $"){
     amo_pay_growth <- 0
   }
   
   ####Set up the UAAL layer and amo payment tables for current members and initialize the first UAAL layer and amo payments
   #UAAL layers tables for current members
-  current_hire_debt_layer_list <- lapply(class_names_no_frs, 
-                                         get_current_hire_debt_layer_table,
-                                         current_amort_layers_table,
-                                         model_period,
-                                         amo_col_num,
-                                         USE.NAMES = TRUE)
+  current_hire_debt_layer_list <- purrr::set_names(class_names_no_frs) |> 
+                                  purrr::map(
+                                             get_current_hire_debt_layer_table,
+                                             current_amort_layers_table,
+                                             model_period,
+                                             amo_col_num)
   
-  current_hire_amo_payment_list <- lapply(class_names_no_frs,
-                                          get_current_hire_amo_payment_table,
-                                          current_hire_amo_payment_table,
-                                          current_hire_debt_layer_list,
-                                          current_hire_amo_period_list,
-                                          model_period,
-                                          amo_col_num,
-                                          funding_lag,
-                                          amo_pay_growt,
-                                          USE.NAMES = TRUE)
+  current_hire_amo_payment_list <- purrr::set_names(class_names_no_frs) |> 
+                                   purrr::map(
+                                              get_current_hire_amo_payment_table,
+                                              current_hire_amo_payment_table,
+                                              current_hire_debt_layer_list,
+                                              current_hire_amo_period_list,
+                                              model_period,
+                                              amo_col_num,
+                                              funding_lag,
+                                              amo_pay_growth)
     
   ####Set up the UAL layer and amo payment tables for new members
-  future_hire_debt_layer_list <- lapply(class_names_no_frs, 
-                                        get_future_hire_debt_layer_table,
-                                        model_period,
-                                        amo_col_num,
-                                        USE.NAMES = TRUE)
+  future_hire_debt_layer_list <- purrr::set_names(class_names_no_frs) |> 
+                                 purrr::map( 
+                                            get_future_hire_debt_layer_table,
+                                            model_period,
+                                            amo_col_num)
   
   #Amo payment tables for new members
-  future_hire_amo_payment_list <- lapply(class_names_no_frs, 
-                                         get_future_hire_amo_payment_table,
-                                         model_period,
-                                         amo_col_num,
-                                         USE.NAMES = TRUE)
+  future_hire_amo_payment_list <- purrr::set_names(class_names_no_frs) |> 
+                                  purrr::map(
+                                             get_future_hire_amo_payment_table,
+                                             model_period,
+                                             amo_col_num)
   
   
   #Set return values for "model" and "assumption" scenarios

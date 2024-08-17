@@ -11,6 +11,8 @@ library(janitor)
 library(rio)
 library(parallel)
 
+library(purrr)
+
 # load pension-specific libraries
 # For first time installing package, or each time package is updated, install as follows
 # devtools::install(pkg = here::here("pentools"))
