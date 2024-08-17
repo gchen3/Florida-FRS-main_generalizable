@@ -197,6 +197,8 @@ main_loop <- function(funding_list,
   
   # return funding_list
   
+  # djb - why can't we do one loop without frs?? (or is it updated within) and adjust for drop?
+  
   # Key strategy: Loop through each year, then each class. The class loop should
   # exclude FRS, and may exclude DROP depending on the calculations
   
@@ -543,8 +545,7 @@ main_loop <- function(funding_list,
     } #.. end class in class_names_no_drop_frs loop
     
     
-    #.. start class in class_names_no_frs loop ----
-    ####AVA, UAL, funded ratio projections, and all-in-cost
+    #.. start class_names_no_frs loop AVA UAL FR projections all-in cost ----
     for (class in class_names_no_frs) {
       #Do the assignment below to declutter the code
       class_fund <- funding_list[[class]]
@@ -606,7 +607,7 @@ main_loop <- function(funding_list,
     } #.. end class in class_names_no_frs loop
     
     
-    #.. start class in class_names_no_frs loop ----
+    #.. start class_names_no_frs amortization loop ----
     ####Amortization calculations
     for (class in class_names_no_frs) {
       #Do the assignment below to declutter the code
