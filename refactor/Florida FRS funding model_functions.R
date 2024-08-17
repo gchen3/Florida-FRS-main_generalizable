@@ -43,7 +43,9 @@ get_current_hire_amo_payment_table <- function(class_name,
                                                amo_pay_growth) {
   
   current_hire_amo_payment_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num)
+  
   init_debt_layers <- current_hire_debt_layer_list[[class_name]][1,1:amo_col_num]
+  
   amo_periods <- current_hire_amo_period_list[[class_name]][1,1:amo_col_num]
   
   current_hire_amo_payment_table[1,1:amo_col_num] <- get_pmt(pv = init_debt_layers,
@@ -178,31 +180,31 @@ get_future_hire_debt_layer_table <- function(class_name,
 }
 
 main_loop <- function(funding_list,
-                                  liability_list,
-                                  class_names_no_frs=FIXED_CLASS_NAMES_NO_FRS,
-                                  class_names_no_drop_frs=FIXED_CLASS_NAMES_NO_DROP_FRS,
-                                  payroll_growth_,
-                                  amo_pay_growth,
-                                  dr_current,
-                                  dr_new,
-                                  return_scen_index,
-                                  current_hire_amo_payment_list,
-                                  future_hire_amo_payment_list,
-                                  current_hire_amo_period_list,
-                                  future_hire_amo_period_list,
-                                  current_hire_debt_layer_list,
-                                  future_hire_debt_layer_list){
+                      liability_list,
+                      class_names_no_frs=FIXED_CLASS_NAMES_NO_FRS,
+                      class_names_no_drop_frs=FIXED_CLASS_NAMES_NO_DROP_FRS,
+                      payroll_growth_,
+                      amo_pay_growth,
+                      dr_current,
+                      dr_new,
+                      return_scen_index,
+                      current_hire_amo_payment_list,
+                      future_hire_amo_payment_list,
+                      current_hire_amo_period_list,
+                      future_hire_amo_period_list,
+                      current_hire_debt_layer_list,
+                      future_hire_debt_layer_list){
   
   # return funding_list
   
   # Key strategy: Loop through each year, then each class. The class loop should
   # exclude FRS, and may exclude DROP depending on the calculations
   
-  # start i in 2:nrow(funding_list[[1]]) loop ----
+  # loop 2nd year to last year ----
   for (i in 2:nrow(funding_list[[1]])) {
     frs_fund <- funding_list$frs
     
-    #.. start class in class_names_no_drop_frs loop ----
+    #.. start class in class_names_no_drop_frs loop - payroll, benefits, refunds, normal cost, AAL ----
     for (class in class_names_no_drop_frs) {
       #Do the assignment below to declutter the code
       class_fund <- funding_list[[class]]
@@ -222,7 +224,9 @@ main_loop <- function(funding_list,
       frs_fund$payroll_dc_new[i] <- frs_fund$payroll_dc_new[i] + class_fund$payroll_dc_new[i]
       
       #Benefit payments and refunds projection
-      class_fund$ben_payment_legacy[i] <- class_liab$retire_ben_db_legacy_est[i] + class_liab$retire_ben_current_est[i] + class_liab$retire_ben_term_est[i]
+      class_fund$ben_payment_legacy[i] <- class_liab$retire_ben_db_legacy_est[i] + 
+        class_liab$retire_ben_current_est[i] + 
+        class_liab$retire_ben_term_est[i]
       class_fund$refund_legacy[i] <- class_liab$refund_db_legacy_est[i]
       class_fund$ben_payment_new[i] <- class_liab$retire_ben_db_new_est[i]
       class_fund$refund_new[i] <- class_liab$refund_db_new_est[i]
@@ -241,11 +245,13 @@ main_loop <- function(funding_list,
       #Normal cost projection
       class_fund$nc_legacy[i] <- class_fund$nc_rate_db_legacy[i] * class_fund$payroll_db_legacy[i]
       class_fund$nc_new[i] <- class_fund$nc_rate_db_new[i] * class_fund$payroll_db_new[i]
-      class_fund$total_nc_rate[i] <- (class_fund$nc_legacy[i] + class_fund$nc_new[i]) / (class_fund$payroll_db_legacy[i] + class_fund$payroll_db_new[i])
+      class_fund$total_nc_rate[i] <- (class_fund$nc_legacy[i] + class_fund$nc_new[i]) / 
+        (class_fund$payroll_db_legacy[i] + class_fund$payroll_db_new[i])
       
       frs_fund$nc_legacy[i] <- frs_fund$nc_legacy[i] + class_fund$nc_legacy[i]
       frs_fund$nc_new[i] <- frs_fund$nc_new[i] + class_fund$nc_new[i]
-      frs_fund$total_nc_rate[i] <- (frs_fund$nc_legacy[i] + frs_fund$nc_new[i]) / (frs_fund$payroll_db_legacy[i] + frs_fund$payroll_db_new[i])
+      frs_fund$total_nc_rate[i] <- (frs_fund$nc_legacy[i] + frs_fund$nc_new[i]) / 
+        (frs_fund$payroll_db_legacy[i] + frs_fund$payroll_db_new[i])
       
       #Accrued liability projection
       class_fund$liability_gain_loss_legacy[i] <- class_liab$liability_gain_loss_legacy_est[i]
@@ -255,7 +261,11 @@ main_loop <- function(funding_list,
       class_fund$aal_legacy[i] <- class_fund$aal_legacy[i-1] * (1 + dr_current) +
         (class_fund$nc_legacy[i] - class_fund$ben_payment_legacy[i] - class_fund$refund_legacy[i]) *
         (1 + dr_current)^0.5 + class_fund$liability_gain_loss_legacy[i]
-      class_fund$aal_new[i] <- class_fund$aal_new[i-1] * (1 + dr_new) + (class_fund$nc_new[i] - class_fund$ben_payment_new[i] - class_fund$refund_new[i]) * (1 + dr_new)^0.5 + class_fund$liability_gain_loss_new[i]
+      
+      class_fund$aal_new[i] <- class_fund$aal_new[i-1] * (1 + dr_new) + 
+        (class_fund$nc_new[i] - class_fund$ben_payment_new[i] - class_fund$refund_new[i]) *
+        (1 + dr_new)^0.5 + class_fund$liability_gain_loss_new[i]
+      
       class_fund$total_aal[i] <- class_fund$aal_legacy[i] + class_fund$aal_new[i]
       
       frs_fund$lia_gain_loss_legacy[i] <- frs_fund$lia_gain_loss_legacy[i] + class_fund$liability_gain_loss_legacy[i]
@@ -269,10 +279,14 @@ main_loop <- function(funding_list,
       #Assign the class outputs back to the funding_list
       funding_list[[class]] <- class_fund
       
-    } #.. end class in class_names_no_drop_frs loop ----
+    } #.. end class in class_names_no_drop_frs loop
     
-    # <start open code> ----
-    ####Process DROP's payroll, benefit payments, normal cost, and accrued liability (note that this is a makeshift method for now). Proper modeling of DROP will be done in the future.
+    #.. open code DROP processing ----
+    
+    #### Process DROP's payroll, benefit payments, normal cost, and accrued
+    #      liability (note that this is a makeshift method for now). Proper
+    #      modeling of DROP will be done in the future.
+    
     drop_fund <- funding_list$drop
     regular_fund <- funding_list$regular
     
@@ -333,11 +347,12 @@ main_loop <- function(funding_list,
     frs_fund$aal_legacy[i] <- frs_fund$aal_legacy[i] + drop_fund$aal_legacy[i]
     frs_fund$aal_new[i] <- frs_fund$aal_new[i] + drop_fund$aal_new[i]
     frs_fund$total_aal[i] <- frs_fund$total_aal[i] + drop_fund$total_aal[i]
-    # <end open code> ----
+    # <end open code>
     
-    #.. start class in class_names_no_frs loop ----
+    #.. start class in class_names_no_frs loop -- NC, EEC, ERC-DB,  ----
     for (class in class_names_no_frs) {
-      #Do the assignment below to declutter the code
+      
+      #Do the assignments below to declutter the code
       class_fund <- funding_list[[class]]
       current_hire_amo_pay_table <- current_hire_amo_payment_list[[class]]
       future_hire_amo_pay_table <- future_hire_amo_payment_list[[class]]
@@ -451,14 +466,24 @@ main_loop <- function(funding_list,
       
       #Assign the class outputs back to the funding_list
       funding_list[[class]] <- class_fund
-    } #.. end class in class_names_no_frs loop ----
+    } #.. end class in class_names_no_frs loop
     
-    # <start open code> ----
+    # <open code frs calculations> ----
     #AVA legacy development (step 1: calculate FRS's AVA)
-    frs_fund$exp_inv_earnings_ava_legacy[i] <- frs_fund$ava_legacy[i-1] * dr_current + frs_fund$net_cf_legacy[i] * dr_current/2
-    frs_fund$exp_ava_legacy[i] <- frs_fund$ava_legacy[i-1] + frs_fund$net_cf_legacy[i] + frs_fund$exp_inv_earnings_ava_legacy[i]
-    frs_fund$ava_legacy[i] <- max(min(frs_fund$exp_ava_legacy[i] + (frs_fund$mva_legacy[i] - frs_fund$exp_ava_legacy[i]) * 0.2, frs_fund$mva_legacy[i] * 1.2), frs_fund$mva_legacy[i] * 0.8)
-    frs_fund$alloc_inv_earnings_ava_legacy[i] <- frs_fund$ava_legacy[i] - frs_fund$ava_legacy[i-1] - frs_fund$net_cf_legacy[i]
+    frs_fund$exp_inv_earnings_ava_legacy[i] <- frs_fund$ava_legacy[i-1] * dr_current + 
+      frs_fund$net_cf_legacy[i] * dr_current/2
+    
+    frs_fund$exp_ava_legacy[i] <- frs_fund$ava_legacy[i-1] + 
+      frs_fund$net_cf_legacy[i] + 
+      frs_fund$exp_inv_earnings_ava_legacy[i]
+    
+    frs_fund$ava_legacy[i] <- max(min(frs_fund$exp_ava_legacy[i] + (frs_fund$mva_legacy[i] - frs_fund$exp_ava_legacy[i]) * 0.2,
+                                      frs_fund$mva_legacy[i] * 1.2), frs_fund$mva_legacy[i] * 0.8)
+    
+    frs_fund$alloc_inv_earnings_ava_legacy[i] <- frs_fund$ava_legacy[i] - 
+      frs_fund$ava_legacy[i-1] - 
+      frs_fund$net_cf_legacy[i]
+    
     frs_fund$ava_base_legacy[i] <- frs_fund$ava_legacy[i-1] + frs_fund$net_cf_legacy[i]/2
     
     #AVA new development (step 1: calculate FRS's AVA)
@@ -467,7 +492,7 @@ main_loop <- function(funding_list,
     frs_fund$ava_new[i] <- max(min(frs_fund$exp_ava_new[i] + (frs_fund$mva_new[i] - frs_fund$exp_ava_new[i]) * 0.2, frs_fund$mva_new[i] * 1.2), frs_fund$mva_new[i] * 0.8)
     frs_fund$alloc_inv_earnings_ava_new[i] <- frs_fund$ava_new[i] - frs_fund$ava_new[i-1] - frs_fund$net_cf_new[i]
     frs_fund$ava_base_new[i] <- frs_fund$ava_new[i-1] + frs_fund$net_cf_new[i]/2
-    # <end open code> ----
+    # <end open code>
     
     #.. start class in class_names_no_frs loop ----
     for (class in class_names_no_frs) { 
@@ -484,7 +509,7 @@ main_loop <- function(funding_list,
       
       #Assign the class outputs back to the funding_list
       funding_list[[class]] <- class_fund
-    } #.. end class in class_names_no_frs loop ----
+    } #.. end class in class_names_no_frs loop
     
     #DROP asset reallocation
     drop_fund <- funding_list$drop
@@ -515,7 +540,7 @@ main_loop <- function(funding_list,
       
       #Assign the class outputs back to the funding_list
       funding_list[[class]] <- class_fund
-    } #.. end class in class_names_no_drop_frs loop ----
+    } #.. end class in class_names_no_drop_frs loop
     
     
     #.. start class in class_names_no_frs loop ----
@@ -578,7 +603,7 @@ main_loop <- function(funding_list,
       
       #Assign the class outputs back to the funding_list
       funding_list[[class]] <- class_fund
-    } #.. end class in class_names_no_frs loop ----
+    } #.. end class in class_names_no_frs loop
     
     
     #.. start class in class_names_no_frs loop ----
@@ -622,16 +647,14 @@ main_loop <- function(funding_list,
       
       current_hire_amo_payment_list[[class]] <- current_hire_amo_pay_table
       future_hire_amo_payment_list[[class]] <- future_hire_amo_pay_table
-    } #.. end class in class_names_no_frs loop ----
-    
-    
+    } #.. end class in class_names_no_frs loop
     
     #Assign the FRS's updated numbers back to the funding_list
     funding_list$frs <- frs_fund
     
-  } #.. end year loop ----
+  } #.. end year loop
   return(funding_list)
-}
+} # end function main_loop ----
 
 
 
