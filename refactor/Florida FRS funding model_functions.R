@@ -132,6 +132,15 @@ get_funding_table <- function(class_name,
 }
 
 
+get_future_hire_amo_payment_table <- function(class_name,
+                                              model_period,
+                                              amo_col_num) {
+  # Amo payment tables for new members
+  future_hire_amo_payment_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num)
+  return(future_hire_amo_payment_table)
+}
+
+
 get_future_hire_amo_period_table <- function(class_name,
                                              amo_period_new,
                                              funding_lag,
@@ -157,6 +166,15 @@ get_future_hire_amo_period_table <- function(class_name,
   future_hire_amo_period_table[is.na(future_hire_amo_period_table)] <- 0
   
   return(future_hire_amo_period_table)
+}
+
+
+get_future_hire_debt_layer_table <- function(class_name,
+                                             model_period,
+                                             amo_col_num) {
+  # UAAL layers tables for new members
+  future_hire_debt_layer_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num + 1)
+  return(future_hire_debt_layer_table)
 }
 
 
@@ -340,22 +358,27 @@ get_funding_data <- function(
   names(current_hire_amo_payment_list) <- class_names_no_frs
     
   ####Set up the UAL layer and amo payment tables for new members
-  #UAAL layers tables for new members
-  get_future_hire_debt_layer_table <- function(class_name) {
-    future_hire_debt_layer_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num + 1)
-    return(future_hire_debt_layer_table)
-  }
+  # get_future_hire_debt_layer_table <- function(class_name) {
+  #   future_hire_debt_layer_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num + 1)
+  #   return(future_hire_debt_layer_table)
+  # }
   
-  future_hire_debt_layer_list <- lapply(class_names_no_frs, get_future_hire_debt_layer_table)
+  future_hire_debt_layer_list <- lapply(class_names_no_frs, 
+                                        get_future_hire_debt_layer_table,
+                                        model_period,
+                                        amo_col_num)
   names(future_hire_debt_layer_list) <- class_names_no_frs
   
   #Amo payment tables for new members
-  get_future_hire_amo_payment_table <- function(class_name) {
-    future_hire_amo_payment_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num)
-    return(future_hire_amo_payment_table)
-  }
+  # get_future_hire_amo_payment_table <- function(class_name) {
+  #   future_hire_amo_payment_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num)
+  #   return(future_hire_amo_payment_table)
+  # }
   
-  future_hire_amo_payment_list <- lapply(class_names_no_frs, get_future_hire_amo_payment_table)
+  future_hire_amo_payment_list <- lapply(class_names_no_frs, 
+                                         get_future_hire_amo_payment_table,
+                                         model_period,
+                                         amo_col_num)
   names(future_hire_amo_payment_list) <- class_names_no_frs
   
   
