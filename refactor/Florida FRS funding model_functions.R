@@ -231,29 +231,40 @@ get_funding_data <- function(
     amo_method = amo_method_
 ) {
 
-  ####Produce liability outputs for each class (except DROP and FRS system)
-  #Use mclapply to run the liability model in parallel. May not work properly with Windows OS or API. Switch back to lapply if needed. When working, mclapply will be about twice as fast as lapply.
-  liability_list <- mclapply(X = class_names_no_drop_frs, 
-                             FUN = get_liability_data,
-                             # prob could remove names of arguments now that mc.cores is last
-                             dr_current = dr_current,
-                             dr_new = dr_new,
-                             cola_tier_1_active_constant = cola_tier_1_active_constant,
-                             cola_tier_1_active = cola_tier_1_active,
-                             cola_tier_2_active = cola_tier_2_active,
-                             cola_tier_3_active = cola_tier_3_active,
-                             cola_current_retire = cola_current_retire,
-                             cola_current_retire_one = cola_current_retire_one,
-                             one_time_cola = one_time_cola,
-                             retire_refund_ratio = retire_refund_ratio,
-                             cal_factor = cal_factor,
-                             #inputs below are for the liability model
-                             non_special_db_new_ratio = non_special_db_new_ratio,
-                             special_db_new_ratio = special_db_new_ratio,
-                             # change mc.cores from 4 to 1 so it will run on Windows
-                             mc.cores = 1)
-   
+  #### Produce liability outputs for each class (except DROP and FRS system) ----
   
+  # Use mclapply to run the liability model in parallel. May not work properly
+  # with Windows OS or API. Switch back to lapply if needed. When working,
+  # mclapply will be about twice as fast as lapply.
+  
+  liability_list <- mclapply(
+                      X = class_names_no_drop_frs, 
+                      FUN = get_liability_data,
+                      
+                      # Discount rates
+                      dr_current = dr_current,
+                      dr_new = dr_new,
+                      
+                      # COLA assumptions
+                      cola_tier_1_active_constant = cola_tier_1_active_constant,
+                      cola_tier_1_active = cola_tier_1_active,
+                      cola_tier_2_active = cola_tier_2_active,
+                      cola_tier_3_active = cola_tier_3_active,
+                      cola_current_retire = cola_current_retire,
+                      cola_current_retire_one = cola_current_retire_one,
+                      one_time_cola = one_time_cola,
+                      
+                      # Other factors
+                      retire_refund_ratio = retire_refund_ratio,
+                      cal_factor = cal_factor,
+                      
+                      # Liability model inputs
+                      non_special_db_new_ratio = non_special_db_new_ratio,
+                      special_db_new_ratio = special_db_new_ratio,
+                      
+                      # Set mc.cores to 1 for compatibility with Windows
+                      mc.cores = 1
+                    )
   names(liability_list) <- class_names_no_drop_frs
   
   # djb: examine the drop comments below
