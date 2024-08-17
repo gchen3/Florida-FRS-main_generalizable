@@ -230,6 +230,8 @@ get_funding_data <- function(
     amo_pay_growth = amo_pay_growth_,
     amo_method = amo_method_
 ) {
+  
+  # returns updated funding_list
 
   #### Produce liability outputs for each class (except DROP and FRS system) ----
   
@@ -296,7 +298,7 @@ get_funding_data <- function(
     fund_data$total_ual_ava[1] <- fund_data$total_aal[1] - fund_data$total_ava[1]
     
     funding_list[[class]] <- fund_data
-  }
+  } # end model calibration loop
   
   ####Set up amo period sequences
   #Determine the number of columns for the amo period tables
@@ -379,8 +381,11 @@ get_funding_data <- function(
   ########## Main for loop ##########
   #Key strategy: Loop through each year, then each class. The class loop should exclude FRS, and may exclude DROP depending on the calculations
   
+  # start i in 2:nrow(funding_list[[1]]) loop ----
   for (i in 2:nrow(funding_list[[1]])) {
     frs_fund <- funding_list$frs
+    
+    #.. start class in class_names_no_drop_frs loop ----
     for (class in class_names_no_drop_frs) {
       #Do the assignment below to declutter the code
       class_fund <- funding_list[[class]]
@@ -445,8 +450,9 @@ get_funding_data <- function(
       #Assign the class outputs back to the funding_list
       funding_list[[class]] <- class_fund
     
-    }
+    } #.. end class in class_names_no_drop_frs loop ----
     
+    # <start open code> ----
     ####Process DROP's payroll, benefit payments, normal cost, and accrued liability (note that this is a makeshift method for now). Proper modeling of DROP will be done in the future.
     drop_fund <- funding_list$drop
     regular_fund <- funding_list$regular
@@ -508,8 +514,9 @@ get_funding_data <- function(
     frs_fund$aal_legacy[i] <- frs_fund$aal_legacy[i] + drop_fund$aal_legacy[i]
     frs_fund$aal_new[i] <- frs_fund$aal_new[i] + drop_fund$aal_new[i]
     frs_fund$total_aal[i] <- frs_fund$total_aal[i] + drop_fund$total_aal[i]
+    # <end open code> ----
     
-    
+    #.. start class in class_names_no_frs loop ----
     for (class in class_names_no_frs) {
       #Do the assignment below to declutter the code
       class_fund <- funding_list[[class]]
@@ -523,7 +530,7 @@ get_funding_data <- function(
         class_fund$nc_rate_new[i] <- 0
       } else {
         class_fund$nc_rate_new[i] <- class_fund$nc_new[i] / (class_fund$payroll_db_new[i])  
-      }
+      } # end if else
       
       class_fund$ee_nc_rate_legacy[i] <- db_ee_cont_rate_
       class_fund$ee_nc_rate_new[i] <- db_ee_cont_rate_
@@ -538,7 +545,7 @@ get_funding_data <- function(
         class_fund$amo_rate_new[i] <- 0
       } else {
         class_fund$amo_rate_new[i] <- sum(future_hire_amo_pay_table[i-1,]) / class_fund$payroll_db_new[i]
-      }
+      } # end if else
       
       #Employer contribution rates (DC)
       if (class == "drop") {
@@ -547,7 +554,7 @@ get_funding_data <- function(
       } else {
         class_fund$er_dc_rate_legacy[i] <- get(str_replace(paste0(class, "_er_dc_cont_rate_"), " ", "_"))
         class_fund$er_dc_rate_new[i] <- get(str_replace(paste0(class, "_er_dc_cont_rate_"), " ", "_"))
-      }
+      } # end if else
       
       
       #Admin rate
@@ -625,8 +632,9 @@ get_funding_data <- function(
       
       #Assign the class outputs back to the funding_list
       funding_list[[class]] <- class_fund
-    }
+    } #.. end class in class_names_no_frs loop ----
     
+    # <start open code> ----
     #AVA legacy development (step 1: calculate FRS's AVA)
     frs_fund$exp_inv_earnings_ava_legacy[i] <- frs_fund$ava_legacy[i-1] * dr_current + frs_fund$net_cf_legacy[i] * dr_current/2
     frs_fund$exp_ava_legacy[i] <- frs_fund$ava_legacy[i-1] + frs_fund$net_cf_legacy[i] + frs_fund$exp_inv_earnings_ava_legacy[i]
@@ -640,9 +648,10 @@ get_funding_data <- function(
     frs_fund$ava_new[i] <- max(min(frs_fund$exp_ava_new[i] + (frs_fund$mva_new[i] - frs_fund$exp_ava_new[i]) * 0.2, frs_fund$mva_new[i] * 1.2), frs_fund$mva_new[i] * 0.8)
     frs_fund$alloc_inv_earnings_ava_new[i] <- frs_fund$ava_new[i] - frs_fund$ava_new[i-1] - frs_fund$net_cf_new[i]
     frs_fund$ava_base_new[i] <- frs_fund$ava_new[i-1] + frs_fund$net_cf_new[i]/2
+    # <end open code> ----
     
-    
-    for (class in class_names_no_frs) {
+    #.. start class in class_names_no_frs loop ----
+    for (class in class_names_no_frs) { 
       #Do the assignment below to declutter the code
       class_fund <- funding_list[[class]]
       
@@ -656,7 +665,7 @@ get_funding_data <- function(
       
       #Assign the class outputs back to the funding_list
       funding_list[[class]] <- class_fund
-    }
+    } #.. end class in class_names_no_frs loop ----
     
     #DROP asset reallocation
     drop_fund <- funding_list$drop
@@ -670,6 +679,7 @@ get_funding_data <- function(
     #Assign the DROP's updated numbers back to the funding_list
     funding_list$drop <- drop_fund
     
+    #.. start class in class_names_no_drop_frs loop ----
     for (class in class_names_no_drop_frs) {
       #Do the assignment below to declutter the code
       class_fund <- funding_list[[class]]
@@ -686,8 +696,10 @@ get_funding_data <- function(
       
       #Assign the class outputs back to the funding_list
       funding_list[[class]] <- class_fund
-    }
+    } #.. end class in class_names_no_drop_frs loop ----
     
+    
+    #.. start class in class_names_no_frs loop ----
     ####AVA, UAL, funded ratio projections, and all-in-cost
     for (class in class_names_no_frs) {
       #Do the assignment below to declutter the code
@@ -734,7 +746,7 @@ get_funding_data <- function(
         class_fund$cum_er_cont_real[i] <- class_fund$total_er_cont_real[i]
       } else {
         class_fund$cum_er_cont_real[i] <- class_fund$cum_er_cont_real[i - 1] + class_fund$total_er_cont_real[i]  
-      }
+      } # end if else
       
       frs_fund$cum_er_cont_real[i] <- frs_fund$cum_er_cont_real[i] + class_fund$cum_er_cont_real[i]
       
@@ -747,8 +759,10 @@ get_funding_data <- function(
       
       #Assign the class outputs back to the funding_list
       funding_list[[class]] <- class_fund
-    }
+    } #.. end class in class_names_no_frs loop ----
     
+    
+    #.. start class in class_names_no_frs loop ----
     ####Amortization calculations
     for (class in class_names_no_frs) {
       #Do the assignment below to declutter the code
@@ -789,20 +803,20 @@ get_funding_data <- function(
       
       current_hire_amo_payment_list[[class]] <- current_hire_amo_pay_table
       future_hire_amo_payment_list[[class]] <- future_hire_amo_pay_table
-    }
+    } #.. end class in class_names_no_frs loop ----
     
     
   
     #Assign the FRS's updated numbers back to the funding_list
     funding_list$frs <- frs_fund
     
-  }
+  } #.. end year loop ----
   
   output <- funding_list
   
   return(output)
   
-}
+} #.. end get_funding_data function---- 
 # write.csv(output, "output.csv")  
 #   return(output)
 #   
