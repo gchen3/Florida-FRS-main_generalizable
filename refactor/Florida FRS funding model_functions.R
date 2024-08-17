@@ -232,13 +232,14 @@ get_funding_data <- function(
 ) {
   
   # returns updated funding_list
+  # browser()
 
   #### Produce liability outputs for each class (except DROP and FRS system) ----
   
   # Use mclapply to run the liability model in parallel. May not work properly
   # with Windows OS or API. Switch back to lapply if needed. When working,
   # mclapply will be about twice as fast as lapply.
-  
+  a <- proc.time()
   liability_list <- mclapply(
                       X = class_names_no_drop_frs, 
                       FUN = get_liability_data,
@@ -268,6 +269,9 @@ get_funding_data <- function(
                       mc.cores = 1
                     )
   names(liability_list) <- class_names_no_drop_frs
+  b <- proc.time()
+  print("liability_list time")
+  print(b - a)
   
   # djb: examine the drop comments below
   #Create a "liability" data for the DROP plan
@@ -275,6 +279,7 @@ get_funding_data <- function(
   # drop_liability_output <- funding_list[["drop"]]
 
   #### Model calibration ----
+  a <- proc.time()
   for (class in class_names_no_drop_frs) {
     
     fund_data <- funding_list[[class]]
@@ -811,8 +816,13 @@ get_funding_data <- function(
     funding_list$frs <- frs_fund
     
   } #.. end year loop ----
+  b <- proc.time()
+  print("main loop time")
+  print(b - a)
+  
   
   output <- funding_list
+  # browser()
   
   return(output)
   
