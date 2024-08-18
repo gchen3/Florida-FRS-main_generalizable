@@ -74,13 +74,16 @@ print("Start data construction based on system data and model parameters...")
 
 print("sourcing Florida FRS benefit model_actions.R...")
 system.time(source(here::here("refactor", "Florida FRS benefit model_actions.R"))) # only creates objects - no functions
+# creates for each class: salary_headcount, entrant_profile, mort, retire_mort, drop entry, retire, early retire, sep rates
 
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
 print("sourcing Florida FRS workforce model_get_and_save_wfdata.R...")
 system.time(source(here::here("refactor", "Florida FRS workforce model_get_and_save_wfdata.R"))) # only saves objects - no functions
+# depends on assumptions in the model: 
 
 print("sourcing Florida FRS workforce model_get_saved_data.R...")
 system.time(source(here::here("refactor", "Florida FRS workforce model_get_saved_data.R"))) # only gets saved data - no functions
+# simply loads wf data -- 4 table types per 7 classes
 
 # Get funding data
 print("sourcing Florida FRS funding model_actions.R...")

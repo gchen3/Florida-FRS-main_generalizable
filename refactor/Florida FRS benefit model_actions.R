@@ -168,7 +168,7 @@ special_risk_drop_entry_tier_2_table <- drop_entry_tier_2_table %>%
   )
 
 
-# get retirement-rate tables ----------------------------------------------
+#.. get retirement-rate tables ----------------------------------------------
 
 
 regular_normal_retire_rate_tier_1_table <- get_normal_retire_rate_table(class_name = "regular",
@@ -228,7 +228,7 @@ senior_management_normal_retire_rate_tier_2_table <- get_normal_retire_rate_tabl
                                                                                   drop_entry_table = drop_entry_tier_2_table,
                                                                                   normal_retire_rate_table = normal_retire_rate_tier_2_table)
 
-# get early retirement rate tables ----------------------------------------
+#.. get early retirement rate tables ----------------------------------------
 
 
 regular_early_retire_rate_tier_1_table <- get_early_retire_rate_table(class_name = "regular",
