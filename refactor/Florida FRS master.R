@@ -55,7 +55,7 @@ source(here::here("refactor", "Florida FRS funding model_functions.R")) # only c
 
 #Get model inputs and assumptions
 print("sourcing Florida FRS model input.R...") # this gets init_funding_data
-system.time(source(here::here("refactor", "Florida FRS model input.R"))) # only reads data and sets variable values - no functions
+system.time(source(here::here("refactor", "Florida FRS model input.R"))) # 13 secs only reads data and sets variable values - no functions
 
 FIXED_CLASS_NAMES <- init_funding_data$class
 FIXED_CLASS_NAMES_NO_DROP_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("drop", "frs")]
@@ -72,8 +72,8 @@ FIXED_CLASS_NAMES_NO_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("frs")]
 #Get model inputs and assumptions
 print("Start data construction based on system data and model parameters...")
 
-print("sourcing Florida FRS benefit model_actions.R...")
-system.time(source(here::here("refactor", "Florida FRS benefit model_actions.R"))) # only creates objects - no functions
+print("sourcing Florida FRS benefit model_actions.R...") 
+system.time(source(here::here("refactor", "Florida FRS benefit model_actions.R"))) # 21 secs only creates objects - no functions
 # creates for each class: salary_headcount, entrant_profile, mort, retire_mort, drop entry, retire, early retire, sep rates
 
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
