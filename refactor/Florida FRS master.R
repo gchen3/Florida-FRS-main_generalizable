@@ -63,6 +63,7 @@ print("sourcing Florida FRS model input.R or equivalent...") # this gets init_fu
 # system.time(source(here::here("refactor", "Florida FRS model input.R"))) # 13 secs only reads data and sets variable values - no functions
 load(here::here("refactor", "working_data", "model_input_env.RData"))
 list2env(as.list(model_input_env), envir = .GlobalEnv)
+rm(model_input_env)
 
 
 FIXED_CLASS_NAMES <- init_funding_data$class
@@ -81,7 +82,14 @@ FIXED_CLASS_NAMES_NO_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("frs")]
 print("Start data construction based on system data and model parameters...")
 
 print("sourcing Florida FRS benefit model_actions.R...") 
-system.time(source(here::here("refactor", "Florida FRS benefit model_actions.R"))) # 21 secs only creates objects - no functions
+# ONETIME: save the benefit_model_data_env to a file
+# benefit_model_data_env <- new.env()
+# source(here::here("refactor", "Florida FRS model input.R"), local = benefit_model_data_env)
+# save(benefit_model_data_env, file = here::here("refactor", "working_data", "benefit_model_data_env.RData"))
+# system.time(source(here::here("refactor", "Florida FRS benefit model_actions.R"))) # 21 secs only creates objects - no functions
+load(here::here("refactor", "working_data", "benefit_model_data_env.RData"))
+list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
+rm(benefit_model_data_env)
 # creates for each class: salary_headcount, entrant_profile, mort, retire_mort, drop entry, retire, early retire, sep rates
 
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
