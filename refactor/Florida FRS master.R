@@ -54,8 +54,16 @@ source(here::here("refactor", "Florida FRS funding model_functions.R")) # only c
 # Immutables -----------------------------------------------------------------
 
 #Get model inputs and assumptions
-print("sourcing Florida FRS model input.R...") # this gets init_funding_data
-system.time(source(here::here("refactor", "Florida FRS model input.R"))) # 13 secs only reads data and sets variable values - no functions
+
+print("sourcing Florida FRS model input.R or equivalent...") # this gets init_funding_data
+# ONETIME: save the model_input_env to a file
+# model_input_env <- new.env()
+# source(here::here("refactor", "Florida FRS model input.R"), local = model_input_env)
+# save(model_input_env, file = here::here("refactor", "working_data", "model_input_env.RData"))
+# system.time(source(here::here("refactor", "Florida FRS model input.R"))) # 13 secs only reads data and sets variable values - no functions
+load(here::here("refactor", "working_data", "model_input_env.RData"))
+list2env(as.list(model_input_env), envir = .GlobalEnv)
+
 
 FIXED_CLASS_NAMES <- init_funding_data$class
 FIXED_CLASS_NAMES_NO_DROP_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("drop", "frs")]
