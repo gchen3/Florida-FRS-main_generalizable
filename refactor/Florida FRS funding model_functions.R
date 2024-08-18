@@ -197,7 +197,13 @@ main_loop <- function(funding_list,
   
   # return funding_list
   
-  # djb - why can't we do one loop without frs?? (or is it updated within) and adjust for drop?
+  # djb - why can't we do one loop without frs?? (or is it updated within) and adjust for drop? ----
+  # could we, for example?:
+  #   - stack the classes
+  #   - loop through the years to calc class values (because we need lags)
+  #   - collapse to get frs non-drop totals
+  #   - loop through the years to calc drop values, relying as needed on regular and on frs-nondrop values
+  #   - combine to get frs+drop totals
   
   # Key strategy: Loop through each year, then each class. The class loop should
   # exclude FRS, and may exclude DROP depending on the calculations
@@ -205,20 +211,34 @@ main_loop <- function(funding_list,
   # loop 2nd year to last year ----
   for (i in 2:nrow(funding_list[[1]])) {
     frs_fund <- funding_list$frs
+    # djb: to help figure out how to reorganize this:
+    # djb: when if ever do the class values rely on the frs values?
+    # djb: when does drop rely on frs or on a class value?
     
-    #.. start class in class_names_no_drop_frs loop - payroll, benefits, refunds, normal cost, AAL ----
+    # djb: steps seem to be:
+    #   - calc non-drop class values
+    #   - calc FRS working totals because we need some FRS values for drop
+    #   - calc drop values - here, e.g., we need FRS NC rate for drop NC rate
+    
+    # where does payroll_db_legacy_ratio come from?
+    
+    #.. no_drop_frs loop: payroll, benefits, refunds, normal cost, AAL ----
     for (class in class_names_no_drop_frs) {
+      # djb: it looks like no class values rely on frs values in this loop, so we could move frs entirely out of the loop
+      
       #Do the assignment below to declutter the code
       class_fund <- funding_list[[class]]
       class_liab <- liability_list[[class]]
       
       #Payroll projection
-      class_fund$total_payroll[i] <- class_fund$total_payroll[i-1] * (1 + payroll_growth_)
+      class_fund$total_payroll[i] <- class_fund$total_payroll[i-1] * (1 + payroll_growth_) # lagged value
+      
       class_fund$payroll_db_legacy[i] <- class_fund$total_payroll[i] * class_fund$payroll_db_legacy_ratio[i]
       class_fund$payroll_db_new[i] <- class_fund$total_payroll[i] * class_fund$payroll_db_new_ratio[i]
       class_fund$payroll_dc_legacy[i] <- class_fund$total_payroll[i] * class_fund$payroll_dc_legacy_ratio[i]
       class_fund$payroll_dc_new[i] <- class_fund$total_payroll[i] * class_fund$payroll_dc_new_ratio[i]
       
+      # djb update frs values with class totals no lags -- could be consolidated
       frs_fund$total_payroll[i] <- frs_fund$total_payroll[i] + class_fund$total_payroll[i]
       frs_fund$payroll_db_legacy[i] <- frs_fund$payroll_db_legacy[i] + class_fund$payroll_db_legacy[i]
       frs_fund$payroll_db_new[i] <- frs_fund$payroll_db_new[i] + class_fund$payroll_db_new[i]
@@ -236,6 +256,7 @@ main_loop <- function(funding_list,
       class_fund$total_ben_payment[i] <- class_fund$ben_payment_legacy[i] + class_fund$ben_payment_new[i]
       class_fund$total_refund[i] <- class_fund$refund_legacy[i] + class_fund$refund_new[i]
       
+      # djb update frs values with class totals, no lags -- could be consolidated
       frs_fund$ben_payment_legacy[i] <- frs_fund$ben_payment_legacy[i] + class_fund$ben_payment_legacy[i]
       frs_fund$refund_legacy[i] <- frs_fund$refund_legacy[i] + class_fund$refund_legacy[i]
       frs_fund$ben_payment_new[i] <- frs_fund$ben_payment_new[i] + class_fund$ben_payment_new[i]
@@ -250,6 +271,7 @@ main_loop <- function(funding_list,
       class_fund$total_nc_rate[i] <- (class_fund$nc_legacy[i] + class_fund$nc_new[i]) / 
         (class_fund$payroll_db_legacy[i] + class_fund$payroll_db_new[i])
       
+      # djb update frs values with class totals, no lags -- could be consolidated
       frs_fund$nc_legacy[i] <- frs_fund$nc_legacy[i] + class_fund$nc_legacy[i]
       frs_fund$nc_new[i] <- frs_fund$nc_new[i] + class_fund$nc_new[i]
       frs_fund$total_nc_rate[i] <- (frs_fund$nc_legacy[i] + frs_fund$nc_new[i]) / 
@@ -260,16 +282,21 @@ main_loop <- function(funding_list,
       class_fund$liability_gain_loss_new[i] <- class_liab$liability_gain_loss_new_est[i]
       class_fund$total_liability_gain_loss[i] <- class_liab$total_liability_gain_loss_est[i]
       
+      # djb: lagged value here
       class_fund$aal_legacy[i] <- class_fund$aal_legacy[i-1] * (1 + dr_current) +
         (class_fund$nc_legacy[i] - class_fund$ben_payment_legacy[i] - class_fund$refund_legacy[i]) *
-        (1 + dr_current)^0.5 + class_fund$liability_gain_loss_legacy[i]
+        (1 + dr_current)^0.5 + 
+        class_fund$liability_gain_loss_legacy[i]
       
+      # djb: lagged value here
       class_fund$aal_new[i] <- class_fund$aal_new[i-1] * (1 + dr_new) + 
         (class_fund$nc_new[i] - class_fund$ben_payment_new[i] - class_fund$refund_new[i]) *
-        (1 + dr_new)^0.5 + class_fund$liability_gain_loss_new[i]
+        (1 + dr_new)^0.5 + 
+        class_fund$liability_gain_loss_new[i]
       
       class_fund$total_aal[i] <- class_fund$aal_legacy[i] + class_fund$aal_new[i]
       
+      # djb: FRS totals in the loop: update with class info no lags, could be consolidated
       frs_fund$lia_gain_loss_legacy[i] <- frs_fund$lia_gain_loss_legacy[i] + class_fund$liability_gain_loss_legacy[i]
       frs_fund$lia_gain_loss_new[i] <- frs_fund$lia_gain_loss_new[i] + class_fund$liability_gain_loss_new[i]
       frs_fund$total_lia_gain_loss[i] <- frs_fund$total_lia_gain_loss[i] + class_fund$total_liability_gain_loss[i]
@@ -283,7 +310,7 @@ main_loop <- function(funding_list,
       
     } #.. end class in class_names_no_drop_frs loop
     
-    #.. open code DROP processing ----
+      #.. open code: DROP payroll, benefits, NC, AL -- "makeshift" ----
     
     #### Process DROP's payroll, benefit payments, normal cost, and accrued
     #      liability (note that this is a makeshift method for now). Proper
@@ -293,35 +320,63 @@ main_loop <- function(funding_list,
     regular_fund <- funding_list$regular
     
     #DROP payroll projection (no DC payroll for DROP)
+    # djb: lagged value here
+    # djb: NOTE RELIANCE ON REGULAR
     drop_fund$total_payroll[i] <- drop_fund$total_payroll[i-1] * (1 + payroll_growth_)
     drop_fund$payroll_db_legacy[i] <- drop_fund$total_payroll[i] * (regular_fund$payroll_db_legacy_ratio[i] + regular_fund$payroll_dc_legacy_ratio[i])
     drop_fund$payroll_db_new[i] <- drop_fund$total_payroll[i] * (regular_fund$payroll_db_new_ratio[i] + regular_fund$payroll_dc_new_ratio[i])
     
-    #DROP benefit payments and refunds projection (based on Regular class' benefit payments and refuds)
-    drop_fund$total_ben_payment[i] <- drop_fund$total_ben_payment[i-1] * regular_fund$total_ben_payment[i] / regular_fund$total_ben_payment[i-1]
-    drop_fund$total_refund[i] <- drop_fund$total_refund[i-1] * regular_fund$total_refund[i] / regular_fund$total_refund[i-1]
+    #DROP benefit payments and refunds projection (based on Regular class' benefit payments and refunds)
+    # djb: ask Reason to explain this - why are DROP benefits and refunds based on Regular??  ----
+    # djb: RELIANCE ON REGULAR
+    # djb: lagged value here
+    drop_fund$total_ben_payment[i] <- drop_fund$total_ben_payment[i-1] * 
+      regular_fund$total_ben_payment[i] / regular_fund$total_ben_payment[i-1]
     
-    drop_fund$ben_payment_legacy[i] <- drop_fund$total_ben_payment[i] * regular_fund$ben_payment_legacy[i] / regular_fund$total_ben_payment[i]
-    drop_fund$refund_legacy[i] <- drop_fund$total_refund[i] * regular_fund$refund_legacy[i] / regular_fund$total_refund[i]
-    drop_fund$ben_payment_new[i] <- drop_fund$total_ben_payment[i] * regular_fund$ben_payment_new[i] / regular_fund$total_ben_payment[i]
-    drop_fund$refund_new[i] <- drop_fund$total_refund[i] * regular_fund$refund_new[i] / regular_fund$total_refund[i]
+    drop_fund$total_refund[i] <- drop_fund$total_refund[i-1] * 
+      regular_fund$total_refund[i] / regular_fund$total_refund[i-1]
+    
+    drop_fund$ben_payment_legacy[i] <- drop_fund$total_ben_payment[i] * 
+      regular_fund$ben_payment_legacy[i] / regular_fund$total_ben_payment[i]
+    
+    drop_fund$refund_legacy[i] <- drop_fund$total_refund[i] * 
+      regular_fund$refund_legacy[i] / regular_fund$total_refund[i]
+    
+    drop_fund$ben_payment_new[i] <- drop_fund$total_ben_payment[i] * 
+      regular_fund$ben_payment_new[i] / regular_fund$total_ben_payment[i]
+    
+    drop_fund$refund_new[i] <- drop_fund$total_refund[i] * 
+      regular_fund$refund_new[i] / regular_fund$total_refund[i]
     
     #DROP normal cost projection (DROP's normal cost rate = FRS's normal cost rate)
+    # djb: RELIANCE ON FRS
     drop_fund$nc_rate_db_legacy[i] <- frs_fund$nc_legacy[i] / frs_fund$payroll_db_legacy[i]
     drop_fund$nc_rate_db_new[i] <- if_else(frs_fund$payroll_db_new[i] == 0, 0, frs_fund$nc_new[i] / frs_fund$payroll_db_new[i])
     
     drop_fund$nc_legacy[i] <- drop_fund$nc_rate_db_legacy[i] * drop_fund$payroll_db_legacy[i]
     drop_fund$nc_new[i] <- drop_fund$nc_rate_db_new[i] * drop_fund$payroll_db_new[i]
-    drop_fund$total_nc_rate[i] <- (drop_fund$nc_legacy[i] + drop_fund$nc_new[i]) / (drop_fund$payroll_db_legacy[i] + drop_fund$payroll_db_new[i])
+    drop_fund$total_nc_rate[i] <- (drop_fund$nc_legacy[i] + drop_fund$nc_new[i]) / 
+      (drop_fund$payroll_db_legacy[i] + drop_fund$payroll_db_new[i])
     
     #DROP accrued liability projection
-    drop_fund$aal_legacy[i] <- drop_fund$aal_legacy[i-1] * (1 + dr_current) + (drop_fund$nc_legacy[i] - drop_fund$ben_payment_legacy[i] - drop_fund$refund_legacy[i]) * (1 + dr_current)^0.5 + drop_fund$liability_gain_loss_legacy[i]
-    drop_fund$aal_new[i] <- drop_fund$aal_new[i-1] * (1 + dr_new) + (drop_fund$nc_new[i] - drop_fund$ben_payment_new[i] - drop_fund$refund_new[i]) * (1 + dr_new)^0.5 + drop_fund$liability_gain_loss_new[i]
+    # djb: lagged value here
+    # djb: why the square root of 1 + dr_current
+    drop_fund$aal_legacy[i] <- drop_fund$aal_legacy[i-1] * (1 + dr_current) +
+      (drop_fund$nc_legacy[i] - drop_fund$ben_payment_legacy[i] - drop_fund$refund_legacy[i]) * 
+      (1 + dr_current)^0.5 + 
+      drop_fund$liability_gain_loss_legacy[i]
+    
+    drop_fund$aal_new[i] <- drop_fund$aal_new[i-1] * (1 + dr_new) + 
+      (drop_fund$nc_new[i] - drop_fund$ben_payment_new[i] - drop_fund$refund_new[i]) * 
+      (1 + dr_new)^0.5 +
+      drop_fund$liability_gain_loss_new[i]
+    
     drop_fund$total_aal[i] <- drop_fund$aal_legacy[i] + drop_fund$aal_new[i]
     
     #Assign the DROP outputs back to the funding_list
     funding_list$drop <- drop_fund
     
+      #.. open code: FRS totals: update with DROP -- payroll, benefits, refunds, NC, AL ----
     ####Update FRS's numbers after DROP
     #FRS's payroll projection
     frs_fund$total_payroll[i] <- frs_fund$total_payroll[i] + drop_fund$total_payroll[i]
@@ -351,12 +406,13 @@ main_loop <- function(funding_list,
     frs_fund$total_aal[i] <- frs_fund$total_aal[i] + drop_fund$total_aal[i]
     # <end open code>
     
-    #.. start class in class_names_no_frs loop -- NC, EEC, ERC-DB,  ----
+    #.. start class_names_no_frs loop -- NC, EEC, ERC-DB, admin expense  ----
+    # djb: drop included in this
     for (class in class_names_no_frs) {
       
       #Do the assignments below to declutter the code
       class_fund <- funding_list[[class]]
-      current_hire_amo_pay_table <- current_hire_amo_payment_list[[class]]
+      current_hire_amo_pay_table <- current_hire_amo_payment_list[[class]] # djb check the dimensions of these tables ----
       future_hire_amo_pay_table <- future_hire_amo_payment_list[[class]]
       
       #Normal cost and employee contribution rates
@@ -496,7 +552,7 @@ main_loop <- function(funding_list,
     frs_fund$ava_base_new[i] <- frs_fund$ava_new[i-1] + frs_fund$net_cf_new[i]/2
     # <end open code>
     
-    #.. start class in class_names_no_frs loop ----
+    #.. start class_names_no_frs loop ----
     for (class in class_names_no_frs) { 
       #Do the assignment below to declutter the code
       class_fund <- funding_list[[class]]
@@ -525,7 +581,7 @@ main_loop <- function(funding_list,
     #Assign the DROP's updated numbers back to the funding_list
     funding_list$drop <- drop_fund
     
-    #.. start class in class_names_no_drop_frs loop ----
+    #.. start class_names_no_drop_frs loop ----
     for (class in class_names_no_drop_frs) {
       #Do the assignment below to declutter the code
       class_fund <- funding_list[[class]]
@@ -754,7 +810,7 @@ get_funding_data <- function(
   print("liability_list time")
   print(b - a)
   
-  # djb: examine the drop comments below
+  # djb: examine the drop comments immediately below
   #Create a "liability" data for the DROP plan
   #This is a makeshift solution for now. Proper modeling of the DROP plan will be done in the future.
   # drop_liability_output <- funding_list[["drop"]]
@@ -864,19 +920,19 @@ get_funding_data <- function(
   return_scen_index <- which(colnames(return_scenarios) == return_scen)
   
 
-  funding_list <- main_loop(funding_list=funding_list,
-                            liability_list=liability_list,
-                            payroll_growth_=payroll_growth_,
-                            amo_pay_growth=amo_pay_growth,
-                            dr_current=dr_current,
-                            dr_new=dr_new,
-                            return_scen_index=return_scen_index,
-                            current_hire_amo_payment_list=current_hire_amo_payment_list,
-                            future_hire_amo_payment_list=future_hire_amo_payment_list,
-                            current_hire_amo_period_list=current_hire_amo_period_list,
-                            future_hire_amo_period_list=future_hire_amo_period_list,
-                            current_hire_debt_layer_list=current_hire_debt_layer_list,
-                            future_hire_debt_layer_list=future_hire_debt_layer_list)
+  funding_list <- main_loop(funding_list = funding_list,
+                            liability_list = liability_list,
+                            payroll_growth_ = payroll_growth_,
+                            amo_pay_growth = amo_pay_growth,
+                            dr_current = dr_current,
+                            dr_new = dr_new,
+                            return_scen_index = return_scen_index,
+                            current_hire_amo_payment_list = current_hire_amo_payment_list,
+                            future_hire_amo_payment_list = future_hire_amo_payment_list,
+                            current_hire_amo_period_list = current_hire_amo_period_list,
+                            future_hire_amo_period_list = future_hire_amo_period_list,
+                            current_hire_debt_layer_list = current_hire_debt_layer_list,
+                            future_hire_debt_layer_list = future_hire_debt_layer_list)
   
   output <- funding_list
   # browser()
