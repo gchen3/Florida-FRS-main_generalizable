@@ -69,18 +69,21 @@ get_liability_data <- function(
   
   
   #Plan design choice ratios:
+  # DJB CAUTION REASON MODIFIES POSSIBLE GLOBAL VARIABLES HERE!!!! Search for them in other files
+  # db_legacy_before_2018_ratio_ not in other files but used further below in this file
+  # db_legacy_after_2018_ratio_ not in other files but used further below in this file
   if (class_name == "special") {
-    db_legacy_before_2018_ratio_ <- special_db_legacy_before_2018_ratio
-    db_legacy_after_2018_ratio_ <- special_db_legacy_after_2018_ratio
+    db_legacy_before_2018_ratio <- special_db_legacy_before_2018_ratio
+    db_legacy_after_2018_ratio <- special_db_legacy_after_2018_ratio
     db_new_ratio <- special_db_new_ratio
   } else {
-    db_legacy_before_2018_ratio_ <- non_special_db_legacy_before_2018_ratio
-    db_legacy_after_2018_ratio_ <- non_special_db_legacy_after_2018_ratio
+    db_legacy_before_2018_ratio <- non_special_db_legacy_before_2018_ratio
+    db_legacy_after_2018_ratio <- non_special_db_legacy_after_2018_ratio
     db_new_ratio <- non_special_db_new_ratio
   }
   
-  dc_legacy_before_2018_ratio_ <- 1 - db_legacy_before_2018_ratio
-  dc_legacy_after_2018_ratio_ <- 1 - db_legacy_after_2018_ratio
+  dc_legacy_before_2018_ratio <- 1 - db_legacy_before_2018_ratio
+  dc_legacy_after_2018_ratio <- 1 - db_legacy_after_2018_ratio
   dc_new_ratio <- 1 - db_new_ratio
   
   #Join wf active table with FinalData table to calculate the overall payroll, normal costs, PVFB, and PVFS each year
@@ -94,11 +97,11 @@ get_liability_data <- function(
     # filter(n_active > 0) %>% 
     #allocate members to plan designs based on entry year
     mutate(
-      n_active_db_legacy = if_else(entry_year < 2018, n_active * db_legacy_before_2018_ratio_,
-                                   if_else(entry_year < new_year_, n_active * db_legacy_after_2018_ratio_, 0)),
+      n_active_db_legacy = if_else(entry_year < 2018, n_active * db_legacy_before_2018_ratio,
+                                   if_else(entry_year < new_year_, n_active * db_legacy_after_2018_ratio, 0)),
       n_active_db_new = if_else(entry_year < new_year_, 0, n_active * db_new_ratio),
-      n_active_dc_legacy = if_else(entry_year < 2018, n_active * dc_legacy_before_2018_ratio_,
-                                   if_else(entry_year < new_year_, n_active * dc_legacy_after_2018_ratio_, 0)),
+      n_active_dc_legacy = if_else(entry_year < 2018, n_active * dc_legacy_before_2018_ratio,
+                                   if_else(entry_year < new_year_, n_active * dc_legacy_after_2018_ratio, 0)),
       n_active_dc_new = if_else(entry_year < new_year_, 0, n_active * dc_new_ratio)
       ) %>% 
     group_by(year) %>% 
@@ -148,8 +151,8 @@ get_liability_data <- function(
       #Note that pvfb_db_at_term_ag = First DB benefit * annuity factor at retirement * surv_DR at retirement
       pvfb_db_term = pvfb_db_at_term_age / cum_mort_dr_current,
       
-      n_term_db_legacy = if_else(entry_year < 2018, n_term * db_legacy_before_2018_ratio_,
-                                 if_else(entry_year < new_year_, n_term * db_legacy_after_2018_ratio_, 0)),
+      n_term_db_legacy = if_else(entry_year < 2018, n_term * db_legacy_before_2018_ratio,
+                                 if_else(entry_year < new_year_, n_term * db_legacy_after_2018_ratio, 0)),
       n_term_db_new = if_else(entry_year < new_year_, 0, n_term * db_new_ratio)
     ) %>% 
     group_by(year) %>% 
@@ -168,8 +171,8 @@ get_liability_data <- function(
     left_join(benefit_data$benefit_table, by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year", "entry_year")) %>% 
     select(entry_age, age, year, term_year, entry_year, n_refund, db_ee_balance) %>% 
     #allocate members to plan designs based on entry year
-    mutate(n_refund_db_legacy = if_else(entry_year < 2018, n_refund * db_legacy_before_2018_ratio_,
-                                        if_else(entry_year < new_year_, n_refund * db_legacy_after_2018_ratio_, 0)),
+    mutate(n_refund_db_legacy = if_else(entry_year < 2018, n_refund * db_legacy_before_2018_ratio,
+                                        if_else(entry_year < new_year_, n_refund * db_legacy_after_2018_ratio, 0)),
            n_refund_db_new = if_else(entry_year < new_year_, 0, n_refund * db_new_ratio)
     ) %>%
     group_by(year) %>% 
@@ -194,8 +197,8 @@ get_liability_data <- function(
       
       db_benefit_final = base_db_benefit * (1 + cola)^(year - retire_year),
       
-      n_retire_db_legacy = if_else(entry_year < 2018, n_retire * db_legacy_before_2018_ratio_,
-                                   if_else(entry_year < new_year_, n_retire * db_legacy_after_2018_ratio_, 0)),
+      n_retire_db_legacy = if_else(entry_year < 2018, n_retire * db_legacy_before_2018_ratio,
+                                   if_else(entry_year < new_year_, n_retire * db_legacy_after_2018_ratio, 0)),
       n_retire_db_new = if_else(entry_year < new_year_, 0, n_retire * db_new_ratio),
       #We use "AnnuityFactor_DR - 1" below because the PVFB for retirees excludes the first payment (i.e. the first payment has already been delivered when the PVFB is calculated)
       pvfb_db_retire = db_benefit_final * (ann_factor - 1)
