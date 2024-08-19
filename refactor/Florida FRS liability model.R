@@ -21,8 +21,6 @@
 # djb: CAUTIONS ----
 # Still assumed to be in the global environment:
 
-# model_period_
-# amo_period_term_
 # payroll_growth_
 
 #   salary_growth_table
@@ -46,6 +44,7 @@ get_liability_data <- function(
     # djb globals added
     start_year = start_year_,  # djb global added
     model_period = model_period_,
+    amo_period_term = amo_period_term_,
     
     cola_tier_1_active_constant = cola_tier_1_active_constant_,
     cola_tier_1_active = cola_tier_1_active_,
@@ -274,15 +273,15 @@ get_liability_data <- function(
   
   #Project benefit payments for current term vested members
   #Note that we use the original "dr_current_" in calculating the benefit payments so that any discount rate adjustment can work
-  retire_ben_term <- get_pmt(r = dr_current_, nper = amo_period_term_, pv = pvfb_term_current, g = payroll_growth_)
+  retire_ben_term <- get_pmt(r = dr_current_, nper = amo_period_term, pv = pvfb_term_current, g = payroll_growth_)
   
   year <- start_year:(start_year + model_period)
-  amo_years_term <- (start_year + 1):(start_year + amo_period_term_)
+  amo_years_term <- (start_year + 1):(start_year + amo_period_term)
   retire_ben_term_est <- double(length = length(year))
-  retire_ben_term_est[which(year %in% amo_years_term)] <- recur_grow3(retire_ben_term, payroll_growth_, amo_period_term_)
+  retire_ben_term_est[which(year %in% amo_years_term)] <- recur_grow3(retire_ben_term, payroll_growth_, amo_period_term)
   
   wf_term_current <- data.frame(year, retire_ben_term_est) %>% 
-    mutate(aal_term_current_est = roll_pv(rate = dr_current, g = payroll_growth_, nper = amo_period_term_, pmt_vec = retire_ben_term_est))
+    mutate(aal_term_current_est = roll_pv(rate = dr_current, g = payroll_growth_, nper = amo_period_term, pmt_vec = retire_ben_term_est))
   
   
   #####Funding model - liability side
