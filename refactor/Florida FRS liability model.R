@@ -74,7 +74,8 @@ get_liability_data <- function(
     wf_refund_df = wf_data$wf_refund_df,
     wf_retire_df = wf_data$wf_retire_df,
     
-    benefit_val_table = benefit_data$benefit_val_table
+    benefit_val_table = benefit_data$benefit_val_table,
+    benefit_table = benefit_data$benefit_table
     
 ) {
   
@@ -175,7 +176,7 @@ get_liability_data <- function(
     left_join(benefit_val_table, by = c("entry_age", "term_year", "entry_year")) %>% 
     select(entry_age, age, year, term_year, entry_year, dist_age, n_term, pvfb_db_at_term_age) %>% 
     #join benefit_table to get the surv_DR at current age
-    left_join(benefit_data$benefit_table %>% select(-pvfb_db_at_term_age), by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year", "entry_year")) %>% 
+    left_join(benefit_table %>% select(-pvfb_db_at_term_age), by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year", "entry_year")) %>% 
     select(entry_age, age, year, term_year, entry_year, dist_age, n_term, pvfb_db_at_term_age, cum_mort_dr) %>% 
     #rename to clarify variables' meanings
     rename(cum_mort_dr_current = cum_mort_dr) %>% 
@@ -201,7 +202,7 @@ get_liability_data <- function(
     filter(year <= start_year + model_period,
            n_refund > 0) %>% 
     mutate(entry_year = year - (age - entry_age)) %>% 
-    left_join(benefit_data$benefit_table, by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year", "entry_year")) %>% 
+    left_join(benefit_table, by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year", "entry_year")) %>% 
     select(entry_age, age, year, term_year, entry_year, n_refund, db_ee_balance) %>% 
     #allocate members to plan designs based on entry year
     mutate(n_refund_db_legacy = if_else(entry_year < 2018, n_refund * db_legacy_before_2018_ratio,
@@ -220,7 +221,7 @@ get_liability_data <- function(
   wf_retire_df_final <- wf_retire_df %>% 
     filter(year <= start_year + model_period) %>% 
     mutate(entry_year = year - (age - entry_age)) %>%    
-    left_join(benefit_data$benefit_table, by = c("entry_age", "entry_year", "term_year", "retire_year" = "dist_year")) %>% 
+    left_join(benefit_table, by = c("entry_age", "entry_year", "term_year", "retire_year" = "dist_year")) %>% 
     select(entry_age, age, year, term_year, retire_year, entry_year, n_retire, db_benefit, cola) %>% 
     left_join(benefit_data$ann_factor_table %>% select(-cola), by = c("entry_age", "entry_year", "term_year", "year" = "dist_year")) %>% 
     select(entry_age, age, year, term_year, retire_year, entry_year, n_retire, db_benefit, cola, ann_factor) %>% 
