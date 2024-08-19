@@ -41,7 +41,8 @@ get_liability_data <- function(
     dr_new = dr_new_,
     
     # djb globals added
-    start_year = start_year_,  # djb global added
+    start_year = start_year_,
+    new_year = new_year_,
     model_period = model_period_,
     amo_period_term = amo_period_term_,
     payroll_growth = payroll_growth_,
@@ -121,11 +122,11 @@ get_liability_data <- function(
     #allocate members to plan designs based on entry year
     mutate(
       n_active_db_legacy = if_else(entry_year < 2018, n_active * db_legacy_before_2018_ratio,
-                                   if_else(entry_year < new_year_, n_active * db_legacy_after_2018_ratio, 0)),
-      n_active_db_new = if_else(entry_year < new_year_, 0, n_active * db_new_ratio),
+                                   if_else(entry_year < new_year, n_active * db_legacy_after_2018_ratio, 0)),
+      n_active_db_new = if_else(entry_year < new_year, 0, n_active * db_new_ratio),
       n_active_dc_legacy = if_else(entry_year < 2018, n_active * dc_legacy_before_2018_ratio,
-                                   if_else(entry_year < new_year_, n_active * dc_legacy_after_2018_ratio, 0)),
-      n_active_dc_new = if_else(entry_year < new_year_, 0, n_active * dc_new_ratio)
+                                   if_else(entry_year < new_year, n_active * dc_legacy_after_2018_ratio, 0)),
+      n_active_dc_new = if_else(entry_year < new_year, 0, n_active * dc_new_ratio)
       ) %>% 
     group_by(year) %>% 
     summarise(
@@ -175,8 +176,8 @@ get_liability_data <- function(
       pvfb_db_term = pvfb_db_at_term_age / cum_mort_dr_current,
       
       n_term_db_legacy = if_else(entry_year < 2018, n_term * db_legacy_before_2018_ratio,
-                                 if_else(entry_year < new_year_, n_term * db_legacy_after_2018_ratio, 0)),
-      n_term_db_new = if_else(entry_year < new_year_, 0, n_term * db_new_ratio)
+                                 if_else(entry_year < new_year, n_term * db_legacy_after_2018_ratio, 0)),
+      n_term_db_new = if_else(entry_year < new_year, 0, n_term * db_new_ratio)
     ) %>% 
     group_by(year) %>% 
     summarise(aal_term_db_legacy_est = sum(pvfb_db_term * n_term_db_legacy),
@@ -195,8 +196,8 @@ get_liability_data <- function(
     select(entry_age, age, year, term_year, entry_year, n_refund, db_ee_balance) %>% 
     #allocate members to plan designs based on entry year
     mutate(n_refund_db_legacy = if_else(entry_year < 2018, n_refund * db_legacy_before_2018_ratio,
-                                        if_else(entry_year < new_year_, n_refund * db_legacy_after_2018_ratio, 0)),
-           n_refund_db_new = if_else(entry_year < new_year_, 0, n_refund * db_new_ratio)
+                                        if_else(entry_year < new_year, n_refund * db_legacy_after_2018_ratio, 0)),
+           n_refund_db_new = if_else(entry_year < new_year, 0, n_refund * db_new_ratio)
     ) %>%
     group_by(year) %>% 
     summarise(refund_db_legacy_est = sum(db_ee_balance * n_refund_db_legacy),
@@ -221,8 +222,8 @@ get_liability_data <- function(
       db_benefit_final = base_db_benefit * (1 + cola)^(year - retire_year),
       
       n_retire_db_legacy = if_else(entry_year < 2018, n_retire * db_legacy_before_2018_ratio,
-                                   if_else(entry_year < new_year_, n_retire * db_legacy_after_2018_ratio, 0)),
-      n_retire_db_new = if_else(entry_year < new_year_, 0, n_retire * db_new_ratio),
+                                   if_else(entry_year < new_year, n_retire * db_legacy_after_2018_ratio, 0)),
+      n_retire_db_new = if_else(entry_year < new_year, 0, n_retire * db_new_ratio),
       #We use "AnnuityFactor_DR - 1" below because the PVFB for retirees excludes the first payment (i.e. the first payment has already been delivered when the PVFB is calculated)
       pvfb_db_retire = db_benefit_final * (ann_factor - 1)
     ) %>% 
@@ -273,7 +274,7 @@ get_liability_data <- function(
   
   #Project benefit payments for current term vested members
   #Note that we use the original "dr_current_" in calculating the benefit payments so that any discount rate adjustment can work
-  retire_ben_term <- get_pmt(r = dr_current_, nper = amo_period_term, pv = pvfb_term_current, g = payroll_growth)
+  retire_ben_term <- get_pmt(r = dr_current, nper = amo_period_term, pv = pvfb_term_current, g = payroll_growth)
   
   year <- start_year:(start_year + model_period)
   amo_years_term <- (start_year + 1):(start_year + amo_period_term)
