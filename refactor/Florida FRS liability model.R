@@ -24,11 +24,10 @@
 #   wf_data$wf_active_df
 #   wf_data$wf_term_df
 #   wf_data$wf_refund_df
+#   wf_data$wf_retire_df
 
 #   benefit_data$benefit_val_table
 #   benefit_data$benefit_table
-
-#   wf_data$wf_retire_df
 #   benefit_data$ann_factor_table
 #   benefit_data$ann_factor_retire_table
 
@@ -72,7 +71,8 @@ get_liability_data <- function(
     # global data frames added by djb
     wf_active_df = wf_data$wf_active_df,
     wf_term_df = wf_data$wf_term_df,
-    wf_refund_df = wf_data$wf_refund_df
+    wf_refund_df = wf_data$wf_refund_df,
+    wf_retire_df = wf_data$wf_retire_df
     
 ) {
   
@@ -215,7 +215,7 @@ get_liability_data <- function(
   
   
   #Join wf retire table with benefit table to calculate the overall retirement benefits each year
-  wf_retire_df_final <- wf_data$wf_retire_df %>% 
+  wf_retire_df_final <- wf_retire_df %>% 
     filter(year <= start_year + model_period) %>% 
     mutate(entry_year = year - (age - entry_age)) %>%    
     left_join(benefit_data$benefit_table, by = c("entry_age", "entry_year", "term_year", "retire_year" = "dist_year")) %>% 
