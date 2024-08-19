@@ -21,7 +21,6 @@
 # djb: CAUTIONS ----
 # Still assumed to be in the global environment:
 
-
 #   salary_growth_table
 
 #   wf_data$wf_active_df

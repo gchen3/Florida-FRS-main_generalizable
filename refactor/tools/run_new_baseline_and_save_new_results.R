@@ -19,3 +19,7 @@ system.time(save.image(here::here("refactor", "new_results", "new_workspace.RDat
 
 system.time(source(here::here("refactor", "run_allobjects_tests.R"))) # run tests on all objects appropriate to compare
 
+
+# NOTE:
+#   regex for finding global variables:   \w+_(?=\s|$|\)|,|\;)  
+
