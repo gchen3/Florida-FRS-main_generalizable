@@ -76,7 +76,8 @@ get_liability_data <- function(
     
     benefit_val_table = benefit_data$benefit_val_table,
     benefit_table = benefit_data$benefit_table,
-    ann_factor_table = benefit_data$ann_factor_table
+    ann_factor_table = benefit_data$ann_factor_table,
+    ann_factor_retire_table = benefit_data$ann_factor_retire_table
     
 ) {
   
@@ -260,7 +261,7 @@ get_liability_data <- function(
       )
   
   
-  wf_retire_current <- benefit_data$ann_factor_retire_table %>% 
+  wf_retire_current <- ann_factor_retire_table %>% 
     filter(year <= start_year + model_period) %>% 
     left_join(retire_current_int, by = c("age", "year")) %>% 
     select(base_age:ann_factor_retire, n_retire_current, avg_ben_current, total_ben_current) %>% 
