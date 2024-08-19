@@ -11,7 +11,9 @@ library(janitor)
 library(rio)
 library(parallel)
 
+# boyd additions to libraries
 library(purrr)
+library(btools) # ns, ht
 
 # load pension-specific libraries
 # For first time installing package, or each time package is updated, install as follows
@@ -123,6 +125,15 @@ get_params <- function(frs_data_env, modparm_data_env){
 }
 
 params <- get_params(frs_data_env, modparm_data_env)
+
+# enhance params
+# create a tibble that has nc_cal_ values for each class
+var_names <- ls(pattern = "_nc_cal_$", envir=params)
+classes <- gsub("_nc_cal_$", "", var_names) # Extract the class prefix
+values <- mget(var_names, envir = params)
+params$nc_cal_ <- tibble(class = classes, nc_cal_ = unlist(values))
+
+
 
 # ls(envir = params) # sorted
 # params$yos_range_
