@@ -893,7 +893,8 @@ get_funding_data <- function(
   amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + funding_lag)
   
   #Create two lists, one for the current hire amo periods, and one for new hire amo periods
-  #Current hire amo periods list construction:
+  # Each has 8 elements (1 per class excl. frs), each element is a matrix 31 years x 21 columns
+  # current_hire_amo_period_list$regular
   
   current_hire_amo_period_list <- purrr::set_names(class_names_no_frs) |> 
                                   purrr::map(
@@ -915,9 +916,11 @@ get_funding_data <- function(
   
   #Level % or level $ for debt amortization 
   # djb: is this the best place for this code??
-  if(amo_method == "level $"){
-    amo_pay_growth <- 0
-  }
+  # if(amo_method_ == "level $"){
+  #   amo_pay_growth <- 0 # change a local variable, NOT a parameter
+  # }
+  # create LOCAL variable amo_pay_growth - MOVE THIS UP ABOVE?
+  amo_paygrowth <- ifelse(params$amo_method_ == "level %", params$amo_pay_growth_, 0)
   
   ####Set up the UAAL layer and amo payment tables for current members and initialize the first UAAL layer and amo payments
   #UAAL layers tables for current members
