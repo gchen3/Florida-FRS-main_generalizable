@@ -72,7 +72,9 @@ get_liability_data <- function(
     wf_active_df = wf_data$wf_active_df,
     wf_term_df = wf_data$wf_term_df,
     wf_refund_df = wf_data$wf_refund_df,
-    wf_retire_df = wf_data$wf_retire_df
+    wf_retire_df = wf_data$wf_retire_df,
+    
+    benefit_val_table = benefit_data$benefit_val_table
     
 ) {
   
@@ -121,7 +123,7 @@ get_liability_data <- function(
   wf_active_df_final <- wf_active_df %>% 
     filter(year <= start_year + model_period) %>% 
     mutate(entry_year = year - (age - entry_age)) %>% 
-    left_join(benefit_data$benefit_val_table, by = c("entry_age", "age" = "term_age", "year" = "term_year", "entry_year")) %>% 
+    left_join(benefit_val_table, by = c("entry_age", "age" = "term_age", "year" = "term_year", "entry_year")) %>% 
     select(entry_age, age, year, entry_year, n_active, indv_norm_cost, salary, 
            pvfb_db_wealth_at_current_age, pvfnc_db, pvfs_at_current_age) %>% 
     replace(is.na(.), 0) %>% 
@@ -170,7 +172,7 @@ get_liability_data <- function(
            n_term > 0) %>% 
     mutate(entry_year = year - (age - entry_age)) %>% 
     #join benefit_val_table to get PV_DB_Benefit (the present value of benefits at termination)
-    left_join(benefit_data$benefit_val_table, by = c("entry_age", "term_year", "entry_year")) %>% 
+    left_join(benefit_val_table, by = c("entry_age", "term_year", "entry_year")) %>% 
     select(entry_age, age, year, term_year, entry_year, dist_age, n_term, pvfb_db_at_term_age) %>% 
     #join benefit_table to get the surv_DR at current age
     left_join(benefit_data$benefit_table %>% select(-pvfb_db_at_term_age), by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year", "entry_year")) %>% 
