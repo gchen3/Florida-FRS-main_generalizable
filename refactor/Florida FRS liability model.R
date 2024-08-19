@@ -22,6 +22,7 @@ get_liability_data <- function(
     class_name = class_name_,
     dr_current = dr_current_,
     dr_new = dr_new_,
+    start_year = start_year_,  # djb global added
     cola_tier_1_active_constant = cola_tier_1_active_constant_,
     cola_tier_1_active = cola_tier_1_active_,
     cola_tier_2_active = cola_tier_2_active_,
@@ -33,7 +34,15 @@ get_liability_data <- function(
     cal_factor = cal_factor_,
     #inputs below are for the liability model
     non_special_db_new_ratio = non_special_db_new_ratio_,
-    special_db_new_ratio = special_db_new_ratio_
+    special_db_new_ratio = special_db_new_ratio_,
+    
+    # globals added by djb
+    special_db_legacy_before_2018_ratio = special_db_legacy_before_2018_ratio_,
+    special_db_legacy_after_2018_ratio = special_db_legacy_after_2018_ratio_,
+    non_special_db_legacy_before_2018_ratio = non_special_db_legacy_before_2018_ratio_,
+    non_special_db_legacy_after_2018_ratio = non_special_db_legacy_after_2018_ratio_,
+    db_legacy_before_2018_ratio = db_legacy_before_2018_ratio_,
+    db_legacy_after_2018_ratio = db_legacy_after_2018_ratio_
 ) {
   
   print(paste0("processing: ", class_name))
@@ -61,17 +70,17 @@ get_liability_data <- function(
   
   #Plan design choice ratios:
   if (class_name == "special") {
-    db_legacy_before_2018_ratio_ <- special_db_legacy_before_2018_ratio_
-    db_legacy_after_2018_ratio_ <- special_db_legacy_after_2018_ratio_
+    db_legacy_before_2018_ratio_ <- special_db_legacy_before_2018_ratio
+    db_legacy_after_2018_ratio_ <- special_db_legacy_after_2018_ratio
     db_new_ratio <- special_db_new_ratio
   } else {
-    db_legacy_before_2018_ratio_ <- non_special_db_legacy_before_2018_ratio_
-    db_legacy_after_2018_ratio_ <- non_special_db_legacy_after_2018_ratio_
+    db_legacy_before_2018_ratio_ <- non_special_db_legacy_before_2018_ratio
+    db_legacy_after_2018_ratio_ <- non_special_db_legacy_after_2018_ratio
     db_new_ratio <- non_special_db_new_ratio
   }
   
-  dc_legacy_before_2018_ratio_ <- 1 - db_legacy_before_2018_ratio_
-  dc_legacy_after_2018_ratio_ <- 1 - db_legacy_after_2018_ratio_
+  dc_legacy_before_2018_ratio_ <- 1 - db_legacy_before_2018_ratio
+  dc_legacy_after_2018_ratio_ <- 1 - db_legacy_after_2018_ratio
   dc_new_ratio <- 1 - db_new_ratio
   
   #Join wf active table with FinalData table to calculate the overall payroll, normal costs, PVFB, and PVFS each year
@@ -209,7 +218,7 @@ get_liability_data <- function(
       n_retire_current = n_retire_ratio * retiree_pop_current,
       total_ben_current = total_ben_ratio * ben_payment_current,
       avg_ben_current = total_ben_current / n_retire_current,
-      year = start_year_
+      year = start_year
       )
   
   
