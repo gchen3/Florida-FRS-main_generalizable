@@ -841,12 +841,14 @@ get_funding_data <- function(
            nc_rate_db_legacy = lag(nc_rate_db_legacy_est * nc_cal),
            nc_rate_db_new = lag(nc_rate_db_new_est * nc_cal),
            
-           # aal calibration - no great way to do this in a chain
+           # aal calibration - no great way to do this in a chain so use 4 ifelse statements
            aal_legacy = if_else(year == first(year), aal_legacy_est, aal_legacy),
            total_aal = if_else(year == first(year), total_aal_est, total_aal),
+           
            ual_ava_legacy = ifelse(year == first(year),
                                    aal_legacy - ava_legacy,
                                    ual_ava_legacy),
+           
            total_ual_ava = ifelse(year == first(year),
                                   total_aal - total_ava,
                                   total_ual_ava),
