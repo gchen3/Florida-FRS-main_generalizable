@@ -8,9 +8,6 @@ salary_growth_table <- salary_growth_table_ %>%
 
 
 #Joining headcount data, salary data, and salary growth data
-#We account for the Investment Plan (DC plan) head count by inflating the DB head count by the ratio of total system head count to DB head count
-#ECO, ESO, and Judges head counts are processed separately as the ACFR does not provide detailed head counts for these classes 
-eco_eso_judges_active_member_adjustment_ratio <- eco_eso_judges_total_active_member_ / sum(eco_headcount_table_[-1] + eso_headcount_table_[-1] + judges_headcount_table_[-1])
 
 
 #.. call get_salary_headcount_table -----------------------------------------
@@ -287,7 +284,5 @@ eso_separation_rate_table <- get_separation_table("regular", age_range_, entry_y
 judges_separation_rate_table <- get_separation_table("judges", age_range_, entry_year_range_, yos_range_, new_year_)
 senior_management_separation_rate_table <- get_separation_table("senior management", age_range_, entry_year_range_, yos_range_, new_year_)
 
-
-
-
+print("All done with separation tables")
 

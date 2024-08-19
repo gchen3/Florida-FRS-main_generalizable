@@ -20,12 +20,11 @@ library(pentools) # use this instead of sourcing utility_functions.R
 
 # Functions ---------------------------------------------------------------
 
-print("Start loading model data, parameters, and functions...")
+print("Loading model functions...")
 
 #Get actuarial and financial functions
 # print("NOT sourcing utility_functions.R but loading pentools...")
 # source(here::here("refactor", "utility_functions.R")) # only creates functions - no live code
-
 
 #Get benefit model
 # replace separate "Florida FRS benefit model.R" into functions and actions
@@ -51,20 +50,22 @@ source(here::here("refactor", "Florida FRS liability model.R")) # only creates f
 print("sourcing Florida FRS funding model_functions.R...")
 source(here::here("refactor", "Florida FRS funding model_functions.R")) # only creates function - no live code
 
-# Immutables -----------------------------------------------------------------
 
-#Get model inputs and assumptions
+# Load FRS data, constants, and model parameters --------------------------
+
+print("sourcing Florida FRS model parameters.R...")
+source(here::here("refactor", "FRS_model_parameters.R"))
 
 print("sourcing Florida FRS model input.R or equivalent...") # this gets init_funding_data
-# ONETIME: save the model_input_env to a file
-# model_input_env <- new.env()
-# source(here::here("refactor", "Florida FRS model input.R"), local = model_input_env)
-# save(model_input_env, file = here::here("refactor", "working_data", "model_input_env.RData"))
-# system.time(source(here::here("refactor", "Florida FRS model input.R"))) # 13 secs only reads data and sets variable values - no functions
-load(here::here("refactor", "working_data", "model_input_env.RData"))
-list2env(as.list(model_input_env), envir = .GlobalEnv)
-rm(model_input_env)
+# ONETIME: save the frs_data_env to a file
+# frs_data_env <- new.env()
+# source(here::here("refactor", "FRS_import_input_data_and_constants.R"), local = frs_data_env)
+# save(frs_data_env, file = here::here("refactor", "working_data", "frs_data_env.RData"))
 
+# system.time(source(here::here("refactor", "FRS_import_input_data_and_constants.R"))) # 13 secs only reads data and sets variable values - no functions
+load(here::here("refactor", "working_data", "frs_data_env.RData"))
+list2env(as.list(frs_data_env), envir = .GlobalEnv)
+# rm(frs_data_env)
 
 FIXED_CLASS_NAMES <- init_funding_data$class
 FIXED_CLASS_NAMES_NO_DROP_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("drop", "frs")]
@@ -76,6 +77,7 @@ FIXED_CLASS_NAMES_NO_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("frs")]
 #   class_names_no_frs <- class_names[!class_names %in% c("frs")]
 # }
 
+
 # Actions -----------------------------------------------------------------
 
 #Get model inputs and assumptions
@@ -84,26 +86,27 @@ print("Start data construction based on system data and model parameters...")
 print("sourcing Florida FRS benefit model_actions.R...") 
 # ONETIME: save the benefit_model_data_env to a file
 # benefit_model_data_env <- new.env()
-# source(here::here("refactor", "Florida FRS model input.R"), local = benefit_model_data_env)
+# source(here::here("refactor", "Florida FRS benefit model_actions.R"), local = benefit_model_data_env)
 # save(benefit_model_data_env, file = here::here("refactor", "working_data", "benefit_model_data_env.RData"))
+
 # system.time(source(here::here("refactor", "Florida FRS benefit model_actions.R"))) # 21 secs only creates objects - no functions
 load(here::here("refactor", "working_data", "benefit_model_data_env.RData"))
 list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
-rm(benefit_model_data_env)
+# rm(benefit_model_data_env)
 # creates for each class: salary_headcount, entrant_profile, mort, retire_mort, drop entry, retire, early retire, sep rates
 
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
 print("sourcing Florida FRS workforce model_get_and_save_wfdata.R...")
-system.time(source(here::here("refactor", "Florida FRS workforce model_get_and_save_wfdata.R"))) # only saves objects - no functions
+system.time(source(here::here("refactor", "Florida FRS workforce model_get_and_save_wfdata.R"))) # 2 mins -- only saves objects - no functions
 # depends on assumptions in the model: 
 
 print("sourcing Florida FRS workforce model_get_saved_data.R...")
-system.time(source(here::here("refactor", "Florida FRS workforce model_get_saved_data.R"))) # only gets saved data - no functions
+system.time(source(here::here("refactor", "Florida FRS workforce model_get_saved_data.R"))) # < 1 sec -- only gets saved data - no functions
 # simply loads wf data -- 4 table types per 7 classes
 
 # Get funding data
 print("sourcing Florida FRS funding model_actions.R...")
-system.time(source(here::here("refactor", "Florida FRS funding model_actions.R"))) # only creates objects - no functions
+system.time(source(here::here("refactor", "Florida FRS funding model_actions.R"))) # < 1 sec only creates objects - no functions
 
 print("Done building model...")
 
