@@ -59,6 +59,7 @@ print("sourcing Florida FRS model parameters.R...")
 # modparm_data_env <- new.env()
 # source(here::here("refactor", "FRS_model_parameters.R"), local = modparm_data_env)
 # save(modparm_data_env, file = here::here("refactor", "working_data", "modparm_data_env.RData"))
+# ls(envir = modparm_data_env)
 load(here::here("refactor", "working_data", "modparm_data_env.RData"))
 list2env(as.list(modparm_data_env), envir = .GlobalEnv)
 
@@ -80,8 +81,7 @@ FIXED_CLASS_NAMES_NO_DROP_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("dr
 FIXED_CLASS_NAMES_NO_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("frs")]
 
 
-# create params environment -----------------------------------------------
-
+# create derived data -----------------------------------------------
 
 # get initial data derived from raw model data - does NOT require modeling assumptions
 print("sourcing Florida FRS benefit model_actions.R...") 
@@ -133,9 +133,8 @@ params <- get_params(frs_data_env, modparm_data_env)
 
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
 print("sourcing Florida FRS workforce model_get_and_save_wfdata.R...")
-# system.time(source(here::here("refactor", "Florida FRS workforce model_get_and_save_wfdata.R"))) # 2 mins -- only saves objects - no functions
+system.time(source(here::here("refactor", "Florida FRS workforce model_get_and_save_wfdata.R"))) # 2 mins -- only saves objects - no functions
 # depends on assumptions in the model: 
-
 
 print("sourcing Florida FRS workforce model_get_saved_data.R...")
 system.time(source(here::here("refactor", "Florida FRS workforce model_get_saved_data.R"))) # < 1 sec -- only gets saved data - no functions
