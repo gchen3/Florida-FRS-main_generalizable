@@ -75,7 +75,8 @@ get_liability_data <- function(
     wf_retire_df = wf_data$wf_retire_df,
     
     benefit_val_table = benefit_data$benefit_val_table,
-    benefit_table = benefit_data$benefit_table
+    benefit_table = benefit_data$benefit_table,
+    ann_factor_table = benefit_data$ann_factor_table
     
 ) {
   
@@ -223,7 +224,7 @@ get_liability_data <- function(
     mutate(entry_year = year - (age - entry_age)) %>%    
     left_join(benefit_table, by = c("entry_age", "entry_year", "term_year", "retire_year" = "dist_year")) %>% 
     select(entry_age, age, year, term_year, retire_year, entry_year, n_retire, db_benefit, cola) %>% 
-    left_join(benefit_data$ann_factor_table %>% select(-cola), by = c("entry_age", "entry_year", "term_year", "year" = "dist_year")) %>% 
+    left_join(ann_factor_table %>% select(-cola), by = c("entry_age", "entry_year", "term_year", "year" = "dist_year")) %>% 
     select(entry_age, age, year, term_year, retire_year, entry_year, n_retire, db_benefit, cola, ann_factor) %>% 
     rename(base_db_benefit = db_benefit) %>% 
     #Adjust the benefit based on COLA and allocate members to plan designs based on entry year
