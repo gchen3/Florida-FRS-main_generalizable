@@ -22,9 +22,9 @@
 # Still assumed to be in the global environment:
 
 #   wf_data$wf_active_df
+#   wf_data$wf_term_df
 
 #   benefit_data$benefit_val_table
-#   wf_data$wf_term_df
 #   benefit_data$benefit_table
 #   wf_data$wf_refund_df
 #   wf_data$wf_retire_df
@@ -69,7 +69,8 @@ get_liability_data <- function(
     db_legacy_after_2018_ratio = db_legacy_after_2018_ratio_,
     
     # global data frames added by djb
-    wf_active_df = wf_data$wf_active_df
+    wf_active_df = wf_data$wf_active_df,
+    wf_term_df = wf_data$wf_term_df
     
 ) {
   
@@ -162,7 +163,7 @@ get_liability_data <- function(
   
   
   #Term table
-  wf_term_df_final <- wf_data$wf_term_df %>% 
+  wf_term_df_final <- wf_term_df %>% 
     filter(year <= start_year + model_period,
            n_term > 0) %>% 
     mutate(entry_year = year - (age - entry_age)) %>% 
