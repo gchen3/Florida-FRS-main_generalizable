@@ -18,6 +18,26 @@
 # special_db_new_ratio = special_db_new_ratio_
 
 
+# djb: CAUTIONS ----
+# Still assumed to be in the global environment:
+
+# model_period_
+# amo_period_term_
+# payroll_growth_
+
+#   salary_growth_table
+
+#   wf_data$wf_active_df
+#   benefit_data$benefit_val_table
+#   wf_data$wf_term_df
+#   benefit_data$benefit_table
+#   wf_data$wf_refund_df
+#   wf_data$wf_retire_df
+#   benefit_data$ann_factor_table
+#   benefit_data$ann_factor_retire_table
+
+# end CAUTIONS ----
+
 get_liability_data <- function(
     class_name = class_name_,
     dr_current = dr_current_,
@@ -88,7 +108,7 @@ get_liability_data <- function(
   
   #Join wf active table with FinalData table to calculate the overall payroll, normal costs, PVFB, and PVFS each year
   wf_active_df_final <- wf_data$wf_active_df %>% 
-    filter(year <= start_year_ + model_period_) %>% 
+    filter(year <= start_year + model_period_) %>% 
     mutate(entry_year = year - (age - entry_age)) %>% 
     left_join(benefit_data$benefit_val_table, by = c("entry_age", "age" = "term_age", "year" = "term_year", "entry_year")) %>% 
     select(entry_age, age, year, entry_year, n_active, indv_norm_cost, salary, 
@@ -135,7 +155,7 @@ get_liability_data <- function(
   
   #Term table
   wf_term_df_final <- wf_data$wf_term_df %>% 
-    filter(year <= start_year_ + model_period_,
+    filter(year <= start_year + model_period_,
            n_term > 0) %>% 
     mutate(entry_year = year - (age - entry_age)) %>% 
     #join benefit_val_table to get PV_DB_Benefit (the present value of benefits at termination)
@@ -165,7 +185,7 @@ get_liability_data <- function(
   
   #Join wf refund table with benefit table to calculate the overall refunds each year
   wf_refund_df_final <- wf_data$wf_refund_df %>% 
-    filter(year <= start_year_ + model_period_,
+    filter(year <= start_year + model_period_,
            n_refund > 0) %>% 
     mutate(entry_year = year - (age - entry_age)) %>% 
     left_join(benefit_data$benefit_table, by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year", "entry_year")) %>% 
@@ -185,7 +205,7 @@ get_liability_data <- function(
   
   #Join wf retire table with benefit table to calculate the overall retirement benefits each year
   wf_retire_df_final <- wf_data$wf_retire_df %>% 
-    filter(year <= start_year_ + model_period_) %>% 
+    filter(year <= start_year + model_period_) %>% 
     mutate(entry_year = year - (age - entry_age)) %>%    
     left_join(benefit_data$benefit_table, by = c("entry_age", "entry_year", "term_year", "retire_year" = "dist_year")) %>% 
     select(entry_age, age, year, term_year, retire_year, entry_year, n_retire, db_benefit, cola) %>% 
@@ -226,7 +246,7 @@ get_liability_data <- function(
   
   
   wf_retire_current <- benefit_data$ann_factor_retire_table %>% 
-    filter(year <= start_year_ + model_period_) %>% 
+    filter(year <= start_year + model_period_) %>% 
     left_join(retire_current_int, by = c("age", "year")) %>% 
     select(base_age:ann_factor_retire, n_retire_current, avg_ben_current, total_ben_current) %>% 
     group_by(base_age) %>% 
@@ -252,8 +272,8 @@ get_liability_data <- function(
   #Note that we use the original "dr_current_" in calculating the benefit payments so that any discount rate adjustment can work
   retire_ben_term <- get_pmt(r = dr_current_, nper = amo_period_term_, pv = pvfb_term_current, g = payroll_growth_)
   
-  year <- start_year_:(start_year_ + model_period_)
-  amo_years_term <- (start_year_ + 1):(start_year_ + amo_period_term_)
+  year <- start_year:(start_year + model_period_)
+  amo_years_term <- (start_year + 1):(start_year + amo_period_term_)
   retire_ben_term_est <- double(length = length(year))
   retire_ben_term_est[which(year %in% amo_years_term)] <- recur_grow3(retire_ben_term, payroll_growth_, amo_period_term_)
   
