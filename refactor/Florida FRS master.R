@@ -18,7 +18,7 @@ library(purrr)
 # devtools::install(pkg = here::here("pentools"))
 library(pentools) # use this instead of sourcing utility_functions.R
 
-# Functions ---------------------------------------------------------------
+# Load functions ---------------------------------------------------------------
 
 print("Loading model functions...")
 
@@ -51,7 +51,7 @@ print("sourcing Florida FRS funding model_functions.R...")
 source(here::here("refactor", "Florida FRS funding model_functions.R")) # only creates function - no live code
 
 
-# Load FRS data, constants, and model parameters --------------------------
+# Get FRS model parameters, constants, raw initial data, and derived initial data --------------------------
 
 print("sourcing Florida FRS model parameters.R...")
 source(here::here("refactor", "FRS_model_parameters.R"))
@@ -67,22 +67,13 @@ load(here::here("refactor", "working_data", "frs_data_env.RData"))
 list2env(as.list(frs_data_env), envir = .GlobalEnv)
 # rm(frs_data_env)
 
+# create easier-to-see constants
 FIXED_CLASS_NAMES <- init_funding_data$class
 FIXED_CLASS_NAMES_NO_DROP_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("drop", "frs")]
 FIXED_CLASS_NAMES_NO_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("frs")]
 
-# get_fixed_class_names <- function(init_funding_data){
-#   class_names <- init_funding_data$class
-#   class_names_no_drop_frs <- class_names[!class_names %in% c("drop", "frs")]
-#   class_names_no_frs <- class_names[!class_names %in% c("frs")]
-# }
 
-
-# Actions -----------------------------------------------------------------
-
-#Get model inputs and assumptions
-print("Start data construction based on system data and model parameters...")
-
+# get initial data derived from raw model data - does NOT require modeling assumptions
 print("sourcing Florida FRS benefit model_actions.R...") 
 # ONETIME: save the benefit_model_data_env to a file
 # benefit_model_data_env <- new.env()
@@ -95,10 +86,16 @@ list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
 # rm(benefit_model_data_env)
 # creates for each class: salary_headcount, entrant_profile, mort, retire_mort, drop entry, retire, early retire, sep rates
 
+
+# Prepare data for modeling -----------------------------------------------
+
+
+
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
 print("sourcing Florida FRS workforce model_get_and_save_wfdata.R...")
 system.time(source(here::here("refactor", "Florida FRS workforce model_get_and_save_wfdata.R"))) # 2 mins -- only saves objects - no functions
 # depends on assumptions in the model: 
+
 
 print("sourcing Florida FRS workforce model_get_saved_data.R...")
 system.time(source(here::here("refactor", "Florida FRS workforce model_get_saved_data.R"))) # < 1 sec -- only gets saved data - no functions
@@ -106,6 +103,7 @@ system.time(source(here::here("refactor", "Florida FRS workforce model_get_saved
 
 # Get funding data
 print("sourcing Florida FRS funding model_actions.R...")
+# gets current_amort_layers_table and funding_list with all classes
 system.time(source(here::here("refactor", "Florida FRS funding model_actions.R"))) # < 1 sec only creates objects - no functions
 
 print("Done building model...")
