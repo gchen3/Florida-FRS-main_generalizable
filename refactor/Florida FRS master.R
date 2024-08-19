@@ -54,7 +54,13 @@ source(here::here("refactor", "Florida FRS funding model_functions.R")) # only c
 # Get FRS model parameters, constants, raw initial data, and derived initial data --------------------------
 
 print("sourcing Florida FRS model parameters.R...")
-source(here::here("refactor", "FRS_model_parameters.R"))
+# source(here::here("refactor", "FRS_model_parameters.R"))
+# ONETIME: save the modparm_data_env to a file
+# modparm_data_env <- new.env()
+# source(here::here("refactor", "FRS_model_parameters.R"), local = modparm_data_env)
+# save(modparm_data_env, file = here::here("refactor", "working_data", "modparm_data_env.RData"))
+load(here::here("refactor", "working_data", "modparm_data_env.RData"))
+list2env(as.list(modparm_data_env), envir = .GlobalEnv)
 
 print("sourcing Florida FRS model input.R or equivalent...") # this gets init_funding_data
 # ONETIME: save the frs_data_env to a file
@@ -67,10 +73,14 @@ load(here::here("refactor", "working_data", "frs_data_env.RData"))
 list2env(as.list(frs_data_env), envir = .GlobalEnv)
 # rm(frs_data_env)
 
+
 # create easier-to-see constants
 FIXED_CLASS_NAMES <- init_funding_data$class
 FIXED_CLASS_NAMES_NO_DROP_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("drop", "frs")]
 FIXED_CLASS_NAMES_NO_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("frs")]
+
+
+# create params environment -----------------------------------------------
 
 
 # get initial data derived from raw model data - does NOT require modeling assumptions
@@ -87,8 +97,38 @@ list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
 # creates for each class: salary_headcount, entrant_profile, mort, retire_mort, drop entry, retire, early retire, sep rates
 
 
-# Prepare data for modeling -----------------------------------------------
+# create params environment -----------------------------------------------
 
+get_params <- function(frs_data_env, modparm_data_env){
+  
+  frs_names <- ls(envir = frs_data_env) |> sort()
+  frs_keep_underscore <- frs_names[grepl("_$", frs_names)]
+  frs_objects <- mget(frs_keep_underscore, envir = frs_data_env)
+  
+  modparm_names <- ls(envir = modparm_data_env) |> sort()
+  modparm_keep_underscore <- modparm_names[grepl("_$", modparm_names)]
+  modparm_objects <- mget(modparm_keep_underscore, envir = modparm_data_env)
+  
+  # create a temporary environment from which we will copy objects, sorted by name
+  temp_env <- new.env()
+  list2env(c(frs_objects, modparm_objects), envir = temp_env) 
+  sorted_names <- ls(envir=temp_env)
+  
+  params <- new.env()
+  for (name in sorted_names) {
+    # use assign rather than list2env so we can control sort order
+    assign(name, temp_env[[name]], envir = params)
+  }
+  return(params)
+}
+
+params <- get_params(frs_data_env, modparm_data_env)
+
+# ls(envir = params) # sorted
+# params$yos_range_
+
+
+# Prepare data for modeling -----------------------------------------------
 
 
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
