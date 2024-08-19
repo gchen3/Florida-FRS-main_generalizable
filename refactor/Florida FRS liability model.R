@@ -21,16 +21,17 @@
 # djb: CAUTIONS ----
 # Still assumed to be in the global environment:
 
-#   salary_growth_table
-
 #   wf_data$wf_active_df
-#   benefit_data$benefit_val_table
 #   wf_data$wf_term_df
-#   benefit_data$benefit_table
 #   wf_data$wf_refund_df
 #   wf_data$wf_retire_df
+
+#   benefit_data$benefit_val_table
+#   benefit_data$benefit_table
 #   benefit_data$ann_factor_table
 #   benefit_data$ann_factor_retire_table
+
+#   salary_growth_table
 
 # end CAUTIONS ----
 
@@ -59,13 +60,20 @@ get_liability_data <- function(
     non_special_db_new_ratio = non_special_db_new_ratio_,
     special_db_new_ratio = special_db_new_ratio_,
     
-    # globals added by djb
+    # global variables added by djb
     special_db_legacy_before_2018_ratio = special_db_legacy_before_2018_ratio_,
     special_db_legacy_after_2018_ratio = special_db_legacy_after_2018_ratio_,
     non_special_db_legacy_before_2018_ratio = non_special_db_legacy_before_2018_ratio_,
     non_special_db_legacy_after_2018_ratio = non_special_db_legacy_after_2018_ratio_,
     db_legacy_before_2018_ratio = db_legacy_before_2018_ratio_,
-    db_legacy_after_2018_ratio = db_legacy_after_2018_ratio_
+    db_legacy_after_2018_ratio = db_legacy_after_2018_ratio_,
+    
+    # global data frames added by djb
+    wf_active_df = wf_data$wf_active_df,
+    wf_term_df = wf_data$wf_term_df,
+    wf_refund_df = wf_data$wf_refund_df,
+    wf_retire_df = wf_data$wf_retire_df
+    
 ) {
   
   print(paste0("processing: ", class_name))
@@ -110,7 +118,7 @@ get_liability_data <- function(
   dc_new_ratio <- 1 - db_new_ratio
   
   #Join wf active table with FinalData table to calculate the overall payroll, normal costs, PVFB, and PVFS each year
-  wf_active_df_final <- wf_data$wf_active_df %>% 
+  wf_active_df_final <- wf_active_df %>% 
     filter(year <= start_year + model_period) %>% 
     mutate(entry_year = year - (age - entry_age)) %>% 
     left_join(benefit_data$benefit_val_table, by = c("entry_age", "age" = "term_age", "year" = "term_year", "entry_year")) %>% 
@@ -157,7 +165,7 @@ get_liability_data <- function(
   
   
   #Term table
-  wf_term_df_final <- wf_data$wf_term_df %>% 
+  wf_term_df_final <- wf_term_df %>% 
     filter(year <= start_year + model_period,
            n_term > 0) %>% 
     mutate(entry_year = year - (age - entry_age)) %>% 
@@ -187,7 +195,7 @@ get_liability_data <- function(
   
   
   #Join wf refund table with benefit table to calculate the overall refunds each year
-  wf_refund_df_final <- wf_data$wf_refund_df %>% 
+  wf_refund_df_final <- wf_refund_df %>% 
     filter(year <= start_year + model_period,
            n_refund > 0) %>% 
     mutate(entry_year = year - (age - entry_age)) %>% 
@@ -207,7 +215,7 @@ get_liability_data <- function(
   
   
   #Join wf retire table with benefit table to calculate the overall retirement benefits each year
-  wf_retire_df_final <- wf_data$wf_retire_df %>% 
+  wf_retire_df_final <- wf_retire_df %>% 
     filter(year <= start_year + model_period) %>% 
     mutate(entry_year = year - (age - entry_age)) %>%    
     left_join(benefit_data$benefit_table, by = c("entry_age", "entry_year", "term_year", "retire_year" = "dist_year")) %>% 
