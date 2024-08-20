@@ -382,7 +382,11 @@ inner_frs_fund1 <- function(frs_fund,
 }
 
 
-inner_loop2_funding <- function(class_names_no_frs){
+inner_loop2_funding <- function(class_names_no_frs,
+                                funding_list,
+                                current_hire_amo_payment_list,
+                                future_hire_amo_payment_list,
+                                params){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   for (class in class_names_no_frs) {
@@ -401,8 +405,8 @@ inner_loop2_funding <- function(class_names_no_frs){
       class_fund$nc_rate_new[i] <- class_fund$nc_new[i] / (class_fund$payroll_db_new[i])  
     } # end if else
     
-    class_fund$ee_nc_rate_legacy[i] <- db_ee_cont_rate_
-    class_fund$ee_nc_rate_new[i] <- db_ee_cont_rate_
+    class_fund$ee_nc_rate_legacy[i] <- params$db_ee_cont_rate_
+    class_fund$ee_nc_rate_new[i] <- params$db_ee_cont_rate_
     
     #Employer contribution rates (DB)
     class_fund$er_nc_rate_legacy[i] <- class_fund$nc_rate_legacy[i] - class_fund$ee_nc_rate_legacy[i]
@@ -421,6 +425,7 @@ inner_loop2_funding <- function(class_names_no_frs){
       class_fund$er_dc_rate_legacy[i] <- 0
       class_fund$er_dc_rate_new[i] <- 0
     } else {
+      # djb CAUTION this is getting a global variable!! ----
       class_fund$er_dc_rate_legacy[i] <- get(str_replace(paste0(class, "_er_dc_cont_rate_"), " ", "_"))
       class_fund$er_dc_rate_new[i] <- get(str_replace(paste0(class, "_er_dc_cont_rate_"), " ", "_"))
     } # end if else
@@ -471,12 +476,27 @@ inner_loop2_funding <- function(class_names_no_frs){
     frs_fund$roa[i] <- return_scenarios[which(return_scenarios$year == class_fund$year[i]), return_scen_index][[1]]
     
     #Solvency contribution and cash flows
-    cf_legacy <- class_fund$ee_nc_cont_legacy[i] + class_fund$er_nc_cont_legacy[i] + class_fund$er_amo_cont_legacy[i] - class_fund$ben_payment_legacy[i] - class_fund$refund_legacy[i] - class_fund$admin_exp_legacy[i]
-    cf_new <- class_fund$ee_nc_cont_new[i] + class_fund$er_nc_cont_new[i] + class_fund$er_amo_cont_new[i] - class_fund$ben_payment_new[i] - class_fund$refund_new[i] - class_fund$admin_exp_new[i]
+    cf_legacy <- class_fund$ee_nc_cont_legacy[i] + 
+      class_fund$er_nc_cont_legacy[i] + 
+      class_fund$er_amo_cont_legacy[i] - 
+      class_fund$ben_payment_legacy[i] - 
+      class_fund$refund_legacy[i] - 
+      class_fund$admin_exp_legacy[i]
+    
+    cf_new <- class_fund$ee_nc_cont_new[i] + 
+      class_fund$er_nc_cont_new[i] + 
+      class_fund$er_amo_cont_new[i] - 
+      class_fund$ben_payment_new[i] - 
+      class_fund$refund_new[i] - 
+      class_fund$admin_exp_new[i]
+    
     cf_total <- cf_legacy + cf_new
     
-    class_fund$total_solv_cont[i] <- max(-(class_fund$mva[i-1] * (1 + class_fund$roa[i]) + cf_total * (1 + class_fund$roa[i])^0.5) / (1 + class_fund$roa[i])^0.5, 0)
+    class_fund$total_solv_cont[i] <- max(-(class_fund$mva[i-1] * (1 + class_fund$roa[i]) + 
+                                             cf_total * (1 + class_fund$roa[i])^0.5) / (1 + class_fund$roa[i])^0.5, 0)
+    
     class_fund$solv_cont_legacy[i] <- class_fund$total_solv_cont[i] * class_fund$aal_legacy[i] / class_fund$total_aal[i]
+    
     class_fund$solv_cont_new[i] <- class_fund$total_solv_cont[i] * class_fund$aal_new[i] / class_fund$total_aal[i]
     
     class_fund$net_cf_legacy[i] <- cf_legacy + class_fund$solv_cont_legacy[i]
@@ -500,7 +520,7 @@ inner_loop2_funding <- function(class_names_no_frs){
     
     #Assign the class outputs back to the funding_list
     funding_list[[class]] <- class_fund
-  } #.. end class in class_names_no_frs loop -- SEEMS TO STOP HERE?
+  } #.. end class in class_names_no_frs loop
   
   return(list(funding_list = funding_list,
               frs_fund = frs_fund))
@@ -795,7 +815,11 @@ main_loop <- function(funding_list,
     frs_fund <- inner_frs_fund1(frs_fund,
                                 funding_list$drop_fund) # open code: FRS totals: update with DROP -- payroll, benefits, refunds, NC, AL
     
-    result <- inner_loop2_funding(class_names_no_frs) #.. start class_names_no_frs loop -- NC, EEC, ERC-DB, admin expense
+    result <- inner_loop2_funding(class_names_no_frs,
+                                  funding_list,
+                                  current_hire_amo_payment_list,
+                                  future_hire_amo_payment_list,
+                                  params) #.. start class_names_no_frs loop -- NC, EEC, ERC-DB, admin expense
     funding_list <- result$funding_list
     frs_fund <- result$frs_fund    
     
