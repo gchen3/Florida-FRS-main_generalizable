@@ -185,7 +185,6 @@ inner_loop1_payroll_benefits <- function(class_names_no_drop_frs,
                                          liability_list,
                                          frs_fund,
                                          params){
-  # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   for (class in class_names_no_drop_frs) {
     # djb: it looks like no class values rely on frs values in this loop, so we could move frs entirely out of the loop
@@ -277,7 +276,8 @@ inner_loop1_payroll_benefits <- function(class_names_no_drop_frs,
               frs_fund = frs_fund))
 }
 
-inner_drop1_funding <- function(){
+inner_drop1_funding <- function(funding_list,
+                                params){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   #### Process DROP's payroll, benefit payments, normal cost, and accrued
@@ -290,7 +290,7 @@ inner_drop1_funding <- function(){
   #DROP payroll projection (no DC payroll for DROP)
   # djb: lagged value here
   # djb: NOTE RELIANCE ON REGULAR
-  drop_fund$total_payroll[i] <- drop_fund$total_payroll[i-1] * (1 + payroll_growth_)
+  drop_fund$total_payroll[i] <- drop_fund$total_payroll[i-1] * (1 + params$payroll_growth_)
   drop_fund$payroll_db_legacy[i] <- drop_fund$total_payroll[i] * (regular_fund$payroll_db_legacy_ratio[i] + regular_fund$payroll_dc_legacy_ratio[i])
   drop_fund$payroll_db_new[i] <- drop_fund$total_payroll[i] * (regular_fund$payroll_db_new_ratio[i] + regular_fund$payroll_dc_new_ratio[i])
   
@@ -347,7 +347,8 @@ inner_drop1_funding <- function(){
 }
 
 
-inner_frs_fund1 <- function(){
+inner_frs_fund1 <- function(frs_fund,
+                            drop_fund){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   ####Update FRS's numbers after DROP
@@ -788,7 +789,8 @@ main_loop <- function(funding_list,
     funding_list <- result$funding_list
     frs_fund <- result$frs_fund
     
-    funding_list <- inner_drop1_funding() #.. open code: DROP payroll, benefits, NC, AL -- "makeshift"
+    funding_list <- inner_drop1_funding(funding_list,
+                                        params) #.. open code: DROP payroll, benefits, NC, AL -- "makeshift"
     
     frs_fund <- inner_frs_fund1() # open code: FRS totals: update with DROP -- payroll, benefits, refunds, NC, AL
     
