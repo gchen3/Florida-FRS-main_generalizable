@@ -80,8 +80,7 @@ get_liability_data <- function(
     ann_factor_retire_table = benefit_data$ann_factor_retire_table,
     
     params
-    
-) {
+    ) {
   
   print(paste0("processing get_benefit_data in liability model for: ", class_name))
   benefit_data <- get_benefit_data(    
