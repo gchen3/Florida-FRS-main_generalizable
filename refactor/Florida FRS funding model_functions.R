@@ -179,7 +179,7 @@ get_future_hire_debt_layer_table <- function(class_name,
   return(future_hire_debt_layer_table)
 }
 
-inner_loop1 <- function(){
+inner_loop1_payroll_benefits <- function(){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   for (class in class_names_no_drop_frs) {
@@ -272,7 +272,7 @@ inner_loop1 <- function(){
               frs_fund = frs_fund))
 }
 
-inner_drop1 <- function(){
+inner_drop1_funding <- function(){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   #### Process DROP's payroll, benefit payments, normal cost, and accrued
@@ -376,7 +376,7 @@ inner_frs_fund1 <- function(){
 }
 
 
-inner_loop2 <- function(){
+inner_loop2_funding <- function(){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   for (class in class_names_no_frs) {
@@ -418,7 +418,6 @@ inner_loop2 <- function(){
       class_fund$er_dc_rate_legacy[i] <- get(str_replace(paste0(class, "_er_dc_cont_rate_"), " ", "_"))
       class_fund$er_dc_rate_new[i] <- get(str_replace(paste0(class, "_er_dc_cont_rate_"), " ", "_"))
     } # end if else
-    
     
     #Admin rate
     class_fund$admin_exp_rate[i] <- class_fund$admin_exp_rate[i-1]
@@ -533,6 +532,28 @@ inner_frs_fund2 <- function(){
   return(frs_fund)
 }
 
+inner_ava <- function(){
+  # DANGER, TEMPORARY: not passing variables. will modify them and return
+  
+  for (class in class_names_no_frs) { 
+    #Do the assignment below to declutter the code
+    class_fund <- funding_list[[class]]
+    
+    #AVA legacy development (step 2: calculate class's unadjusted AVA)
+    class_fund$alloc_inv_earnings_ava_legacy[i] <- frs_fund$alloc_inv_earnings_ava_legacy[i] * class_fund$ava_base_legacy[i]/frs_fund$ava_base_legacy[i]
+    class_fund$unadj_ava_legacy[i] <- class_fund$ava_legacy[i-1] + class_fund$net_cf_legacy[i] + class_fund$alloc_inv_earnings_ava_legacy[i]
+    
+    #AVA new development (step 2: calculate class's unadjusted AVA)
+    class_fund$alloc_inv_earnings_ava_new[i] <- if_else(frs_fund$ava_base_new[i] == 0, 0, frs_fund$alloc_inv_earnings_ava_new[i] * class_fund$ava_base_new[i]/frs_fund$ava_base_new[i])
+    class_fund$unadj_ava_new[i] <- class_fund$ava_new[i-1] + class_fund$net_cf_new[i] + class_fund$alloc_inv_earnings_ava_new[i]
+    
+    #Assign the class outputs back to the funding_list
+    funding_list[[class]] <- class_fund
+  } #.. end class in class_names_no_frs loop
+  
+  return(funding_list)
+} 
+
 
 main_loop <- function(funding_list,
                       liability_list,
@@ -578,36 +599,24 @@ main_loop <- function(funding_list,
     
     # CAUTION: I modify calling-environment variables in the functions below
     
-    result <- inner_loop1() #.. no_drop_frs loop: payroll, benefits, refunds, normal cost, AAL
-    list2env(result, envir = parent.frame())
+    result <- inner_loop1_payroll_benefits() #.. no_drop_frs loop: payroll, benefits, refunds, normal cost, AAL
+    # list2env(result, envir = parent.frame())  # works but not as easy to understand
+    funding_list <- result$funding_list
+    frs_fund <- result$frs_fund
     
-    funding_list <- inner_drop1() #.. open code: DROP payroll, benefits, NC, AL -- "makeshift"
+    funding_list <- inner_drop1_funding() #.. open code: DROP payroll, benefits, NC, AL -- "makeshift"
     
     frs_fund <- inner_frs_fund1() # open code: FRS totals: update with DROP -- payroll, benefits, refunds, NC, AL
     
-    result <- inner_loop2() #.. start class_names_no_frs loop -- NC, EEC, ERC-DB, admin expense
-    list2env(result, envir = parent.frame())
+    result <- inner_loop2_funding() #.. start class_names_no_frs loop -- NC, EEC, ERC-DB, admin expense
+    funding_list <- result$funding_list
+    frs_fund <- result$frs_fund    
     
     frs_fund <- inner_frs_fund2() 
     
-    
-    
-    #.. start class_names_no_frs loop ----
-    for (class in class_names_no_frs) { 
-      #Do the assignment below to declutter the code
-      class_fund <- funding_list[[class]]
-      
-      #AVA legacy development (step 2: calculate class's unadjusted AVA)
-      class_fund$alloc_inv_earnings_ava_legacy[i] <- frs_fund$alloc_inv_earnings_ava_legacy[i] * class_fund$ava_base_legacy[i]/frs_fund$ava_base_legacy[i]
-      class_fund$unadj_ava_legacy[i] <- class_fund$ava_legacy[i-1] + class_fund$net_cf_legacy[i] + class_fund$alloc_inv_earnings_ava_legacy[i]
-      
-      #AVA new development (step 2: calculate class's unadjusted AVA)
-      class_fund$alloc_inv_earnings_ava_new[i] <- if_else(frs_fund$ava_base_new[i] == 0, 0, frs_fund$alloc_inv_earnings_ava_new[i] * class_fund$ava_base_new[i]/frs_fund$ava_base_new[i])
-      class_fund$unadj_ava_new[i] <- class_fund$ava_new[i-1] + class_fund$net_cf_new[i] + class_fund$alloc_inv_earnings_ava_new[i]
-      
-      #Assign the class outputs back to the funding_list
-      funding_list[[class]] <- class_fund
-    } #.. end class in class_names_no_frs loop
+    funding_list <- inner_ava() #.. start class_names_no_frs loop
+
+
     
     #DROP asset reallocation
     drop_fund <- funding_list$drop
