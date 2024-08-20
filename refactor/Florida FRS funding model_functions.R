@@ -180,8 +180,8 @@ get_future_hire_debt_layer_table <- function(class_name,
 }
 
 
-inner_loop1_payroll_benefits <- function(class_names_no_drop_frs,
-                                         i,
+inner_loop1_payroll_benefits <- function(i,
+                                         class_names_no_drop_frs,
                                          funding_list,
                                          liability_list,
                                          frs_fund,
@@ -277,8 +277,8 @@ inner_loop1_payroll_benefits <- function(class_names_no_drop_frs,
               frs_fund = frs_fund))
 }
 
-inner_drop1_funding <- function(funding_list,
-                                i,
+inner_drop1_funding <- function(i,
+                                funding_list,
                                 frs_fund,
                                 params){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
@@ -350,8 +350,8 @@ inner_drop1_funding <- function(funding_list,
 }
 
 
-inner_frs_fund1 <- function(frs_fund,
-                            i,
+inner_frs_fund1 <- function(i,
+                            frs_fund,
                             drop_fund){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
@@ -386,8 +386,8 @@ inner_frs_fund1 <- function(frs_fund,
 }
 
 
-inner_loop2_funding <- function(class_names_no_frs,
-                                i,
+inner_loop2_funding <- function(i,
+                                class_names_no_frs,
                                 funding_list,
                                 current_hire_amo_payment_list,
                                 future_hire_amo_payment_list,
@@ -531,8 +531,8 @@ inner_loop2_funding <- function(class_names_no_frs,
               frs_fund = frs_fund))
 }
 
-inner_frs_fund2 <- function(frs_fund,
-                            i,
+inner_frs_fund2 <- function(i,
+                            frs_fund,
                             params){
   # DANGER, TEMPORARY: not passing variables. will modify them and return  
   
@@ -568,8 +568,8 @@ inner_frs_fund2 <- function(frs_fund,
   return(frs_fund)
 }
 
-inner_loop3_ava_development <- function(class_names_no_frs,
-                                        i,
+inner_loop3_ava_development <- function(i,
+                                        class_names_no_frs,
                                         funding_list,
                                         frs_fund){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
@@ -600,8 +600,8 @@ inner_loop3_ava_development <- function(class_names_no_frs,
 } 
 
 
-inner_drop2_asset_reallocation <- function(funding_list,
-                                           i,
+inner_drop2_asset_reallocation <- function(i,
+                                           funding_list,
                                            frs_fund) {
   # DANGER, TEMPORARY: not passing variables. will modify them and return  
   
@@ -621,8 +621,8 @@ inner_drop2_asset_reallocation <- function(funding_list,
 }
 
 
-inner_loop4_ava <- function(class_names_no_drop_frs,
-                            i,
+inner_loop4_ava <- function(i,
+                            class_names_no_drop_frs,
                             funding_list,
                             frs_fund){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
@@ -649,8 +649,8 @@ inner_loop4_ava <- function(class_names_no_drop_frs,
 }
 
 
-inner_loop5_all_in_cost <- function(class_names_no_frs,
-                                    i,
+inner_loop5_all_in_cost <- function(i,
+                                    class_names_no_frs,
                                     funding_list,
                                     frs_fund,
                                     params
@@ -722,8 +722,8 @@ inner_loop5_all_in_cost <- function(class_names_no_frs,
 }
 
 
-inner_loop6_amortization <- function(class_names_no_frs,
-                                     i,
+inner_loop6_amortization <- function(i,
+                                     class_names_no_frs,
                                      funding_list,
                                      current_hire_debt_layer_list,
                                      future_hire_debt_layer_list,
@@ -838,8 +838,8 @@ main_loop <- function(funding_list,
     
     # CAUTION: I modify calling-environment variables in the functions below
     
-    result <- inner_loop1_payroll_benefits(class_names_no_drop_frs,
-                                           i,
+    result <- inner_loop1_payroll_benefits(i,
+                                           class_names_no_drop_frs,
                                            funding_list,
                                            liability_list,
                                            frs_fund,
@@ -848,17 +848,17 @@ main_loop <- function(funding_list,
     funding_list <- result$funding_list
     frs_fund <- result$frs_fund
     
-    funding_list <- inner_drop1_funding(funding_list,
-                                        i,
-                                        frs_fund
+    funding_list <- inner_drop1_funding(i,
+                                        funding_list,
+                                        frs_fund,
                                         params) #.. open code: DROP payroll, benefits, NC, AL -- "makeshift"
     
-    frs_fund <- inner_frs_fund1(frs_fund,
-                                i,
+    frs_fund <- inner_frs_fund1(i,
+                                frs_fund,
                                 funding_list$drop_fund) # open code: FRS totals: update with DROP -- payroll, benefits, refunds, NC, AL
     
-    result <- inner_loop2_funding(class_names_no_frs,
-                                  i,
+    result <- inner_loop2_funding(i,
+                                  class_names_no_frs,
                                   funding_list,
                                   current_hire_amo_payment_list,
                                   future_hire_amo_payment_list,
@@ -866,34 +866,34 @@ main_loop <- function(funding_list,
     funding_list <- result$funding_list
     frs_fund <- result$frs_fund    
     
-    frs_fund <- inner_frs_fund2(frs_fund,
-                                i,
+    frs_fund <- inner_frs_fund2(i,
+                                frs_fund,
                                 params) 
     
-    funding_list <- inner_loop3_ava_development(class_names_no_frs,
-                                                i,
+    funding_list <- inner_loop3_ava_development(i,
+                                                class_names_no_frs,
                                                 funding_list,
                                                 frs_fund)
     
-    funding_list <- inner_drop2_asset_reallocation(funding_list,
-                                                   i,
+    funding_list <- inner_drop2_asset_reallocation(i,
+                                                   funding_list,
                                                    frs_fund) #.. open code: DROP assets reallocation
 
-    funding_list <- inner_loop4_ava(class_names_no_drop_frs,
-                                    i,
+    funding_list <- inner_loop4_ava(i,
+                                    class_names_no_drop_frs,
                                     funding_list,
                                     frs_fund)  # class_names_no_drop_frs
 
-    result <- inner_loop5_all_in_cost(class_names_no_frs,
-                                      i,
+    result <- inner_loop5_all_in_cost(i,
+                                      class_names_no_frs,
                                       funding_list,
                                       frs_fund,
                                       params) # AVA UAL FR projections all-in cost
     funding_list <- result$funding_list
     frs_fund <- result$frs_fund    
     
-    result <- inner_loop6_amortization(class_names_no_frs,
-                                       i,
+    result <- inner_loop6_amortization(i,
+                                       class_names_no_frs,
                                        funding_list,
                                        current_hire_debt_layer_list,
                                        future_hire_debt_layer_list,
