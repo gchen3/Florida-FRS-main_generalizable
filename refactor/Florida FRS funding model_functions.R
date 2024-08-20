@@ -593,7 +593,8 @@ inner_loop3_ava_development <- function(class_names_no_frs,
 } 
 
 
-inner_drop2_asset_reallocation <- function() {
+inner_drop2_asset_reallocation <- function(funding_list,
+                                           frs_fund) {
   # DANGER, TEMPORARY: not passing variables. will modify them and return  
   
   #DROP asset reallocation
@@ -836,7 +837,8 @@ main_loop <- function(funding_list,
                                                 funding_list,
                                                 frs_fund)
     
-    funding_list <- inner_drop2_asset_reallocation() #.. open code: DROP assets reallocation
+    funding_list <- inner_drop2_asset_reallocation(funding_list,
+                                                   frs_fund) #.. open code: DROP assets reallocation
 
     funding_list <- inner_loop4_ava(class_names_no_drop_frs)  # class_names_no_drop_frs
 
