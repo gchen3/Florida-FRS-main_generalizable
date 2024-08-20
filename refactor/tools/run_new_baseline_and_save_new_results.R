@@ -7,7 +7,7 @@
 system.time(source(here::here("refactor", "Florida FRS master.R"))) # load and run the full FRS Florida model
 
 # generate baseline results
-system.time(baseline_funding <- get_funding_data(funding_list, current_amort_layers_table))
+system.time(baseline_funding <- get_funding_data(funding_list, current_amort_layers_table, params=params))
 
 system.time(baseline_liability <- get_liability_data()) # about 60 secs tot, ~ 10 seconds for a single class
 
@@ -21,5 +21,5 @@ system.time(source(here::here("refactor", "run_allobjects_tests.R"))) # run test
 
 
 # NOTE:
-#   regex for finding global variables:   \w+_(?=\s|$|\)|,|\;)  
+#   regex for finding global variables:   \w+_(?=\s|$|\)|,|\;)  -- use in RStudio search box
 
