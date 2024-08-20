@@ -895,9 +895,11 @@ get_funding_data <- function(
   
   #Determine the number of columns for the amo period tables
   amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + funding_lag)  
+  
   current_hire_amo_period_list <- purrr::set_names(class_names_no_frs) |> 
+                                  # returns a list of 8 matrices, 31 x 21 (nyears x amo_col_num)
                                   purrr::map(
-                                             get_current_hire_amo_period_table, # returns a list of matrices
+                                             get_current_hire_amo_period_table,
                                              current_amort_layers_table,
                                              class_amo_layers_table,
                                              model_period,
@@ -906,8 +908,9 @@ get_funding_data <- function(
                                              amo_col_num)  
   
   future_hire_amo_period_list <- purrr::set_names(class_names_no_frs) |> 
+                                 # returns a list of 8 matrices, 31 x 21 (nyears x amo_col_num)
                                  purrr::map(
-                                            get_future_hire_amo_period_table, # returns a list of matrices
+                                            get_future_hire_amo_period_table,
                                             amo_period_new,
                                             funding_lag,
                                             amo_col_num,
@@ -918,6 +921,7 @@ get_funding_data <- function(
   ####Set up the UAAL layer and amo payment tables for current members and initialize the first UAAL layer and amo payments
   #UAAL layers tables for current members
   current_hire_debt_layer_list <- purrr::set_names(class_names_no_frs) |> 
+                                  # returns a list of 8 matrices, 31 x 22 (nyears x amo_col_num+1)
                                   purrr::map(
                                              get_current_hire_debt_layer_table,
                                              current_amort_layers_table,
@@ -925,6 +929,7 @@ get_funding_data <- function(
                                              amo_col_num)
   
   current_hire_amo_payment_list <- purrr::set_names(class_names_no_frs) |> 
+                                   # returns a list of 8 matrices, 31 x 21 (nyears x amo_col_num)
                                    purrr::map(
                                               get_current_hire_amo_payment_table,
                                               current_hire_amo_payment_table,
@@ -937,6 +942,7 @@ get_funding_data <- function(
     
   ####Set up the UAL layer and amo payment tables for new members
   future_hire_debt_layer_list <- purrr::set_names(class_names_no_frs) |> 
+                                 # returns a list of 8 matrices, 31 x 22 (nyears x amo_col_num+1)
                                  purrr::map( 
                                             get_future_hire_debt_layer_table,
                                             model_period,
@@ -944,11 +950,32 @@ get_funding_data <- function(
   
   #Amo payment tables for new members
   future_hire_amo_payment_list <- purrr::set_names(class_names_no_frs) |> 
+                                  # returns a list of 8 matrices, 31 x 21 (nyears x amo_col_num)
                                   purrr::map(
                                              get_future_hire_amo_payment_table,
                                              model_period,
                                              amo_col_num)
   
+  # djb: create nested tibble with these matrices
+  # verify that all names are the same and in the same order
+  amo_table <- tibble(
+    class = names(current_hire_amo_period_list),
+    
+    current_hire_amo_period = purrr::map(current_hire_amo_period_list, \(x) x),
+    current_hire_amo_payment = purrr::map(current_hire_amo_payment_list, \(x) x),
+    current_hire_debt_layer = purrr::map(current_hire_debt_layer_list, \(x) x),
+    
+    future_hire_amo_period = purrr::map(future_hire_amo_period_list, \(x) x),
+    future_hire_amo_payment = purrr::map(future_hire_amo_payment_list, \(x) x),
+    future_hire_debt_layer = purrr::map(future_hire_debt_layer_list, \(x) x)
+  )
+
+  # here's how to verify that the names are all properly aligned
+  # amo_table |> 
+  #   mutate(across(-class, \(x) names(x)))
+
+  # djb: this next block seems dangerous - they modify a global variable,
+  # return_scenarios, and further, use hard-coded values
   
   #Set return values for "model" and "assumption" scenarios
   #Set 2023 returns and update "model" and "assumption" scenarios
