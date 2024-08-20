@@ -81,7 +81,7 @@ get_liability_data <- function(
     
 ) {
   
-  print(paste0("processing: ", class_name))
+  print(paste0("processing get_benefit_data in liability model for: ", class_name))
   benefit_data <- get_benefit_data(    
     class_name,
     dr_current,

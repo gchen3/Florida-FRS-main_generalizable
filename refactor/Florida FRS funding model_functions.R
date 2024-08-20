@@ -855,7 +855,7 @@ main_loop <- function(funding_list,
     
     frs_fund <- inner_frs_fund1(i,
                                 frs_fund,
-                                funding_list$drop_fund) # open code: FRS totals: update with DROP -- payroll, benefits, refunds, NC, AL
+                                funding_list$drop) # FRS totals: update with DROP -- payroll, benefits, refunds, NC, AL
     
     result <- inner_loop2_funding(i,
                                   class_names_no_frs,
