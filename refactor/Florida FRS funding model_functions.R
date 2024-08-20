@@ -613,7 +613,9 @@ inner_drop2_asset_reallocation <- function(funding_list,
 }
 
 
-inner_loop4_ava <- function(class_names_no_drop_frs){
+inner_loop4_ava <- function(class_names_no_drop_frs,
+                            funding_list,
+                            frs_fund){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   for (class in class_names_no_drop_frs) {
@@ -632,7 +634,7 @@ inner_loop4_ava <- function(class_names_no_drop_frs){
     
     #Assign the class outputs back to the funding_list
     funding_list[[class]] <- class_fund
-  } #.. end class in class_names_no_drop_frs loop
+  }
   
   return(funding_list)
 }
@@ -840,7 +842,9 @@ main_loop <- function(funding_list,
     funding_list <- inner_drop2_asset_reallocation(funding_list,
                                                    frs_fund) #.. open code: DROP assets reallocation
 
-    funding_list <- inner_loop4_ava(class_names_no_drop_frs)  # class_names_no_drop_frs
+    funding_list <- inner_loop4_ava(class_names_no_drop_frs,
+                                    funding_list,
+                                    frs_fund)  # class_names_no_drop_frs
 
     result <- inner_loop5_all_in_cost(class_names_no_frs) # AVA UAL FR projections all-in cost
     funding_list <- result$funding_list
