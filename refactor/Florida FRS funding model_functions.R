@@ -332,14 +332,14 @@ inner_drop1_funding <- function(i,
   #DROP accrued liability projection
   # djb: lagged value here
   # djb: why the square root of 1 + dr_current
-  drop_fund$aal_legacy[i] <- drop_fund$aal_legacy[i-1] * (1 + dr_current) +
+  drop_fund$aal_legacy[i] <- drop_fund$aal_legacy[i-1] * (1 + params$dr_current_) +
     (drop_fund$nc_legacy[i] - drop_fund$ben_payment_legacy[i] - drop_fund$refund_legacy[i]) * 
-    (1 + dr_current)^0.5 + 
+    (1 + params$dr_current_)^0.5 + 
     drop_fund$liability_gain_loss_legacy[i]
   
-  drop_fund$aal_new[i] <- drop_fund$aal_new[i-1] * (1 + dr_new) + 
+  drop_fund$aal_new[i] <- drop_fund$aal_new[i-1] * (1 + params$dr_new_) + 
     (drop_fund$nc_new[i] - drop_fund$ben_payment_new[i] - drop_fund$refund_new[i]) * 
-    (1 + dr_new)^0.5 +
+    (1 + params$dr_new_)^0.5 +
     drop_fund$liability_gain_loss_new[i]
   
   drop_fund$total_aal[i] <- drop_fund$aal_legacy[i] + drop_fund$aal_new[i]
