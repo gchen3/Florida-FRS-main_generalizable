@@ -526,18 +526,20 @@ inner_loop2_funding <- function(class_names_no_frs,
               frs_fund = frs_fund))
 }
 
-inner_frs_fund2 <- function(){
+inner_frs_fund2 <- function(frs_fund,
+                            params){
   # DANGER, TEMPORARY: not passing variables. will modify them and return  
   
   # <open code frs calculations>
   #AVA legacy development (step 1: calculate FRS's AVA)
-  frs_fund$exp_inv_earnings_ava_legacy[i] <- frs_fund$ava_legacy[i-1] * dr_current + 
-    frs_fund$net_cf_legacy[i] * dr_current/2
+  frs_fund$exp_inv_earnings_ava_legacy[i] <- frs_fund$ava_legacy[i-1] * params$dr_current_ + 
+    frs_fund$net_cf_legacy[i] * params$dr_current_ / 2
   
   frs_fund$exp_ava_legacy[i] <- frs_fund$ava_legacy[i-1] + 
     frs_fund$net_cf_legacy[i] + 
     frs_fund$exp_inv_earnings_ava_legacy[i]
   
+  # djb: Caution: hard-coded numbers here and further below ----
   frs_fund$ava_legacy[i] <- max(min(frs_fund$exp_ava_legacy[i] + (frs_fund$mva_legacy[i] - frs_fund$exp_ava_legacy[i]) * 0.2,
                                     frs_fund$mva_legacy[i] * 1.2), frs_fund$mva_legacy[i] * 0.8)
   
@@ -548,17 +550,21 @@ inner_frs_fund2 <- function(){
   frs_fund$ava_base_legacy[i] <- frs_fund$ava_legacy[i-1] + frs_fund$net_cf_legacy[i]/2
   
   #AVA new development (step 1: calculate FRS's AVA)
-  frs_fund$exp_inv_earnings_ava_new[i] <- frs_fund$ava_new[i-1] * dr_new + frs_fund$net_cf_new[i] * dr_new/2
+  frs_fund$exp_inv_earnings_ava_new[i] <- frs_fund$ava_new[i-1] * params$dr_new_ +
+    frs_fund$net_cf_new[i] * params$dr_new_ / 2
   frs_fund$exp_ava_new[i] <- frs_fund$ava_new[i-1] + frs_fund$net_cf_new[i] + frs_fund$exp_inv_earnings_ava_new[i]
-  frs_fund$ava_new[i] <- max(min(frs_fund$exp_ava_new[i] + (frs_fund$mva_new[i] - frs_fund$exp_ava_new[i]) * 0.2, frs_fund$mva_new[i] * 1.2), frs_fund$mva_new[i] * 0.8)
+  frs_fund$ava_new[i] <- max(min(frs_fund$exp_ava_new[i] + (frs_fund$mva_new[i] - frs_fund$exp_ava_new[i]) * 0.2,
+                                 frs_fund$mva_new[i] * 1.2), 
+                             frs_fund$mva_new[i] * 0.8)
   frs_fund$alloc_inv_earnings_ava_new[i] <- frs_fund$ava_new[i] - frs_fund$ava_new[i-1] - frs_fund$net_cf_new[i]
-  frs_fund$ava_base_new[i] <- frs_fund$ava_new[i-1] + frs_fund$net_cf_new[i]/2
-  # <end open code>
+  frs_fund$ava_base_new[i] <- frs_fund$ava_new[i-1] + frs_fund$net_cf_new[i] / 2
   
   return(frs_fund)
 }
 
-inner_loop3_ava_development <- function(class_names_no_frs){
+inner_loop3_ava_development <- function(class_names_no_frs,
+                                        funding_list,
+                                        frs_fund){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   for (class in class_names_no_frs) { 
@@ -581,7 +587,7 @@ inner_loop3_ava_development <- function(class_names_no_frs){
     
     # Assign the class outputs back to the funding_list
     funding_list[[class]] <- class_fund
-  } #.. end class in class_names_no_frs loop
+  }
   
   return(funding_list)
 } 
@@ -819,13 +825,16 @@ main_loop <- function(funding_list,
                                   funding_list,
                                   current_hire_amo_payment_list,
                                   future_hire_amo_payment_list,
-                                  params) #.. start class_names_no_frs loop -- NC, EEC, ERC-DB, admin expense
+                                  params) # NC, EEC, ERC-DB, admin expense
     funding_list <- result$funding_list
     frs_fund <- result$frs_fund    
     
-    frs_fund <- inner_frs_fund2() 
+    frs_fund <- inner_frs_fund2(frs_fund,
+                                params) 
     
-    funding_list <- inner_loop3_ava_development(class_names_no_frs) #.. start class_names_no_frs loop
+    funding_list <- inner_loop3_ava_development(class_names_no_frs,
+                                                funding_list,
+                                                frs_fund)
     
     funding_list <- inner_drop2_asset_reallocation() #.. open code: DROP assets reallocation
 
