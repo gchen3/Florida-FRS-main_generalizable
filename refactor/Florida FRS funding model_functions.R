@@ -179,7 +179,7 @@ get_future_hire_debt_layer_table <- function(class_name,
   return(future_hire_debt_layer_table)
 }
 
-inner_loop1_payroll_benefits <- function(){
+inner_loop1_payroll_benefits <- function(class_names_no_drop_frs){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   for (class in class_names_no_drop_frs) {
@@ -376,7 +376,7 @@ inner_frs_fund1 <- function(){
 }
 
 
-inner_loop2_funding <- function(){
+inner_loop2_funding <- function(class_names_no_frs){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   for (class in class_names_no_frs) {
@@ -532,7 +532,7 @@ inner_frs_fund2 <- function(){
   return(frs_fund)
 }
 
-inner_ava_development <- function(){
+inner_loop3_ava_development <- function(class_names_no_frs){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   for (class in class_names_no_frs) { 
@@ -580,7 +580,7 @@ inner_drop2_asset_reallocation <- function() {
 }
 
 
-inner_loop3_ava <- function(){
+inner_loop4_ava <- function(class_names_no_drop_frs){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   for (class in class_names_no_drop_frs) {
@@ -605,7 +605,7 @@ inner_loop3_ava <- function(){
 }
 
 
-inner_loop4_all_in_cost <- function(){
+inner_loop5_all_in_cost <- function(class_names_no_frs){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   for (class in class_names_no_frs) {
@@ -774,7 +774,7 @@ main_loop <- function(funding_list,
     
     # CAUTION: I modify calling-environment variables in the functions below
     
-    result <- inner_loop1_payroll_benefits() #.. no_drop_frs loop: payroll, benefits, refunds, normal cost, AAL
+    result <- inner_loop1_payroll_benefits(class_names_no_drop_frs) #.. no_drop_frs loop: payroll, benefits, refunds, normal cost, AAL
     # list2env(result, envir = parent.frame())  # works but not as easy to understand
     funding_list <- result$funding_list
     frs_fund <- result$frs_fund
@@ -783,19 +783,19 @@ main_loop <- function(funding_list,
     
     frs_fund <- inner_frs_fund1() # open code: FRS totals: update with DROP -- payroll, benefits, refunds, NC, AL
     
-    result <- inner_loop2_funding() #.. start class_names_no_frs loop -- NC, EEC, ERC-DB, admin expense
+    result <- inner_loop2_funding(class_names_no_frs) #.. start class_names_no_frs loop -- NC, EEC, ERC-DB, admin expense
     funding_list <- result$funding_list
     frs_fund <- result$frs_fund    
     
     frs_fund <- inner_frs_fund2() 
     
-    funding_list <- inner_ava_development() #.. start class_names_no_frs loop
+    funding_list <- inner_loop3_ava_development(class_names_no_frs) #.. start class_names_no_frs loop
     
     funding_list <- inner_drop2_asset_reallocation() #.. open code: DROP assets reallocation
 
-    funding_list <- inner_loop3_ava()  # class_names_no_drop_frs
+    funding_list <- inner_loop4_ava(class_names_no_drop_frs)  # class_names_no_drop_frs
 
-    result <- inner_loop4_all_in_cost() # AVA UAL FR projections all-in cost
+    result <- inner_loop5_all_in_cost(class_names_no_frs) # AVA UAL FR projections all-in cost
     funding_list <- result$funding_list
     frs_fund <- result$frs_fund    
     
