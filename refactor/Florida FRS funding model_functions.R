@@ -555,6 +555,25 @@ inner_ava <- function(){
 } 
 
 
+inner_drop2_asset_reallocation <- function() {
+  # DANGER, TEMPORARY: not passing variables. will modify them and return  
+  
+  #DROP asset reallocation
+  drop_fund <- funding_list$drop
+  
+  drop_fund$net_reallocation_legacy[i] <- drop_fund$unadj_ava_legacy[i] - drop_fund$aal_legacy[i] * frs_fund$ava_legacy[i] / frs_fund$aal_legacy[i]
+  drop_fund$ava_legacy[i] <- drop_fund$unadj_ava_legacy[i] - drop_fund$net_reallocation_legacy[i]
+  
+  drop_fund$net_reallocation_new[i] <- if_else(frs_fund$aal_new[i] == 0, 0, drop_fund$unadj_ava_new[i] - drop_fund$aal_new[i] * frs_fund$ava_new[i] / frs_fund$aal_new[i])
+  drop_fund$ava_new[i] <- drop_fund$unadj_ava_new[i] - drop_fund$net_reallocation_new[i]
+  
+  #Assign the DROP's updated numbers back to the funding_list
+  funding_list$drop <- drop_fund
+  
+  return(funding_list)
+}
+
+
 main_loop <- function(funding_list,
                       liability_list,
                       class_names_no_frs=FIXED_CLASS_NAMES_NO_FRS,
@@ -615,20 +634,11 @@ main_loop <- function(funding_list,
     frs_fund <- inner_frs_fund2() 
     
     funding_list <- inner_ava() #.. start class_names_no_frs loop
+    
+    funding_list <- inner_drop2_asset_reallocation() #.. open code: DROP assets reallocation
 
 
     
-    #DROP asset reallocation
-    drop_fund <- funding_list$drop
-    
-    drop_fund$net_reallocation_legacy[i] <- drop_fund$unadj_ava_legacy[i] - drop_fund$aal_legacy[i] * frs_fund$ava_legacy[i] / frs_fund$aal_legacy[i]
-    drop_fund$ava_legacy[i] <- drop_fund$unadj_ava_legacy[i] - drop_fund$net_reallocation_legacy[i]
-    
-    drop_fund$net_reallocation_new[i] <- if_else(frs_fund$aal_new[i] == 0, 0, drop_fund$unadj_ava_new[i] - drop_fund$aal_new[i] * frs_fund$ava_new[i] / frs_fund$aal_new[i])
-    drop_fund$ava_new[i] <- drop_fund$unadj_ava_new[i] - drop_fund$net_reallocation_new[i]
-    
-    #Assign the DROP's updated numbers back to the funding_list
-    funding_list$drop <- drop_fund
     
     #.. start class_names_no_drop_frs loop ----
     for (class in class_names_no_drop_frs) {
