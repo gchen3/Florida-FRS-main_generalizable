@@ -392,6 +392,7 @@ inner_loop2_funding <- function(i,
                                 frs_fund,
                                 current_hire_amo_payment_list,
                                 future_hire_amo_payment_list,
+                                return_scen_index,
                                 params){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
@@ -864,6 +865,7 @@ main_loop <- function(funding_list,
                                   frs_fund,
                                   current_hire_amo_payment_list,
                                   future_hire_amo_payment_list,
+                                  return_scen_index,
                                   params) # NC, EEC, ERC-DB, admin expense
     funding_list <- result$funding_list
     frs_fund <- result$frs_fund    
