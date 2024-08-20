@@ -532,22 +532,28 @@ inner_frs_fund2 <- function(){
   return(frs_fund)
 }
 
-inner_ava <- function(){
+inner_ava_development <- function(){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   for (class in class_names_no_frs) { 
     #Do the assignment below to declutter the code
     class_fund <- funding_list[[class]]
     
-    #AVA legacy development (step 2: calculate class's unadjusted AVA)
-    class_fund$alloc_inv_earnings_ava_legacy[i] <- frs_fund$alloc_inv_earnings_ava_legacy[i] * class_fund$ava_base_legacy[i]/frs_fund$ava_base_legacy[i]
-    class_fund$unadj_ava_legacy[i] <- class_fund$ava_legacy[i-1] + class_fund$net_cf_legacy[i] + class_fund$alloc_inv_earnings_ava_legacy[i]
+    # AVA legacy development (step 2: calculate class's unadjusted AVA)
+    class_fund$alloc_inv_earnings_ava_legacy[i] <- frs_fund$alloc_inv_earnings_ava_legacy[i] *
+      class_fund$ava_base_legacy[i] / frs_fund$ava_base_legacy[i]
     
-    #AVA new development (step 2: calculate class's unadjusted AVA)
+    class_fund$unadj_ava_legacy[i] <- class_fund$ava_legacy[i-1] + 
+      class_fund$net_cf_legacy[i] + 
+      class_fund$alloc_inv_earnings_ava_legacy[i]
+    
+    # AVA new development (step 2: calculate class's unadjusted AVA)
     class_fund$alloc_inv_earnings_ava_new[i] <- if_else(frs_fund$ava_base_new[i] == 0, 0, frs_fund$alloc_inv_earnings_ava_new[i] * class_fund$ava_base_new[i]/frs_fund$ava_base_new[i])
-    class_fund$unadj_ava_new[i] <- class_fund$ava_new[i-1] + class_fund$net_cf_new[i] + class_fund$alloc_inv_earnings_ava_new[i]
+    class_fund$unadj_ava_new[i] <- class_fund$ava_new[i-1] + 
+      class_fund$net_cf_new[i] + 
+      class_fund$alloc_inv_earnings_ava_new[i]
     
-    #Assign the class outputs back to the funding_list
+    # Assign the class outputs back to the funding_list
     funding_list[[class]] <- class_fund
   } #.. end class in class_names_no_frs loop
   
@@ -569,6 +575,31 @@ inner_drop2_asset_reallocation <- function() {
   
   #Assign the DROP's updated numbers back to the funding_list
   funding_list$drop <- drop_fund
+  
+  return(funding_list)
+}
+
+
+inner_loop3_ava <- function(){
+  # DANGER, TEMPORARY: not passing variables. will modify them and return
+  
+  for (class in class_names_no_drop_frs) {
+    #Do the assignment below to declutter the code
+    class_fund <- funding_list[[class]]
+    
+    #AVA legacy development (step 3: calculate class's adjusted AVA)
+    class_drop_prop_legacy <- class_fund$aal_legacy[i] / (frs_fund$aal_legacy[i] - funding_list$drop$aal_legacy[i])
+    class_fund$net_reallocation_legacy[i] <- class_drop_prop_legacy * funding_list$drop$net_reallocation_legacy[i]
+    class_fund$ava_legacy[i] <- class_fund$unadj_ava_legacy[i] + class_fund$net_reallocation_legacy[i]
+    
+    #AVA new development (step 3: calculate class's adjusted AVA)
+    class_drop_prop_new <- if_else((frs_fund$aal_new[i] - funding_list$drop$aal_new[i]) == 0, 0, class_fund$aal_new[i] / (frs_fund$aal_new[i] - funding_list$drop$aal_new[i]))
+    class_fund$net_reallocation_new[i] <- class_drop_prop_new * funding_list$drop$net_reallocation_new[i]
+    class_fund$ava_new[i] <- class_fund$unadj_ava_new[i] + class_fund$net_reallocation_new[i]
+    
+    #Assign the class outputs back to the funding_list
+    funding_list[[class]] <- class_fund
+  } #.. end class in class_names_no_drop_frs loop
   
   return(funding_list)
 }
@@ -633,31 +664,12 @@ main_loop <- function(funding_list,
     
     frs_fund <- inner_frs_fund2() 
     
-    funding_list <- inner_ava() #.. start class_names_no_frs loop
+    funding_list <- inner_ava_development() #.. start class_names_no_frs loop
     
     funding_list <- inner_drop2_asset_reallocation() #.. open code: DROP assets reallocation
 
+    funding_list <- inner_loop3_ava()  # class_names_no_drop_frs
 
-    
-    
-    #.. start class_names_no_drop_frs loop ----
-    for (class in class_names_no_drop_frs) {
-      #Do the assignment below to declutter the code
-      class_fund <- funding_list[[class]]
-      
-      #AVA legacy development (step 3: calculate class's adjusted AVA)
-      class_drop_prop_legacy <- class_fund$aal_legacy[i] / (frs_fund$aal_legacy[i] - funding_list$drop$aal_legacy[i])
-      class_fund$net_reallocation_legacy[i] <- class_drop_prop_legacy * funding_list$drop$net_reallocation_legacy[i]
-      class_fund$ava_legacy[i] <- class_fund$unadj_ava_legacy[i] + class_fund$net_reallocation_legacy[i]
-      
-      #AVA new development (step 3: calculate class's adjusted AVA)
-      class_drop_prop_new <- if_else((frs_fund$aal_new[i] - funding_list$drop$aal_new[i]) == 0, 0, class_fund$aal_new[i] / (frs_fund$aal_new[i] - funding_list$drop$aal_new[i]))
-      class_fund$net_reallocation_new[i] <- class_drop_prop_new * funding_list$drop$net_reallocation_new[i]
-      class_fund$ava_new[i] <- class_fund$unadj_ava_new[i] + class_fund$net_reallocation_new[i]
-      
-      #Assign the class outputs back to the funding_list
-      funding_list[[class]] <- class_fund
-    } #.. end class in class_names_no_drop_frs loop
     
     
     #.. start class_names_no_frs loop AVA UAL FR projections all-in cost ----
