@@ -179,7 +179,12 @@ get_future_hire_debt_layer_table <- function(class_name,
   return(future_hire_debt_layer_table)
 }
 
-inner_loop1_payroll_benefits <- function(class_names_no_drop_frs){
+
+inner_loop1_payroll_benefits <- function(class_names_no_drop_frs,
+                                         funding_list,
+                                         liability_list,
+                                         frs_fund,
+                                         params){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   for (class in class_names_no_drop_frs) {
@@ -190,7 +195,7 @@ inner_loop1_payroll_benefits <- function(class_names_no_drop_frs){
     class_liab <- liability_list[[class]]
     
     #Payroll projection
-    class_fund$total_payroll[i] <- class_fund$total_payroll[i-1] * (1 + payroll_growth_) # lagged value
+    class_fund$total_payroll[i] <- class_fund$total_payroll[i-1] * (1 + params$payroll_growth_) # lagged value
     
     class_fund$payroll_db_legacy[i] <- class_fund$total_payroll[i] * class_fund$payroll_db_legacy_ratio[i]
     class_fund$payroll_db_new[i] <- class_fund$total_payroll[i] * class_fund$payroll_db_new_ratio[i]
@@ -242,15 +247,15 @@ inner_loop1_payroll_benefits <- function(class_names_no_drop_frs){
     class_fund$total_liability_gain_loss[i] <- class_liab$total_liability_gain_loss_est[i]
     
     # djb: lagged value here
-    class_fund$aal_legacy[i] <- class_fund$aal_legacy[i-1] * (1 + dr_current) +
+    class_fund$aal_legacy[i] <- class_fund$aal_legacy[i-1] * (1 + params$dr_current_) +
       (class_fund$nc_legacy[i] - class_fund$ben_payment_legacy[i] - class_fund$refund_legacy[i]) *
-      (1 + dr_current)^0.5 + 
+      (1 + params$dr_current_)^0.5 + 
       class_fund$liability_gain_loss_legacy[i]
     
     # djb: lagged value here
-    class_fund$aal_new[i] <- class_fund$aal_new[i-1] * (1 + dr_new) + 
+    class_fund$aal_new[i] <- class_fund$aal_new[i-1] * (1 + params$dr_new_) + 
       (class_fund$nc_new[i] - class_fund$ben_payment_new[i] - class_fund$refund_new[i]) *
-      (1 + dr_new)^0.5 + 
+      (1 + params$dr_new_)^0.5 + 
       class_fund$liability_gain_loss_new[i]
     
     class_fund$total_aal[i] <- class_fund$aal_legacy[i] + class_fund$aal_new[i]
@@ -774,7 +779,11 @@ main_loop <- function(funding_list,
     
     # CAUTION: I modify calling-environment variables in the functions below
     
-    result <- inner_loop1_payroll_benefits(class_names_no_drop_frs) #.. no_drop_frs loop: payroll, benefits, refunds, normal cost, AAL
+    result <- inner_loop1_payroll_benefits(class_names_no_drop_frs,
+                                           funding_list,
+                                           liability_list,
+                                           frs_fund,
+                                           params) #.. no_drop_frs loop: payroll, benefits, refunds, normal cost, AAL
     # list2env(result, envir = parent.frame())  # works but not as easy to understand
     funding_list <- result$funding_list
     frs_fund <- result$frs_fund
