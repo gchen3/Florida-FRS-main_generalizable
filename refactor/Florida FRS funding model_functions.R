@@ -673,6 +673,62 @@ inner_loop4_all_in_cost <- function(){
 }
 
 
+inner_loop5_amortization <- function(){
+  # DANGER, TEMPORARY: not passing variables. will modify them and return
+    
+  ####Amortization calculations
+  for (class in class_names_no_frs) {
+    #Do the assignment below to declutter the code
+    class_fund <- funding_list[[class]] # djb: here, class_fund is not modified
+    
+    current_hire_debt_layer_table <- current_hire_debt_layer_list[[class]]
+    future_hire_debt_layer_table <- future_hire_debt_layer_list[[class]]
+    
+    current_hire_amo_period_table <- current_hire_amo_period_list[[class]]
+    future_hire_amo_period_table <- future_hire_amo_period_list[[class]]
+    
+    current_hire_amo_pay_table <- current_hire_amo_payment_list[[class]]
+    future_hire_amo_pay_table <- future_hire_amo_payment_list[[class]]
+    
+    #Amortization for legacy hires
+    current_hire_debt_layer_table[i, 2:ncol(current_hire_debt_layer_table)] <- current_hire_debt_layer_table[i-1, 1:(ncol(current_hire_debt_layer_table)-1)] * (1 + dr_current) - current_hire_amo_pay_table[i-1, 1:ncol(current_hire_amo_pay_table)] * (1 + dr_current)^0.5
+    current_hire_debt_layer_table[i, 1] <- class_fund$ual_ava_legacy[i] - sum(current_hire_debt_layer_table[i, 2:ncol(current_hire_debt_layer_table)])
+    
+    current_hire_amo_pay_table[i, 1:ncol(current_hire_amo_pay_table)] <- get_pmt(r = dr_current,
+                                                                                 g = amo_pay_growth,
+                                                                                 nper = current_hire_amo_period_table[i, 1:ncol(current_hire_amo_period_table)],
+                                                                                 pv = current_hire_debt_layer_table[i, 1:(ncol(current_hire_debt_layer_table)-1)],
+                                                                                 t = 0.5)
+    
+    #Amortization for future hires
+    future_hire_debt_layer_table[i, 2:ncol(future_hire_debt_layer_table)] <- future_hire_debt_layer_table[i-1, 1:(ncol(future_hire_debt_layer_table)-1)] * (1 + dr_new) - future_hire_amo_pay_table[i-1, 1:ncol(future_hire_amo_pay_table)] * (1 + dr_new)^0.5
+    future_hire_debt_layer_table[i, 1] <- class_fund$ual_ava_new[i] - sum(future_hire_debt_layer_table[i, 2:ncol(future_hire_debt_layer_table)])
+    
+    future_hire_amo_pay_table[i, 1:ncol(future_hire_amo_pay_table)] <- get_pmt(r = dr_new,
+                                                                               g = amo_pay_growth,
+                                                                               nper = future_hire_amo_period_table[i, 1:ncol(future_hire_amo_period_table)],
+                                                                               pv = future_hire_debt_layer_table[i, 1:(ncol(future_hire_debt_layer_table)-1)],
+                                                                               t = 0.5)
+    
+    #Assign the amortization outputs back to respective tables
+    current_hire_debt_layer_list[[class]] <- current_hire_debt_layer_table
+    future_hire_debt_layer_list[[class]] <- future_hire_debt_layer_table
+    
+    current_hire_amo_payment_list[[class]] <- current_hire_amo_pay_table
+    future_hire_amo_payment_list[[class]] <- future_hire_amo_pay_table
+  } #.. end class in class_names_no_frs loop
+  
+  
+  return(list(
+    current_hire_debt_layer_list = current_hire_debt_layer_list,
+    future_hire_debt_layer_list = future_hire_debt_layer_list,
+    current_hire_amo_payment_list = current_hire_amo_payment_list,
+    future_hire_amo_payment_list = future_hire_amo_payment_list
+  ))
+}
+
+
+
 main_loop <- function(funding_list,
                       liability_list,
                       class_names_no_frs=FIXED_CLASS_NAMES_NO_FRS,
@@ -738,59 +794,15 @@ main_loop <- function(funding_list,
 
     funding_list <- inner_loop3_ava()  # class_names_no_drop_frs
 
-    result <- inner_loop4_all_in_cost()
+    result <- inner_loop4_all_in_cost() # AVA UAL FR projections all-in cost
     funding_list <- result$funding_list
     frs_fund <- result$frs_fund    
     
-
-    
-    
-    #.. start class_names_no_frs loop AVA UAL FR projections all-in cost ----
-
-    
-    
-    #.. start class_names_no_frs amortization loop ----
-    ####Amortization calculations
-    for (class in class_names_no_frs) {
-      #Do the assignment below to declutter the code
-      class_fund <- funding_list[[class]]
-      
-      current_hire_debt_layer_table <- current_hire_debt_layer_list[[class]]
-      future_hire_debt_layer_table <- future_hire_debt_layer_list[[class]]
-      
-      current_hire_amo_period_table <- current_hire_amo_period_list[[class]]
-      future_hire_amo_period_table <- future_hire_amo_period_list[[class]]
-      
-      current_hire_amo_pay_table <- current_hire_amo_payment_list[[class]]
-      future_hire_amo_pay_table <- future_hire_amo_payment_list[[class]]
-      
-      #Amortization for legacy hires
-      current_hire_debt_layer_table[i, 2:ncol(current_hire_debt_layer_table)] <- current_hire_debt_layer_table[i-1, 1:(ncol(current_hire_debt_layer_table)-1)] * (1 + dr_current) - current_hire_amo_pay_table[i-1, 1:ncol(current_hire_amo_pay_table)] * (1 + dr_current)^0.5
-      current_hire_debt_layer_table[i, 1] <- class_fund$ual_ava_legacy[i] - sum(current_hire_debt_layer_table[i, 2:ncol(current_hire_debt_layer_table)])
-      
-      current_hire_amo_pay_table[i, 1:ncol(current_hire_amo_pay_table)] <- get_pmt(r = dr_current,
-                                                                                   g = amo_pay_growth,
-                                                                                   nper = current_hire_amo_period_table[i, 1:ncol(current_hire_amo_period_table)],
-                                                                                   pv = current_hire_debt_layer_table[i, 1:(ncol(current_hire_debt_layer_table)-1)],
-                                                                                   t = 0.5)
-      
-      #Amortization for future hires
-      future_hire_debt_layer_table[i, 2:ncol(future_hire_debt_layer_table)] <- future_hire_debt_layer_table[i-1, 1:(ncol(future_hire_debt_layer_table)-1)] * (1 + dr_new) - future_hire_amo_pay_table[i-1, 1:ncol(future_hire_amo_pay_table)] * (1 + dr_new)^0.5
-      future_hire_debt_layer_table[i, 1] <- class_fund$ual_ava_new[i] - sum(future_hire_debt_layer_table[i, 2:ncol(future_hire_debt_layer_table)])
-      
-      future_hire_amo_pay_table[i, 1:ncol(future_hire_amo_pay_table)] <- get_pmt(r = dr_new,
-                                                                                 g = amo_pay_growth,
-                                                                                 nper = future_hire_amo_period_table[i, 1:ncol(future_hire_amo_period_table)],
-                                                                                 pv = future_hire_debt_layer_table[i, 1:(ncol(future_hire_debt_layer_table)-1)],
-                                                                                 t = 0.5)
-      
-      #Assign the amortization outputs back to respective tables
-      current_hire_debt_layer_list[[class]] <- current_hire_debt_layer_table
-      future_hire_debt_layer_list[[class]] <- future_hire_debt_layer_table
-      
-      current_hire_amo_payment_list[[class]] <- current_hire_amo_pay_table
-      future_hire_amo_payment_list[[class]] <- future_hire_amo_pay_table
-    } #.. end class in class_names_no_frs loop
+    result <- inner_loop5_amortization() #
+    current_hire_debt_layer_list <- result$current_hire_debt_layer_list
+    future_hire_debt_layer_list <- result$future_hire_debt_layer_list
+    current_hire_amo_payment_list <- result$current_hire_amo_payment_list
+    future_hire_amo_payment_list <- result$future_hire_amo_payment_list    
     
     #Assign the FRS's updated numbers back to the funding_list
     funding_list$frs <- frs_fund
