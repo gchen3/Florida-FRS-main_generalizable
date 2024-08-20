@@ -279,6 +279,7 @@ inner_loop1_payroll_benefits <- function(class_names_no_drop_frs,
 
 inner_drop1_funding <- function(funding_list,
                                 i,
+                                frs_fund,
                                 params){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
@@ -849,6 +850,7 @@ main_loop <- function(funding_list,
     
     funding_list <- inner_drop1_funding(funding_list,
                                         i,
+                                        frs_fund
                                         params) #.. open code: DROP payroll, benefits, NC, AL -- "makeshift"
     
     frs_fund <- inner_frs_fund1(frs_fund,
