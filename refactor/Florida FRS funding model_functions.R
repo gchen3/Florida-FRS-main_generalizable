@@ -974,19 +974,26 @@ get_funding_data <- function(
   # amo_table |> 
   #   mutate(across(-class, \(x) names(x)))
 
-  # djb: this next block seems dangerous - they modify a global variable,
+  # djb: this next block seems DANGEROUS - they modify a GLOBAL variable,
   # return_scenarios, and further, use hard-coded values
   
   #Set return values for "model" and "assumption" scenarios
   #Set 2023 returns and update "model" and "assumption" scenarios
-  return_scenarios[return_scenarios$year == 2023, 2:6] <- return_2023_
-  return_scenarios$model[return_scenarios$year > 2023] <- model_return
-  return_scenarios$assumption[return_scenarios$year > 2023] <- dr_current
-  
+  # return_scenarios[return_scenarios$year == 2023, 2:6] <- return_2023_ # djb sets all scen 2023 to .067
+  # return_scenarios$model[return_scenarios$year > 2023] <- model_return # .067
+  # return_scenarios$assumption[return_scenarios$year > 2023] <- dr_current # .067 (baseline)
+
+  # djb approach
+  return_scenarios <- params$return_scenarios |> 
+    mutate(across(-year, \(x) ifelse(year==2023, params$return_2023_, x)),
+           model=ifelse(year > 2023, model_return, model),
+           assumption=ifelse(year > 2023, dr_current, assumption))    
   
   #Return scenario
   # return_scen <- "recur_recession"
   return_scen_index <- which(colnames(return_scenarios) == return_scen)
+  
+
   
 
   funding_list <- main_loop(funding_list = funding_list,
