@@ -770,10 +770,10 @@ get_funding_data <- function(
 ) {
   
   # returns updated funding_list
-  # browser()
-  ns(params) |> str_subset("nc_cal")
   
-
+  #Level % or level $ for debt amortization 
+  # create LOCAL variable amo_pay_growth - MOVE THIS UP ABOVE? where is amo_pay_growth used??
+  amo_pay_growth <- ifelse(params$amo_method_ == "level $", 0, params$amo_pay_growth_)
   
   # unpack funding_list into a stacked tibble
   funding_list_stacked <- bind_rows(funding_list, .id = "class")
@@ -817,9 +817,8 @@ get_funding_data <- function(
   print("liability_list time")
   print(b - a)
   
+  # unpack liability_list into a stacked tibble
   liability_list_stacked <- bind_rows(liability_list, .id = "class")
-  
-  # intersect(names(funding_list_stacked), names(liability_list_stacked)) good, just class and year
   
   classes_stacked <- funding_list_stacked |> 
     filter(class %in% class_names_no_drop_frs) |>
@@ -862,6 +861,7 @@ get_funding_data <- function(
   # drop_liability_output <- funding_list[["drop"]]
 
   #### Model calibration ----
+  # does the same thing as classes_stacked above does
   a <- proc.time()
   for (class in class_names_no_drop_frs) {
     
@@ -913,13 +913,7 @@ get_funding_data <- function(
                                             amo_col_num,
                                             model_period)
   
-  #Level % or level $ for debt amortization 
-  # djb: is this the best place for this code??
-  # if(amo_method_ == "level $"){
-  #   amo_pay_growth <- 0 # change a local variable, NOT a parameter
-  # }
-  # create LOCAL variable amo_pay_growth - MOVE THIS UP ABOVE? where is amo_pay_growth used??
-  amo_pay_growth <- ifelse(params$amo_method_ == "level $", params$amo_pay_growth_, 0)
+
   
   ####Set up the UAAL layer and amo payment tables for current members and initialize the first UAAL layer and amo payments
   #UAAL layers tables for current members
