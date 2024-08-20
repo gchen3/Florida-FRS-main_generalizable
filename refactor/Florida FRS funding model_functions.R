@@ -640,7 +640,11 @@ inner_loop4_ava <- function(class_names_no_drop_frs,
 }
 
 
-inner_loop5_all_in_cost <- function(class_names_no_frs){
+inner_loop5_all_in_cost <- function(class_names_no_frs,
+                                    funding_list,
+                                    frs_fund,
+                                    params
+                                    ){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
   
   for (class in class_names_no_frs) {
@@ -681,7 +685,7 @@ inner_loop5_all_in_cost <- function(class_names_no_frs){
     frs_fund$total_er_cont_rate[i] <- frs_fund$total_er_cont[i] / frs_fund$total_payroll[i]
     
     #All-in-cost analysis
-    class_fund$total_er_cont_real[i] <- class_fund$total_er_cont[i] / (1 + inflation_)^(class_fund$year[i] - start_year_)
+    class_fund$total_er_cont_real[i] <- class_fund$total_er_cont[i] / (1 + params$inflation_)^(class_fund$year[i] - params$start_year_)
     frs_fund$total_er_cont_real[i] <- frs_fund$total_er_cont_real[i] + class_fund$total_er_cont_real[i]
     
     if (i == 2) {
@@ -692,7 +696,7 @@ inner_loop5_all_in_cost <- function(class_names_no_frs){
     
     frs_fund$cum_er_cont_real[i] <- frs_fund$cum_er_cont_real[i] + class_fund$cum_er_cont_real[i]
     
-    class_fund$total_ual_mva_real[i] <- class_fund$total_ual_mva[i] / (1 + inflation_)^(class_fund$year[i] - start_year_)
+    class_fund$total_ual_mva_real[i] <- class_fund$total_ual_mva[i] / (1 + inflation_)^(class_fund$year[i] - params$start_year_)
     frs_fund$total_ual_mva_real[i] <- frs_fund$total_ual_mva_real[i] + class_fund$total_ual_mva_real[i]
     
     class_fund$all_in_cost_real[i] <- class_fund$cum_er_cont_real[i] + class_fund$total_ual_mva_real[i]
@@ -708,7 +712,7 @@ inner_loop5_all_in_cost <- function(class_names_no_frs){
 }
 
 
-inner_loop5_amortization <- function(){
+inner_loop6_amortization <- function(){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
     
   ####Amortization calculations
@@ -846,11 +850,14 @@ main_loop <- function(funding_list,
                                     funding_list,
                                     frs_fund)  # class_names_no_drop_frs
 
-    result <- inner_loop5_all_in_cost(class_names_no_frs) # AVA UAL FR projections all-in cost
+    result <- inner_loop5_all_in_cost(class_names_no_frs,
+                                      funding_list,
+                                      frs_fund,
+                                      params) # AVA UAL FR projections all-in cost
     funding_list <- result$funding_list
     frs_fund <- result$frs_fund    
     
-    result <- inner_loop5_amortization() #
+    result <- inner_loop6_amortization() #
     current_hire_debt_layer_list <- result$current_hire_debt_layer_list
     future_hire_debt_layer_list <- result$future_hire_debt_layer_list
     current_hire_amo_payment_list <- result$current_hire_amo_payment_list
