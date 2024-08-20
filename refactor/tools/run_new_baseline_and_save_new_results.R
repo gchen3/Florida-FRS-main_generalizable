@@ -21,5 +21,5 @@ system.time(source(here::here("refactor", "run_allobjects_tests.R"))) # run test
 
 
 # NOTE:
-#   regex for finding global variables:   \w+_(?=\s|$|\)|,|\;)  
+#   regex for finding global variables:   \w+_(?=\s|$|\)|,|\;)  -- use in RStudio search box
 
