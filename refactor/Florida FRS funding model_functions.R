@@ -605,6 +605,74 @@ inner_loop3_ava <- function(){
 }
 
 
+inner_loop4_all_in_cost <- function(){
+  # DANGER, TEMPORARY: not passing variables. will modify them and return
+  
+  for (class in class_names_no_frs) {
+    #Do the assignment below to declutter the code
+    class_fund <- funding_list[[class]]
+    
+    class_fund$total_ava[i] <- class_fund$ava_legacy[i] + class_fund$ava_new[i]
+    
+    frs_fund$total_ava[i] <- frs_fund$total_ava[i] + class_fund$total_ava[i]
+    
+    class_fund$ual_ava_legacy[i] <- class_fund$aal_legacy[i] - class_fund$ava_legacy[i]
+    class_fund$ual_ava_new[i] <- class_fund$aal_new[i] - class_fund$ava_new[i]
+    class_fund$total_ual_ava[i] <- class_fund$ual_ava_legacy[i] + class_fund$ual_ava_new[i]
+    
+    frs_fund$ual_ava_legacy[i] <- frs_fund$ual_ava_legacy[i] + class_fund$ual_ava_legacy[i]
+    frs_fund$ual_ava_new[i] <- frs_fund$ual_ava_new[i] + class_fund$ual_ava_new[i]
+    frs_fund$total_ual_ava[i] <- frs_fund$total_ual_ava[i] + class_fund$total_ual_ava[i]
+    
+    class_fund$ual_mva_legacy[i] <- class_fund$aal_legacy[i] - class_fund$mva_legacy[i]
+    class_fund$ual_mva_new[i] <- class_fund$aal_new[i] - class_fund$mva_new[i]
+    class_fund$total_ual_mva[i] <- class_fund$ual_mva_legacy[i] + class_fund$ual_mva_new[i]
+    
+    frs_fund$ual_mva_legacy[i] <- frs_fund$ual_mva_legacy[i] + class_fund$ual_mva_legacy[i]
+    frs_fund$ual_mva_new[i] <- frs_fund$ual_mva_new[i] + class_fund$ual_mva_new[i]
+    frs_fund$total_ual_mva[i] <- frs_fund$total_ual_mva[i] + class_fund$total_ual_mva[i]
+    
+    class_fund$fr_mva[i] <- class_fund$total_mva[i] / class_fund$total_aal[i]
+    class_fund$fr_ava[i] <- class_fund$total_ava[i] / class_fund$total_aal[i]
+    
+    frs_fund$fr_mva[i] <- frs_fund$total_mva[i] / frs_fund$total_aal[i]
+    frs_fund$fr_ava[i] <- frs_fund$total_ava[i] / frs_fund$total_aal[i]
+    
+    #Contribution analysis
+    class_fund$total_er_cont[i] <- class_fund$total_er_db_cont[i] + class_fund$total_er_dc_cont[i] + class_fund$total_solv_cont[i]
+    frs_fund$total_er_cont[i] <- frs_fund$total_er_cont[i] + class_fund$total_er_cont[i]
+    
+    class_fund$total_er_cont_rate[i] <- class_fund$total_er_cont[i] / class_fund$total_payroll[i]
+    frs_fund$total_er_cont_rate[i] <- frs_fund$total_er_cont[i] / frs_fund$total_payroll[i]
+    
+    #All-in-cost analysis
+    class_fund$total_er_cont_real[i] <- class_fund$total_er_cont[i] / (1 + inflation_)^(class_fund$year[i] - start_year_)
+    frs_fund$total_er_cont_real[i] <- frs_fund$total_er_cont_real[i] + class_fund$total_er_cont_real[i]
+    
+    if (i == 2) {
+      class_fund$cum_er_cont_real[i] <- class_fund$total_er_cont_real[i]
+    } else {
+      class_fund$cum_er_cont_real[i] <- class_fund$cum_er_cont_real[i - 1] + class_fund$total_er_cont_real[i]  
+    } # end if else
+    
+    frs_fund$cum_er_cont_real[i] <- frs_fund$cum_er_cont_real[i] + class_fund$cum_er_cont_real[i]
+    
+    class_fund$total_ual_mva_real[i] <- class_fund$total_ual_mva[i] / (1 + inflation_)^(class_fund$year[i] - start_year_)
+    frs_fund$total_ual_mva_real[i] <- frs_fund$total_ual_mva_real[i] + class_fund$total_ual_mva_real[i]
+    
+    class_fund$all_in_cost_real[i] <- class_fund$cum_er_cont_real[i] + class_fund$total_ual_mva_real[i]
+    frs_fund$all_in_cost_real[i] <- frs_fund$all_in_cost_real[i] + class_fund$all_in_cost_real[i]
+    
+    
+    #Assign the class outputs back to the funding_list
+    funding_list[[class]] <- class_fund
+  } #.. end class in class_names_no_frs loop
+  
+  return(list(funding_list = funding_list,
+              frs_fund = frs_fund))
+}
+
+
 main_loop <- function(funding_list,
                       liability_list,
                       class_names_no_frs=FIXED_CLASS_NAMES_NO_FRS,
@@ -670,68 +738,15 @@ main_loop <- function(funding_list,
 
     funding_list <- inner_loop3_ava()  # class_names_no_drop_frs
 
+    result <- inner_loop4_all_in_cost()
+    funding_list <- result$funding_list
+    frs_fund <- result$frs_fund    
+    
+
     
     
     #.. start class_names_no_frs loop AVA UAL FR projections all-in cost ----
-    for (class in class_names_no_frs) {
-      #Do the assignment below to declutter the code
-      class_fund <- funding_list[[class]]
-      
-      class_fund$total_ava[i] <- class_fund$ava_legacy[i] + class_fund$ava_new[i]
-      
-      frs_fund$total_ava[i] <- frs_fund$total_ava[i] + class_fund$total_ava[i]
-      
-      class_fund$ual_ava_legacy[i] <- class_fund$aal_legacy[i] - class_fund$ava_legacy[i]
-      class_fund$ual_ava_new[i] <- class_fund$aal_new[i] - class_fund$ava_new[i]
-      class_fund$total_ual_ava[i] <- class_fund$ual_ava_legacy[i] + class_fund$ual_ava_new[i]
-      
-      frs_fund$ual_ava_legacy[i] <- frs_fund$ual_ava_legacy[i] + class_fund$ual_ava_legacy[i]
-      frs_fund$ual_ava_new[i] <- frs_fund$ual_ava_new[i] + class_fund$ual_ava_new[i]
-      frs_fund$total_ual_ava[i] <- frs_fund$total_ual_ava[i] + class_fund$total_ual_ava[i]
-      
-      class_fund$ual_mva_legacy[i] <- class_fund$aal_legacy[i] - class_fund$mva_legacy[i]
-      class_fund$ual_mva_new[i] <- class_fund$aal_new[i] - class_fund$mva_new[i]
-      class_fund$total_ual_mva[i] <- class_fund$ual_mva_legacy[i] + class_fund$ual_mva_new[i]
-      
-      frs_fund$ual_mva_legacy[i] <- frs_fund$ual_mva_legacy[i] + class_fund$ual_mva_legacy[i]
-      frs_fund$ual_mva_new[i] <- frs_fund$ual_mva_new[i] + class_fund$ual_mva_new[i]
-      frs_fund$total_ual_mva[i] <- frs_fund$total_ual_mva[i] + class_fund$total_ual_mva[i]
-      
-      class_fund$fr_mva[i] <- class_fund$total_mva[i] / class_fund$total_aal[i]
-      class_fund$fr_ava[i] <- class_fund$total_ava[i] / class_fund$total_aal[i]
-      
-      frs_fund$fr_mva[i] <- frs_fund$total_mva[i] / frs_fund$total_aal[i]
-      frs_fund$fr_ava[i] <- frs_fund$total_ava[i] / frs_fund$total_aal[i]
-      
-      #Contribution analysis
-      class_fund$total_er_cont[i] <- class_fund$total_er_db_cont[i] + class_fund$total_er_dc_cont[i] + class_fund$total_solv_cont[i]
-      frs_fund$total_er_cont[i] <- frs_fund$total_er_cont[i] + class_fund$total_er_cont[i]
-      
-      class_fund$total_er_cont_rate[i] <- class_fund$total_er_cont[i] / class_fund$total_payroll[i]
-      frs_fund$total_er_cont_rate[i] <- frs_fund$total_er_cont[i] / frs_fund$total_payroll[i]
-      
-      #All-in-cost analysis
-      class_fund$total_er_cont_real[i] <- class_fund$total_er_cont[i] / (1 + inflation_)^(class_fund$year[i] - start_year_)
-      frs_fund$total_er_cont_real[i] <- frs_fund$total_er_cont_real[i] + class_fund$total_er_cont_real[i]
-      
-      if (i == 2) {
-        class_fund$cum_er_cont_real[i] <- class_fund$total_er_cont_real[i]
-      } else {
-        class_fund$cum_er_cont_real[i] <- class_fund$cum_er_cont_real[i - 1] + class_fund$total_er_cont_real[i]  
-      } # end if else
-      
-      frs_fund$cum_er_cont_real[i] <- frs_fund$cum_er_cont_real[i] + class_fund$cum_er_cont_real[i]
-      
-      class_fund$total_ual_mva_real[i] <- class_fund$total_ual_mva[i] / (1 + inflation_)^(class_fund$year[i] - start_year_)
-      frs_fund$total_ual_mva_real[i] <- frs_fund$total_ual_mva_real[i] + class_fund$total_ual_mva_real[i]
-      
-      class_fund$all_in_cost_real[i] <- class_fund$cum_er_cont_real[i] + class_fund$total_ual_mva_real[i]
-      frs_fund$all_in_cost_real[i] <- frs_fund$all_in_cost_real[i] + class_fund$all_in_cost_real[i]
-      
-      
-      #Assign the class outputs back to the funding_list
-      funding_list[[class]] <- class_fund
-    } #.. end class in class_names_no_frs loop
+
     
     
     #.. start class_names_no_frs amortization loop ----
