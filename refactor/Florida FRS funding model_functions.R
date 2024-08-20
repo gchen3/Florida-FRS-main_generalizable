@@ -712,7 +712,16 @@ inner_loop5_all_in_cost <- function(class_names_no_frs,
 }
 
 
-inner_loop6_amortization <- function(){
+inner_loop6_amortization <- function(class_names_no_frs,
+                                     funding_list,
+                                     current_hire_debt_layer_list,
+                                     future_hire_debt_layer_list,
+                                     current_hire_amo_period_list,
+                                     future_hire_amo_period_list,
+                                     current_hire_amo_payment_list,
+                                     future_hire_amo_payment_list,
+                                     amo_pay_growth,
+                                     params){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
     
   ####Amortization calculations
@@ -730,20 +739,26 @@ inner_loop6_amortization <- function(){
     future_hire_amo_pay_table <- future_hire_amo_payment_list[[class]]
     
     #Amortization for legacy hires
-    current_hire_debt_layer_table[i, 2:ncol(current_hire_debt_layer_table)] <- current_hire_debt_layer_table[i-1, 1:(ncol(current_hire_debt_layer_table)-1)] * (1 + dr_current) - current_hire_amo_pay_table[i-1, 1:ncol(current_hire_amo_pay_table)] * (1 + dr_current)^0.5
+    current_hire_debt_layer_table[i, 2:ncol(current_hire_debt_layer_table)] <- 
+      current_hire_debt_layer_table[i-1, 1:(ncol(current_hire_debt_layer_table)-1)] * (1 + params$dr_current_) - 
+      current_hire_amo_pay_table[i-1, 1:ncol(current_hire_amo_pay_table)] * (1 + params$dr_current_)^0.5
+    
     current_hire_debt_layer_table[i, 1] <- class_fund$ual_ava_legacy[i] - sum(current_hire_debt_layer_table[i, 2:ncol(current_hire_debt_layer_table)])
     
-    current_hire_amo_pay_table[i, 1:ncol(current_hire_amo_pay_table)] <- get_pmt(r = dr_current,
+    current_hire_amo_pay_table[i, 1:ncol(current_hire_amo_pay_table)] <- get_pmt(r = params$dr_current_,
                                                                                  g = amo_pay_growth,
                                                                                  nper = current_hire_amo_period_table[i, 1:ncol(current_hire_amo_period_table)],
                                                                                  pv = current_hire_debt_layer_table[i, 1:(ncol(current_hire_debt_layer_table)-1)],
                                                                                  t = 0.5)
     
     #Amortization for future hires
-    future_hire_debt_layer_table[i, 2:ncol(future_hire_debt_layer_table)] <- future_hire_debt_layer_table[i-1, 1:(ncol(future_hire_debt_layer_table)-1)] * (1 + dr_new) - future_hire_amo_pay_table[i-1, 1:ncol(future_hire_amo_pay_table)] * (1 + dr_new)^0.5
+    future_hire_debt_layer_table[i, 2:ncol(future_hire_debt_layer_table)] <- 
+      future_hire_debt_layer_table[i-1, 1:(ncol(future_hire_debt_layer_table)-1)] * (1 + params$dr_new_) -
+      future_hire_amo_pay_table[i-1, 1:ncol(future_hire_amo_pay_table)] * (1 + params$dr_new_)^0.5
+    
     future_hire_debt_layer_table[i, 1] <- class_fund$ual_ava_new[i] - sum(future_hire_debt_layer_table[i, 2:ncol(future_hire_debt_layer_table)])
     
-    future_hire_amo_pay_table[i, 1:ncol(future_hire_amo_pay_table)] <- get_pmt(r = dr_new,
+    future_hire_amo_pay_table[i, 1:ncol(future_hire_amo_pay_table)] <- get_pmt(r = params$dr_new_,
                                                                                g = amo_pay_growth,
                                                                                nper = future_hire_amo_period_table[i, 1:ncol(future_hire_amo_period_table)],
                                                                                pv = future_hire_debt_layer_table[i, 1:(ncol(future_hire_debt_layer_table)-1)],
@@ -755,8 +770,7 @@ inner_loop6_amortization <- function(){
     
     current_hire_amo_payment_list[[class]] <- current_hire_amo_pay_table
     future_hire_amo_payment_list[[class]] <- future_hire_amo_pay_table
-  } #.. end class in class_names_no_frs loop
-  
+  }
   
   return(list(
     current_hire_debt_layer_list = current_hire_debt_layer_list,
@@ -857,7 +871,18 @@ main_loop <- function(funding_list,
     funding_list <- result$funding_list
     frs_fund <- result$frs_fund    
     
-    result <- inner_loop6_amortization() #
+    result <- inner_loop6_amortization(class_names_no_frs,
+                                       funding_list,
+                                       current_hire_debt_layer_list,
+                                       future_hire_debt_layer_list,
+                                       current_hire_amo_period_list,
+                                       future_hire_amo_period_list,
+                                       current_hire_amo_payment_list,
+                                       future_hire_amo_payment_list,
+                                       amo_pay_growth,
+                                       params) #
+    
+    # djb maybe these next 4 lists need to be returned as a second list??
     current_hire_debt_layer_list <- result$current_hire_debt_layer_list
     future_hire_debt_layer_list <- result$future_hire_debt_layer_list
     current_hire_amo_payment_list <- result$current_hire_amo_payment_list
@@ -902,7 +927,7 @@ get_funding_data <- function(
     class_names_no_drop_frs=FIXED_CLASS_NAMES_NO_DROP_FRS,
     funding_lag=funding_lag_,
     model_period=model_period_,
-    
+
     dr_current = dr_current_,
     dr_new = dr_new_,
     cola_tier_1_active_constant = cola_tier_1_active_constant_,
@@ -1051,7 +1076,7 @@ get_funding_data <- function(
   # current_hire_amo_period_list$regular
   
   #Determine the number of columns for the amo period tables
-  amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + funding_lag)  
+  amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + funding_lag_)  
   
   current_hire_amo_period_list <- purrr::set_names(class_names_no_frs) |> 
                                   # returns a list of 8 matrices, 31 x 21 (nyears x amo_col_num)
