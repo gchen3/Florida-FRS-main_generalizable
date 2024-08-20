@@ -77,7 +77,9 @@ get_liability_data <- function(
     benefit_val_table = benefit_data$benefit_val_table,
     benefit_table = benefit_data$benefit_table,
     ann_factor_table = benefit_data$ann_factor_table,
-    ann_factor_retire_table = benefit_data$ann_factor_retire_table
+    ann_factor_retire_table = benefit_data$ann_factor_retire_table,
+    
+    params
     
 ) {
   

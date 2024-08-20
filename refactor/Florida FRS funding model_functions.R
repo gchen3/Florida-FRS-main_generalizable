@@ -1017,6 +1017,8 @@ get_funding_data <- function(
                       non_special_db_new_ratio = non_special_db_new_ratio,
                       special_db_new_ratio = special_db_new_ratio,
                       
+                      params,
+                      
                       # Set mc.cores to 1 for compatibility with Windows
                       mc.cores = 1
                     )
