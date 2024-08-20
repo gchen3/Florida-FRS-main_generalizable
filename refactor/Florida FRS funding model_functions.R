@@ -755,21 +755,22 @@ main_loop <- function(funding_list,
   #   - loop through the years to calc drop values, relying as needed on regular and on frs-nondrop values
   #   - combine to get frs+drop totals
   
+  # djb: to help figure out how to reorganize this:
+  # djb: when if ever do the class values rely on the frs values?
+  # djb: when does drop rely on frs or on a class value?
+  
+  # djb: steps seem to be:
+  #   - calc non-drop class values
+  #   - calc FRS working totals because we need some FRS values for drop
+  #   - calc drop values - here, e.g., we need FRS NC rate for drop NC rate
+  
+  # where does payroll_db_legacy_ratio come from?  
+  
   # Key strategy: Loop through each year, then each class. The class loop should
   # exclude FRS, and may exclude DROP depending on the calculations
   
   for (i in 2:nrow(funding_list[[1]])) { # loop 2nd year to last year
     frs_fund <- funding_list$frs
-    # djb: to help figure out how to reorganize this:
-    # djb: when if ever do the class values rely on the frs values?
-    # djb: when does drop rely on frs or on a class value?
-    
-    # djb: steps seem to be:
-    #   - calc non-drop class values
-    #   - calc FRS working totals because we need some FRS values for drop
-    #   - calc drop values - here, e.g., we need FRS NC rate for drop NC rate
-    
-    # where does payroll_db_legacy_ratio come from?
     
     # CAUTION: I modify calling-environment variables in the functions below
     
@@ -870,7 +871,7 @@ get_funding_data <- function(
   # returns updated funding_list
   
   #Level % or level $ for debt amortization 
-  # create LOCAL variable amo_pay_growth - MOVE THIS UP ABOVE? where is amo_pay_growth used??
+  # create LOCAL variable amo_pay_growth - I moved this up from below
   amo_pay_growth <- ifelse(params$amo_method_ == "level $", 0, params$amo_pay_growth_)
   
   # unpack funding_list into a stacked tibble
@@ -1077,11 +1078,6 @@ get_funding_data <- function(
   
   #Set return values for "model" and "assumption" scenarios
   #Set 2023 returns and update "model" and "assumption" scenarios
-  # return_scenarios[return_scenarios$year == 2023, 2:6] <- return_2023_ # djb sets all scen 2023 to .067
-  # return_scenarios$model[return_scenarios$year > 2023] <- model_return # .067
-  # return_scenarios$assumption[return_scenarios$year > 2023] <- dr_current # .067 (baseline)
-
-  # djb approach
   return_scenarios <- params$return_scenarios |> 
     mutate(across(-year, \(x) ifelse(year==2023, params$return_2023_, x)),
            model=ifelse(year > 2023, model_return, model),
@@ -1111,217 +1107,5 @@ get_funding_data <- function(
   
   return(output)
   
-} #.. end get_funding_data function---- 
-# write.csv(output, "output.csv")  
-#   return(output)
-#   
-# }
+}
 
-
-# get_funding_data_old <- function(
-#     funding_list,
-#     current_amort_layers_table,
-#     # globals
-#     class_names_no_frs=FIXED_CLASS_NAMES_NO_FRS,
-#     class_names_no_drop_frs=FIXED_CLASS_NAMES_NO_DROP_FRS,
-#     funding_lag=funding_lag_,
-#     model_period=model_period_,
-#     
-#     dr_current = dr_current_,
-#     dr_new = dr_new_,
-#     cola_tier_1_active_constant = cola_tier_1_active_constant_,
-#     cola_tier_1_active = cola_tier_1_active_,
-#     cola_tier_2_active = cola_tier_2_active_,
-#     cola_tier_3_active = cola_tier_3_active_,
-#     cola_current_retire = cola_current_retire_,
-#     cola_current_retire_one = cola_current_retire_one_,
-#     one_time_cola = one_time_cola_,
-#     retire_refund_ratio = retire_refund_ratio_,
-#     cal_factor = cal_factor_,
-#     #inputs below are for the liability model
-#     non_special_db_new_ratio = non_special_db_new_ratio_,
-#     special_db_new_ratio = special_db_new_ratio_,
-#     #inputs below are for the funding model
-#     return_scen = return_scen_,
-#     model_return = model_return_,
-#     amo_period_new = amo_period_new_,
-#     amo_pay_growth = amo_pay_growth_,
-#     amo_method = amo_method_
-# ) {
-#   
-#   # returns updated funding_list
-#   # browser()
-#   
-#   #### Produce liability outputs for each class (except DROP and FRS system) ----
-#   
-#   # Use mclapply to run the liability model in parallel. May not work properly
-#   # with Windows OS or API. Switch back to lapply if needed. When working,
-#   # mclapply will be about twice as fast as lapply.
-#   a <- proc.time()
-#   liability_list <- mclapply(
-#     X = class_names_no_drop_frs, 
-#     FUN = get_liability_data,
-#     
-#     # Discount rates
-#     dr_current = dr_current,
-#     dr_new = dr_new,
-#     
-#     # COLA assumptions
-#     cola_tier_1_active_constant = cola_tier_1_active_constant,
-#     cola_tier_1_active = cola_tier_1_active,
-#     cola_tier_2_active = cola_tier_2_active,
-#     cola_tier_3_active = cola_tier_3_active,
-#     cola_current_retire = cola_current_retire,
-#     cola_current_retire_one = cola_current_retire_one,
-#     one_time_cola = one_time_cola,
-#     
-#     # Other factors
-#     retire_refund_ratio = retire_refund_ratio,
-#     cal_factor = cal_factor,
-#     
-#     # Liability model inputs
-#     non_special_db_new_ratio = non_special_db_new_ratio,
-#     special_db_new_ratio = special_db_new_ratio,
-#     
-#     # Set mc.cores to 1 for compatibility with Windows
-#     mc.cores = 1
-#   )
-#   names(liability_list) <- class_names_no_drop_frs
-#   b <- proc.time()
-#   print("liability_list time")
-#   print(b - a)
-#   
-#   # djb: examine the drop comments immediately below
-#   #Create a "liability" data for the DROP plan
-#   #This is a makeshift solution for now. Proper modeling of the DROP plan will be done in the future.
-#   # drop_liability_output <- funding_list[["drop"]]
-#   
-#   #### Model calibration ----
-#   a <- proc.time()
-#   for (class in class_names_no_drop_frs) {
-#     
-#     fund_data <- funding_list[[class]]
-#     liab_data <- liability_list[[class]]
-#     
-#     #payroll calibration
-#     fund_data$payroll_db_legacy_ratio <- lag(liab_data$payroll_db_legacy_est / liab_data$total_payroll_est) #use lag to align with the funding mechanism
-#     fund_data$payroll_db_new_ratio <- lag(liab_data$payroll_db_new_est / liab_data$total_payroll_est)
-#     fund_data$payroll_dc_legacy_ratio <- lag(liab_data$payroll_dc_legacy_est / liab_data$total_payroll_est)
-#     fund_data$payroll_dc_new_ratio <- lag(liab_data$payroll_dc_new_est / liab_data$total_payroll_est)
-#     
-#     #normal cost calibration/projection
-#     nc_cal <- get(str_replace(paste0(class, "_nc_cal_"), " ", "_")) #djb - wow, this gets a global variable
-#     fund_data$nc_rate_db_legacy <- lag(liab_data$nc_rate_db_legacy_est * nc_cal)
-#     fund_data$nc_rate_db_new <- lag(liab_data$nc_rate_db_new_est * nc_cal)
-#     
-#     #accrued liability calibration
-#     fund_data$aal_legacy[1] <- liab_data$aal_legacy_est[1]
-#     fund_data$total_aal[1] <- liab_data$total_aal_est[1]
-#     fund_data$ual_ava_legacy[1] <- fund_data$aal_legacy[1] - fund_data$ava_legacy[1]
-#     fund_data$total_ual_ava[1] <- fund_data$total_aal[1] - fund_data$total_ava[1]
-#     
-#     funding_list[[class]] <- fund_data
-#   } # end model calibration loop
-#   
-#   ####Set up amo period sequences
-#   #Determine the number of columns for the amo period tables
-#   amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + funding_lag)
-#   
-#   #Create two lists, one for the current hire amo periods, and one for new hire amo periods
-#   #Current hire amo periods list construction:
-#   
-#   current_hire_amo_period_list <- purrr::set_names(class_names_no_frs) |> 
-#     purrr::map(
-#       get_current_hire_amo_period_table,
-#       current_amort_layers_table,
-#       class_amo_layers_table,
-#       model_period,
-#       amo_period_new,
-#       funding_lag,
-#       amo_col_num)  
-#   
-#   future_hire_amo_period_list <- purrr::set_names(class_names_no_frs) |> 
-#     purrr::map(
-#       get_future_hire_amo_period_table,
-#       amo_period_new,
-#       funding_lag,
-#       amo_col_num,
-#       model_period)
-#   
-#   #Level % or level $ for debt amortization 
-#   # djb: is this the best place for this code??
-#   if(amo_method == "level $"){
-#     amo_pay_growth <- 0
-#   }
-#   
-#   ####Set up the UAAL layer and amo payment tables for current members and initialize the first UAAL layer and amo payments
-#   #UAAL layers tables for current members
-#   current_hire_debt_layer_list <- purrr::set_names(class_names_no_frs) |> 
-#     purrr::map(
-#       get_current_hire_debt_layer_table,
-#       current_amort_layers_table,
-#       model_period,
-#       amo_col_num)
-#   
-#   current_hire_amo_payment_list <- purrr::set_names(class_names_no_frs) |> 
-#     purrr::map(
-#       get_current_hire_amo_payment_table,
-#       current_hire_amo_payment_table,
-#       current_hire_debt_layer_list,
-#       current_hire_amo_period_list,
-#       model_period,
-#       amo_col_num,
-#       funding_lag,
-#       amo_pay_growth)
-#   
-#   ####Set up the UAL layer and amo payment tables for new members
-#   future_hire_debt_layer_list <- purrr::set_names(class_names_no_frs) |> 
-#     purrr::map( 
-#       get_future_hire_debt_layer_table,
-#       model_period,
-#       amo_col_num)
-#   
-#   #Amo payment tables for new members
-#   future_hire_amo_payment_list <- purrr::set_names(class_names_no_frs) |> 
-#     purrr::map(
-#       get_future_hire_amo_payment_table,
-#       model_period,
-#       amo_col_num)
-#   
-#   
-#   #Set return values for "model" and "assumption" scenarios
-#   #Set 2023 returns and update "model" and "assumption" scenarios
-#   return_scenarios[return_scenarios$year == 2023, 2:6] <- return_2023_
-#   return_scenarios$model[return_scenarios$year > 2023] <- model_return
-#   return_scenarios$assumption[return_scenarios$year > 2023] <- dr_current
-#   
-#   
-#   #Return scenario
-#   # return_scen <- "recur_recession"
-#   return_scen_index <- which(colnames(return_scenarios) == return_scen)
-#   
-#   
-#   funding_list <- main_loop(funding_list = funding_list,
-#                             liability_list = liability_list,
-#                             payroll_growth_ = payroll_growth_,
-#                             amo_pay_growth = amo_pay_growth,
-#                             dr_current = dr_current,
-#                             dr_new = dr_new,
-#                             return_scen_index = return_scen_index,
-#                             current_hire_amo_payment_list = current_hire_amo_payment_list,
-#                             future_hire_amo_payment_list = future_hire_amo_payment_list,
-#                             current_hire_amo_period_list = current_hire_amo_period_list,
-#                             future_hire_amo_period_list = future_hire_amo_period_list,
-#                             current_hire_debt_layer_list = current_hire_debt_layer_list,
-#                             future_hire_debt_layer_list = future_hire_debt_layer_list)
-#   
-#   output <- funding_list
-#   # browser()
-#   
-#   return(output)
-#   
-# } #.. end get_funding_data function---- 
-# # write.csv(output, "output.csv")  
-# #   return(output)
-# #   
-# # }
