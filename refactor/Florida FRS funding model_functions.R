@@ -792,7 +792,8 @@ main_loop <- function(funding_list,
     funding_list <- inner_drop1_funding(funding_list,
                                         params) #.. open code: DROP payroll, benefits, NC, AL -- "makeshift"
     
-    frs_fund <- inner_frs_fund1() # open code: FRS totals: update with DROP -- payroll, benefits, refunds, NC, AL
+    frs_fund <- inner_frs_fund1(frs_fund,
+                                funding_list$drop_fund) # open code: FRS totals: update with DROP -- payroll, benefits, refunds, NC, AL
     
     result <- inner_loop2_funding(class_names_no_frs) #.. start class_names_no_frs loop -- NC, EEC, ERC-DB, admin expense
     funding_list <- result$funding_list
