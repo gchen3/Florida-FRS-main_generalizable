@@ -9,7 +9,7 @@ system.time(source(here::here("refactor", "Florida FRS master.R"))) # load and r
 # generate baseline results
 system.time(baseline_funding <- get_funding_data(funding_list, current_amort_layers_table, params=params))
 
-system.time(baseline_liability <- get_liability_data(params = params)) # about 60 secs tot, ~ 10 seconds for a single class
+system.time(baseline_liability <- get_liability_data(class="regular", params = params)) # about 60 secs tot, ~ 10 seconds for a single class
 
 system.time(save.image(here::here("refactor", "new_results", "new_workspace.RData"))) # save the entire workspace
 

@@ -21,82 +21,14 @@
 # djb: CAUTIONS ----
 # Still assumed to be in the global environment:
 
-#   wf_data$wf_active_df
-#   wf_data$wf_term_df
-#   wf_data$wf_refund_df
-#   wf_data$wf_retire_df
-
-#   benefit_data$benefit_val_table
-#   benefit_data$benefit_table
-#   benefit_data$ann_factor_table
-#   benefit_data$ann_factor_retire_table
-
 #   salary_growth_table
 
 # end CAUTIONS ----
 
 get_liability_data <- function(
-    class_name = class_name_,
-    dr_current = dr_current_,
-    dr_new = dr_new_,
-    
-    # djb globals added
-    start_year = start_year_,
-    new_year = new_year_,
-    model_period = model_period_,
-    amo_period_term = amo_period_term_,
-    payroll_growth = payroll_growth_,
-    
-    cola_tier_1_active_constant = cola_tier_1_active_constant_,
-    cola_tier_1_active = cola_tier_1_active_,
-    cola_tier_2_active = cola_tier_2_active_,
-    cola_tier_3_active = cola_tier_3_active_,
-    cola_current_retire = cola_current_retire_,
-    cola_current_retire_one = cola_current_retire_one_,
-    one_time_cola = one_time_cola_,
-    retire_refund_ratio = retire_refund_ratio_,
-    cal_factor = cal_factor_,
-    #inputs below are for the liability model
-    non_special_db_new_ratio = non_special_db_new_ratio_,
-    special_db_new_ratio = special_db_new_ratio_,
-    
-    # global variables added by djb
-    special_db_legacy_before_2018_ratio = special_db_legacy_before_2018_ratio_,
-    special_db_legacy_after_2018_ratio = special_db_legacy_after_2018_ratio_,
-    non_special_db_legacy_before_2018_ratio = non_special_db_legacy_before_2018_ratio_,
-    non_special_db_legacy_after_2018_ratio = non_special_db_legacy_after_2018_ratio_,
-    db_legacy_before_2018_ratio = db_legacy_before_2018_ratio_,
-    db_legacy_after_2018_ratio = db_legacy_after_2018_ratio_,
-    
-    # global data frames added by djb
-    wf_active_df = wf_data$wf_active_df,
-    wf_term_df = wf_data$wf_term_df,
-    wf_refund_df = wf_data$wf_refund_df,
-    wf_retire_df = wf_data$wf_retire_df,
-    
-    benefit_val_table = benefit_data$benefit_val_table,
-    benefit_table = benefit_data$benefit_table,
-    ann_factor_table = benefit_data$ann_factor_table,
-    ann_factor_retire_table = benefit_data$ann_factor_retire_table,
-    
+    class_name, # = class_name_,
     params
     ) {
-  
-  print(paste0("processing get_benefit_data in liability model for: ", class_name))
-  benefit_data <- get_benefit_data(    
-    class_name,
-    dr_current,
-    dr_new,
-    cola_tier_1_active_constant,
-    cola_tier_1_active,
-    cola_tier_2_active,
-    cola_tier_3_active,
-    cola_current_retire,
-    cola_current_retire_one,
-    one_time_cola,
-    retire_refund_ratio,
-    cal_factor,
-    salary_growth_table)
   
   class_name <- str_replace(class_name, " ", "_")
   assign("wf_data", get(paste0(class_name, "_wf_data")))
@@ -104,11 +36,37 @@ get_liability_data <- function(
   assign("retiree_pop_current", get(paste0(class_name, "_retiree_pop_current_")))
   assign("pvfb_term_current", get(paste0(class_name, "_pvfb_term_current_")))
   
+  print(paste0("processing get_benefit_data in liability model for: ", class_name))
+  benefit_data <- get_benefit_data(    
+    class_name,
+    params$dr_current_,
+    params$dr_new_,
+    params$cola_tier_1_active_constant_,
+    params$cola_tier_1_active_,
+    params$cola_tier_2_active_,
+    params$cola_tier_3_active_,
+    params$cola_current_retire_,
+    params$cola_current_retire_one_,
+    params$one_time_cola_,
+    params$retire_refund_ratio_,
+    params$cal_factor_,
+    params$salary_growth_table_)
+  
+  
+  # unpack the wf_data and benefit_data objects
+  # performant, because r is copy on modify
+  wf_active_df <- wf_data$wf_active_df
+  wf_term_df <- wf_data$wf_term_df
+  wf_refund_df <- wf_data$wf_refund_df
+  wf_retire_df <- wf_data$wf_retire_df
+  
+  benefit_val_table <- benefit_data$benefit_val_table
+  benefit_table <- benefit_data$benefit_table
+  ann_factor_table <- benefit_data$ann_factor_table
+  ann_factor_retire_table <- benefit_data$ann_factor_retire_table
+  
   
   #Plan design choice ratios:
-  # DJB CAUTION REASON MODIFIES POSSIBLE GLOBAL VARIABLES HERE!!!! Search for them in other files
-  # db_legacy_before_2018_ratio_ not in other files but used further below in this file
-  # db_legacy_after_2018_ratio_ not in other files but used further below in this file
   if (class_name == "special") {
     db_legacy_before_2018_ratio <- params$special_db_legacy_before_2018_ratio_
     db_legacy_after_2018_ratio <- params$special_db_legacy_after_2018_ratio_
@@ -136,11 +94,11 @@ get_liability_data <- function(
     #allocate members to plan designs based on entry year
     mutate(
       n_active_db_legacy = if_else(entry_year < 2018, n_active * db_legacy_before_2018_ratio,
-                                   if_else(entry_year < new_year, n_active * db_legacy_after_2018_ratio, 0)),
-      n_active_db_new = if_else(entry_year < new_year, 0, n_active * db_new_ratio),
+                                   if_else(entry_year < params$new_year_, n_active * db_legacy_after_2018_ratio, 0)),
+      n_active_db_new = if_else(entry_year < params$new_year_, 0, n_active * db_new_ratio),
       n_active_dc_legacy = if_else(entry_year < 2018, n_active * dc_legacy_before_2018_ratio,
-                                   if_else(entry_year < new_year, n_active * dc_legacy_after_2018_ratio, 0)),
-      n_active_dc_new = if_else(entry_year < new_year, 0, n_active * dc_new_ratio)
+                                   if_else(entry_year < params$new_year_, n_active * dc_legacy_after_2018_ratio, 0)),
+      n_active_dc_new = if_else(entry_year < params$new_year_, 0, n_active * dc_new_ratio)
       ) %>% 
     group_by(year) %>% 
     summarise(
@@ -190,8 +148,8 @@ get_liability_data <- function(
       pvfb_db_term = pvfb_db_at_term_age / cum_mort_dr_current,
       
       n_term_db_legacy = if_else(entry_year < 2018, n_term * db_legacy_before_2018_ratio,
-                                 if_else(entry_year < new_year, n_term * db_legacy_after_2018_ratio, 0)),
-      n_term_db_new = if_else(entry_year < new_year, 0, n_term * db_new_ratio)
+                                 if_else(entry_year < params$new_year_, n_term * db_legacy_after_2018_ratio, 0)),
+      n_term_db_new = if_else(entry_year < params$new_year_, 0, n_term * db_new_ratio)
     ) %>% 
     group_by(year) %>% 
     summarise(aal_term_db_legacy_est = sum(pvfb_db_term * n_term_db_legacy),
@@ -210,8 +168,8 @@ get_liability_data <- function(
     select(entry_age, age, year, term_year, entry_year, n_refund, db_ee_balance) %>% 
     #allocate members to plan designs based on entry year
     mutate(n_refund_db_legacy = if_else(entry_year < 2018, n_refund * db_legacy_before_2018_ratio,
-                                        if_else(entry_year < new_year, n_refund * db_legacy_after_2018_ratio, 0)),
-           n_refund_db_new = if_else(entry_year < new_year, 0, n_refund * db_new_ratio)
+                                        if_else(entry_year < params$new_year_, n_refund * db_legacy_after_2018_ratio, 0)),
+           n_refund_db_new = if_else(entry_year < params$new_year_, 0, n_refund * db_new_ratio)
     ) %>%
     group_by(year) %>% 
     summarise(refund_db_legacy_est = sum(db_ee_balance * n_refund_db_legacy),
@@ -235,8 +193,8 @@ get_liability_data <- function(
       db_benefit_final = base_db_benefit * (1 + cola)^(year - retire_year),
       
       n_retire_db_legacy = if_else(entry_year < 2018, n_retire * db_legacy_before_2018_ratio,
-                                   if_else(entry_year < new_year, n_retire * db_legacy_after_2018_ratio, 0)),
-      n_retire_db_new = if_else(entry_year < new_year, 0, n_retire * db_new_ratio),
+                                   if_else(entry_year < params$new_year_, n_retire * db_legacy_after_2018_ratio, 0)),
+      n_retire_db_new = if_else(entry_year < params$new_year_, 0, n_retire * db_new_ratio),
       #We use "AnnuityFactor_DR - 1" below because the PVFB for retirees excludes the first payment (i.e. the first payment has already been delivered when the PVFB is calculated)
       pvfb_db_retire = db_benefit_final * (ann_factor - 1)
     ) %>% 
@@ -251,7 +209,7 @@ get_liability_data <- function(
 
   
   #Project benefit payments for current retirees
-  retire_current_int <- retiree_distribution %>% 
+  retire_current_int <- params$retiree_distribution %>% 
     select(age, n_retire_ratio:total_ben_ratio) %>% 
     mutate(
       n_retire_current = n_retire_ratio * retiree_pop_current,
@@ -290,7 +248,9 @@ get_liability_data <- function(
   retire_ben_term <- get_pmt(r = params$dr_current_, nper = params$amo_period_term_, pv = pvfb_term_current, g = params$payroll_growth_)
   
   year <- params$start_year_:(params$start_year_ + params$model_period_)
+  
   amo_years_term <- (params$start_year_ + 1):(params$start_year_ + params$amo_period_term_)
+  
   retire_ben_term_est <- double(length = length(year))
   retire_ben_term_est[which(year %in% amo_years_term)] <- recur_grow3(retire_ben_term, params$payroll_growth_, params$amo_period_term_)
   
