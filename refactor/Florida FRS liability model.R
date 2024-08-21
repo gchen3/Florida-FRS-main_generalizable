@@ -26,7 +26,7 @@
 # end CAUTIONS ----
 
 get_liability_data <- function(
-    class_name, # = class_name_,
+    class_name,
     params
     ) {
   
