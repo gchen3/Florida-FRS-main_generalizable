@@ -5,8 +5,8 @@
 # prepare comparisons of new vs. Reason -----------------------------------
 
 # load each result into its own environment
-# oldpath <- here::here("reason_results", "reason_workspace.RData")
-# newpath <- here::here("new_results", "new_workspace.RData")
+# oldpath <- here::here("refactor", "reason_results", "reason_workspace.RData")
+# newpath <- here::here("refactor", "new_results", "new_workspace.RData")
 
 # load(oldpath, oldws <- new.env())
 # load(newpath, newws <- new.env())
