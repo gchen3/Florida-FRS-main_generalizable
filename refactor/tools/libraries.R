@@ -17,4 +17,7 @@ library(lintr)
 
 library(checkmate)
 library(codetools)
+library(digest)
 library(flow)
+library(microbenchmark)
+library(profvis)
