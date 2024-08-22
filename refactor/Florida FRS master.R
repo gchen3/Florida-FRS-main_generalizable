@@ -78,9 +78,9 @@ list2env(as.list(frs_data_env), envir = .GlobalEnv)
 
 
 # create easier-to-see constants
-FIXED_CLASS_NAMES <- init_funding_data$class
-FIXED_CLASS_NAMES_NO_DROP_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("drop", "frs")]
-FIXED_CLASS_NAMES_NO_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("frs")]
+# FIXED_CLASS_NAMES <- init_funding_data$class
+# FIXED_CLASS_NAMES_NO_DROP_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("drop", "frs")]
+# FIXED_CLASS_NAMES_NO_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("frs")]
 
 
 # create derived data -----------------------------------------------
@@ -101,60 +101,9 @@ list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
 
 # create params environment -----------------------------------------------
 
-get_params <- function(frs_data_env, modparm_data_env){
-  
-  frs_names <- ls(envir = frs_data_env) |> sort()
-  frs_underscore <- frs_names[grepl("_$", frs_names)]
-  # setdiff(frs_names, frs_underscore)
-  frs_extras <- c("eco_eso_judges_active_member_adjustment_ratio", "retiree_distribution", "init_funding_data", "return_scenarios")
-  frs_keep <- c(frs_underscore, frs_extras)
-  frs_objects <- mget(frs_keep, envir = frs_data_env)
-  
-  modparm_names <- ls(envir = modparm_data_env) |> sort()
-  modparm_underscore <- modparm_names[grepl("_$", modparm_names)]
-  # setdiff(modparm_names, modparm_underscore) # no names that don't end in non-underscore
-  modparm_keep <- modparm_underscore
-  modparm_objects <- mget(modparm_keep, envir = modparm_data_env)
-  
-  params <- new.env()
-  params_objects <- c(frs_objects, modparm_objects)
-  list2env(params_objects, envir = params) 
-  
-  # it is possible to make the names in params sorted, but work, and it won't
-  # be maintained if we modify params, so I don't do it
-  # create a temporary environment from which we will copy objects, sorted by name
-  # temp_env <- new.env()
-  # list2env(c(frs_objects, modparm_objects), envir = temp_env) 
-  # sorted_names <- ls(envir=temp_env)
-  # 
-  # params <- new.env()
-  # for (name in sorted_names) {
-  #   # use assign rather than list2env so we can control sort order
-  #   assign(name, temp_env[[name]], envir = params)
-  # }
-  return(params)
-}
-
+source(here::here("refactor", "create_params_env.R")) 
 params <- get_params(frs_data_env, modparm_data_env)
-
-# enhance params
-# create a tibble that has nc_cal_ values for each class
-var_names <- ls(pattern = "_nc_cal_$", envir=params)
-classes <- gsub("_nc_cal_$", "", var_names) # Extract the class prefix
-values <- mget(var_names, envir = params)
-params$nc_cal_ <- tibble(class = classes, nc_cal_ = unlist(values))
-
-# add salary growth_table (NO TRAILING UNDERSCORE) to params!!!
-params$salary_growth_table <- params$salary_growth_table_ %>% 
-  bind_rows(tibble(yos = (max(params$salary_growth_table_$yos)+1):max(yos_range_))) %>% 
-  fill(everything(), .direction = "down") %>% 
-  mutate(across(contains("salary"), ~ cumprod(1 + lag(.x, default = 0)), .names = "cumprod_{.col}"), .keep = "unused")
-
-
-
-
-# ls(envir = params) # sorted
-# params$yos_range_
+ns(params)
 
 
 # Prepare data for modeling -----------------------------------------------

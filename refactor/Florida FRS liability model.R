@@ -50,7 +50,7 @@ get_liability_data <- function(
     params$one_time_cola_,
     params$retire_refund_ratio_,
     params$cal_factor_,
-    params$salary_growth_table) # CAUTION NOTE NO UNDERSCORE ON END
+    params$salary_growth_table_)
   
   
   # unpack the wf_data and benefit_data objects

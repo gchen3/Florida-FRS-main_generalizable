@@ -18,12 +18,10 @@
 #   assign("total_active_member", get("eco_eso_judges_total_active_member_"))
 # }
 
-# djb CAUTION: NOTE using params$salary_growth_table NO UNDERSCORE ON END!!!
-
 temp <- get_salary_headcount_table(regular_salary_table_, 
                                    regular_headcount_table_, 
                                    regular_total_active_member_, 
-                                   params$salary_growth_table, 
+                                   params$salary_growth_table_, 
                                    "regular")
 regular_salary_headcount_table <- temp$salary_headcount_table
 regular_entrant_profile_table <- temp$entrant_profile
@@ -31,7 +29,7 @@ regular_entrant_profile_table <- temp$entrant_profile
 temp <- get_salary_headcount_table(special_salary_table_, 
                                    special_headcount_table_, 
                                    special_total_active_member_, 
-                                   params$salary_growth_table, 
+                                   params$salary_growth_table_, 
                                    "special")
 special_salary_headcount_table <- temp$salary_headcount_table
 special_entrant_profile_table <- temp$entrant_profile
@@ -39,7 +37,7 @@ special_entrant_profile_table <- temp$entrant_profile
 temp <- get_salary_headcount_table(admin_salary_table_, 
                                    admin_headcount_table_, 
                                    admin_total_active_member_, 
-                                   params$salary_growth_table, 
+                                   params$salary_growth_table_, 
                                    "admin")
 admin_salary_headcount_table <- temp$salary_headcount_table
 admin_entrant_profile_table <- temp$entrant_profile
@@ -47,7 +45,7 @@ admin_entrant_profile_table <- temp$entrant_profile
 temp <- get_salary_headcount_table(eco_salary_table_, 
                                    eco_headcount_table_, 
                                    eco_eso_judges_total_active_member_, 
-                                   params$salary_growth_table, 
+                                   params$salary_growth_table_, 
                                    "eco")
 eco_salary_headcount_table <- temp$salary_headcount_table
 eco_entrant_profile_table <- temp$entrant_profile
@@ -55,14 +53,14 @@ eco_entrant_profile_table <- temp$entrant_profile
 temp <- get_salary_headcount_table(eso_salary_table_, 
                                    eso_headcount_table_, 
                                    eco_eso_judges_total_active_member_, 
-                                   params$salary_growth_table, "eso")
+                                   params$salary_growth_table_, "eso")
 eso_salary_headcount_table <- temp$salary_headcount_table
 eso_entrant_profile_table <- temp$entrant_profile
 
 temp <- get_salary_headcount_table(judges_salary_table_, 
                                    judges_headcount_table_, 
                                    eco_eso_judges_total_active_member_, 
-                                   params$salary_growth_table, 
+                                   params$salary_growth_table_, 
                                    "judges")
 judges_salary_headcount_table <- temp$salary_headcount_table
 judges_entrant_profile_table <- temp$entrant_profile
@@ -70,7 +68,7 @@ judges_entrant_profile_table <- temp$entrant_profile
 temp <- get_salary_headcount_table(senior_management_salary_table_, 
                                    senior_management_headcount_table_, 
                                    senior_management_total_active_member_, 
-                                   params$salary_growth_table, "senior management")
+                                   params$salary_growth_table_, "senior management")
 senior_management_salary_headcount_table <- temp$salary_headcount_table
 senior_management_entrant_profile_table <- temp$entrant_profile
 

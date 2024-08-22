@@ -9,7 +9,7 @@
 
 
 get_all_classes_funding_list <- function(init_funding_data,
-                                         class_names=FIXED_CLASS_NAMES){
+                                         class_names){
   
   funding_list <- lapply(class_names, get_funding_table, init_funding_data)
   names(funding_list) <- class_names
@@ -122,7 +122,7 @@ get_current_hire_debt_layer_table <- function(class_name,
 #Create 9 empty data frames from the init_funding_data (representing 7 classes, DROP, and FRS system), then put them in a list to store funding outputs for these entities
 get_funding_table <- function(class_name, 
                               init_funding_data, 
-                              model_period=model_period_) {
+                              model_period=params$model_period_) {
   funding_table <- init_funding_data %>% 
     filter(class == class_name) %>% 
     select(-class) %>%
@@ -797,8 +797,8 @@ inner_loop6_amortization <- function(i,
 
 main_loop <- function(funding_list,
                       liability_list,
-                      class_names_no_frs=FIXED_CLASS_NAMES_NO_FRS,
-                      class_names_no_drop_frs=FIXED_CLASS_NAMES_NO_DROP_FRS,
+                      class_names_no_frs=params$class_names_no_frs_,
+                      class_names_no_drop_frs=params$class_names_no_drop_frs_,
                       payroll_growth_,
                       amo_pay_growth,
                       dr_current,
@@ -949,10 +949,10 @@ get_funding_data <- function(
     funding_list,
     current_amort_layers_table,
     # globals
-    class_names_no_frs=FIXED_CLASS_NAMES_NO_FRS,
-    class_names_no_drop_frs=FIXED_CLASS_NAMES_NO_DROP_FRS,
-    funding_lag=funding_lag_,
-    model_period=model_period_,
+    class_names_no_frs = params$class_names_no_frs_,
+    class_names_no_drop_frs = params$class_names_no_drop_frs_,
+    funding_lag = funding_lag_,
+    model_period = model_period_,
 
     dr_current = dr_current_,
     dr_new = dr_new_,
