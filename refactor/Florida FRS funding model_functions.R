@@ -949,33 +949,36 @@ get_funding_data <- function(
     funding_list,
     current_amort_layers_table,
     # globals
-    class_names_no_frs = params$class_names_no_frs_,
-    class_names_no_drop_frs = params$class_names_no_drop_frs_,
-    funding_lag = funding_lag_,
-    model_period = model_period_,
-
-    dr_current = dr_current_,
-    dr_new = dr_new_,
-    cola_tier_1_active_constant = cola_tier_1_active_constant_,
-    cola_tier_1_active = cola_tier_1_active_,
-    cola_tier_2_active = cola_tier_2_active_,
-    cola_tier_3_active = cola_tier_3_active_,
-    cola_current_retire = cola_current_retire_,
-    cola_current_retire_one = cola_current_retire_one_,
-    one_time_cola = one_time_cola_,
-    retire_refund_ratio = retire_refund_ratio_,
-    cal_factor = cal_factor_,
-    #inputs below are for the liability model
-    non_special_db_new_ratio = non_special_db_new_ratio_,
-    special_db_new_ratio = special_db_new_ratio_,
-    #inputs below are for the funding model
-    return_scen = return_scen_,
-    model_return = model_return_,
-    amo_period_new = amo_period_new_,
-    amo_pay_growth = amo_pay_growth_,
-    amo_method = amo_method_,
     params 
 ) {
+  
+  # unpack parameters
+  class_names_no_frs <- params$class_names_no_frs_
+  class_names_no_drop_frs <- params$class_names_no_drop_frs_
+  funding_lag <- params$funding_lag_
+  model_period <- params$model_period_
+  
+  dr_current <- params$dr_current_
+  dr_new <- params$dr_new_
+  cola_tier_1_active_constant <- params$cola_tier_1_active_constant_
+  cola_tier_1_active <- params$cola_tier_1_active_
+  cola_tier_2_active <- params$cola_tier_2_active_
+  cola_tier_3_active <- params$cola_tier_3_active_
+  cola_current_retire <- params$cola_current_retire_
+  cola_current_retire_one <- params$cola_current_retire_one_
+  one_time_cola <- params$one_time_cola_
+  retire_refund_ratio <- params$retire_refund_ratio_
+  cal_factor <- params$cal_factor_
+  #inputs below are for the liability model
+  non_special_db_new_ratio <- params$non_special_db_new_ratio_
+  special_db_new_ratio <- params$special_db_new_ratio_
+  #inputs below are for the funding model
+  return_scen <- params$return_scen_
+  model_return <- params$model_return_
+  amo_period_new <- params$amo_period_new_
+  amo_pay_growth <- params$amo_pay_growth_
+  amo_method <- params$amo_method_
+  
   
   # returns updated funding_list
   
