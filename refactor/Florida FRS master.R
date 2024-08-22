@@ -144,6 +144,13 @@ classes <- gsub("_nc_cal_$", "", var_names) # Extract the class prefix
 values <- mget(var_names, envir = params)
 params$nc_cal_ <- tibble(class = classes, nc_cal_ = unlist(values))
 
+# add salary growth_table (NO TRAILING UNDERSCORE) to params!!!
+params$salary_growth_table <- params$salary_growth_table_ %>% 
+  bind_rows(tibble(yos = (max(params$salary_growth_table_$yos)+1):max(yos_range_))) %>% 
+  fill(everything(), .direction = "down") %>% 
+  mutate(across(contains("salary"), ~ cumprod(1 + lag(.x, default = 0)), .names = "cumprod_{.col}"), .keep = "unused")
+
+
 
 
 # ls(envir = params) # sorted

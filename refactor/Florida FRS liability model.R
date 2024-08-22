@@ -21,81 +21,14 @@
 # djb: CAUTIONS ----
 # Still assumed to be in the global environment:
 
-#   wf_data$wf_active_df
-#   wf_data$wf_term_df
-#   wf_data$wf_refund_df
-#   wf_data$wf_retire_df
-
-#   benefit_data$benefit_val_table
-#   benefit_data$benefit_table
-#   benefit_data$ann_factor_table
-#   benefit_data$ann_factor_retire_table
-
 #   salary_growth_table
 
 # end CAUTIONS ----
 
 get_liability_data <- function(
-    class_name = class_name_,
-    dr_current = dr_current_,
-    dr_new = dr_new_,
-    
-    # djb globals added
-    start_year = start_year_,
-    new_year = new_year_,
-    model_period = model_period_,
-    amo_period_term = amo_period_term_,
-    payroll_growth = payroll_growth_,
-    
-    cola_tier_1_active_constant = cola_tier_1_active_constant_,
-    cola_tier_1_active = cola_tier_1_active_,
-    cola_tier_2_active = cola_tier_2_active_,
-    cola_tier_3_active = cola_tier_3_active_,
-    cola_current_retire = cola_current_retire_,
-    cola_current_retire_one = cola_current_retire_one_,
-    one_time_cola = one_time_cola_,
-    retire_refund_ratio = retire_refund_ratio_,
-    cal_factor = cal_factor_,
-    #inputs below are for the liability model
-    non_special_db_new_ratio = non_special_db_new_ratio_,
-    special_db_new_ratio = special_db_new_ratio_,
-    
-    # global variables added by djb
-    special_db_legacy_before_2018_ratio = special_db_legacy_before_2018_ratio_,
-    special_db_legacy_after_2018_ratio = special_db_legacy_after_2018_ratio_,
-    non_special_db_legacy_before_2018_ratio = non_special_db_legacy_before_2018_ratio_,
-    non_special_db_legacy_after_2018_ratio = non_special_db_legacy_after_2018_ratio_,
-    db_legacy_before_2018_ratio = db_legacy_before_2018_ratio_,
-    db_legacy_after_2018_ratio = db_legacy_after_2018_ratio_,
-    
-    # global data frames added by djb
-    wf_active_df = wf_data$wf_active_df,
-    wf_term_df = wf_data$wf_term_df,
-    wf_refund_df = wf_data$wf_refund_df,
-    wf_retire_df = wf_data$wf_retire_df,
-    
-    benefit_val_table = benefit_data$benefit_val_table,
-    benefit_table = benefit_data$benefit_table,
-    ann_factor_table = benefit_data$ann_factor_table,
-    ann_factor_retire_table = benefit_data$ann_factor_retire_table
-    
-) {
-  
-  print(paste0("processing get_benefit_data in liability model for: ", class_name))
-  benefit_data <- get_benefit_data(    
     class_name,
-    dr_current,
-    dr_new,
-    cola_tier_1_active_constant,
-    cola_tier_1_active,
-    cola_tier_2_active,
-    cola_tier_3_active,
-    cola_current_retire,
-    cola_current_retire_one,
-    one_time_cola,
-    retire_refund_ratio,
-    cal_factor,
-    salary_growth_table)
+    params
+    ) {
   
   class_name <- str_replace(class_name, " ", "_")
   assign("wf_data", get(paste0(class_name, "_wf_data")))
@@ -103,28 +36,55 @@ get_liability_data <- function(
   assign("retiree_pop_current", get(paste0(class_name, "_retiree_pop_current_")))
   assign("pvfb_term_current", get(paste0(class_name, "_pvfb_term_current_")))
   
+  print(paste0("processing get_benefit_data in liability model for: ", class_name))
+  benefit_data <- get_benefit_data(    
+    class_name,
+    params$dr_current_,
+    params$dr_new_,
+    params$cola_tier_1_active_constant_,
+    params$cola_tier_1_active_,
+    params$cola_tier_2_active_,
+    params$cola_tier_3_active_,
+    params$cola_current_retire_,
+    params$cola_current_retire_one_,
+    params$one_time_cola_,
+    params$retire_refund_ratio_,
+    params$cal_factor_,
+    params$salary_growth_table) # CAUTION NOTE NO UNDERSCORE ON END
+  
+  
+  # unpack the wf_data and benefit_data objects
+  # performant, because r is copy on modify
+  wf_active_df <- wf_data$wf_active_df
+  wf_term_df <- wf_data$wf_term_df
+  wf_refund_df <- wf_data$wf_refund_df
+  wf_retire_df <- wf_data$wf_retire_df
+  
+  benefit_val_table <- benefit_data$benefit_val_table
+  benefit_table <- benefit_data$benefit_table
+  ann_factor_table <- benefit_data$ann_factor_table
+  ann_factor_retire_table <- benefit_data$ann_factor_retire_table
+  
   
   #Plan design choice ratios:
-  # DJB CAUTION REASON MODIFIES POSSIBLE GLOBAL VARIABLES HERE!!!! Search for them in other files
-  # db_legacy_before_2018_ratio_ not in other files but used further below in this file
-  # db_legacy_after_2018_ratio_ not in other files but used further below in this file
   if (class_name == "special") {
-    db_legacy_before_2018_ratio <- special_db_legacy_before_2018_ratio
-    db_legacy_after_2018_ratio <- special_db_legacy_after_2018_ratio
-    db_new_ratio <- special_db_new_ratio
+    db_legacy_before_2018_ratio <- params$special_db_legacy_before_2018_ratio_
+    db_legacy_after_2018_ratio <- params$special_db_legacy_after_2018_ratio_
+    db_new_ratio <- params$special_db_new_ratio_
   } else {
-    db_legacy_before_2018_ratio <- non_special_db_legacy_before_2018_ratio
-    db_legacy_after_2018_ratio <- non_special_db_legacy_after_2018_ratio
-    db_new_ratio <- non_special_db_new_ratio
+    db_legacy_before_2018_ratio <- params$non_special_db_legacy_before_2018_ratio_
+    db_legacy_after_2018_ratio <- params$non_special_db_legacy_after_2018_ratio_
+    db_new_ratio <- params$non_special_db_new_ratio_
   }
   
+  # local variables
   dc_legacy_before_2018_ratio <- 1 - db_legacy_before_2018_ratio
   dc_legacy_after_2018_ratio <- 1 - db_legacy_after_2018_ratio
   dc_new_ratio <- 1 - db_new_ratio
   
   #Join wf active table with FinalData table to calculate the overall payroll, normal costs, PVFB, and PVFS each year
   wf_active_df_final <- wf_active_df %>% 
-    filter(year <= start_year + model_period) %>% 
+    filter(year <= params$start_year_ + params$model_period_) %>% 
     mutate(entry_year = year - (age - entry_age)) %>% 
     left_join(benefit_val_table, by = c("entry_age", "age" = "term_age", "year" = "term_year", "entry_year")) %>% 
     select(entry_age, age, year, entry_year, n_active, indv_norm_cost, salary, 
@@ -134,11 +94,11 @@ get_liability_data <- function(
     #allocate members to plan designs based on entry year
     mutate(
       n_active_db_legacy = if_else(entry_year < 2018, n_active * db_legacy_before_2018_ratio,
-                                   if_else(entry_year < new_year, n_active * db_legacy_after_2018_ratio, 0)),
-      n_active_db_new = if_else(entry_year < new_year, 0, n_active * db_new_ratio),
+                                   if_else(entry_year < params$new_year_, n_active * db_legacy_after_2018_ratio, 0)),
+      n_active_db_new = if_else(entry_year < params$new_year_, 0, n_active * db_new_ratio),
       n_active_dc_legacy = if_else(entry_year < 2018, n_active * dc_legacy_before_2018_ratio,
-                                   if_else(entry_year < new_year, n_active * dc_legacy_after_2018_ratio, 0)),
-      n_active_dc_new = if_else(entry_year < new_year, 0, n_active * dc_new_ratio)
+                                   if_else(entry_year < params$new_year_, n_active * dc_legacy_after_2018_ratio, 0)),
+      n_active_dc_new = if_else(entry_year < params$new_year_, 0, n_active * dc_new_ratio)
       ) %>% 
     group_by(year) %>% 
     summarise(
@@ -171,7 +131,7 @@ get_liability_data <- function(
   
   #Term table
   wf_term_df_final <- wf_term_df %>% 
-    filter(year <= start_year + model_period,
+    filter(year <= params$start_year_ + params$model_period_,
            n_term > 0) %>% 
     mutate(entry_year = year - (age - entry_age)) %>% 
     #join benefit_val_table to get PV_DB_Benefit (the present value of benefits at termination)
@@ -188,8 +148,8 @@ get_liability_data <- function(
       pvfb_db_term = pvfb_db_at_term_age / cum_mort_dr_current,
       
       n_term_db_legacy = if_else(entry_year < 2018, n_term * db_legacy_before_2018_ratio,
-                                 if_else(entry_year < new_year, n_term * db_legacy_after_2018_ratio, 0)),
-      n_term_db_new = if_else(entry_year < new_year, 0, n_term * db_new_ratio)
+                                 if_else(entry_year < params$new_year_, n_term * db_legacy_after_2018_ratio, 0)),
+      n_term_db_new = if_else(entry_year < params$new_year_, 0, n_term * db_new_ratio)
     ) %>% 
     group_by(year) %>% 
     summarise(aal_term_db_legacy_est = sum(pvfb_db_term * n_term_db_legacy),
@@ -201,15 +161,15 @@ get_liability_data <- function(
   
   #Join wf refund table with benefit table to calculate the overall refunds each year
   wf_refund_df_final <- wf_refund_df %>% 
-    filter(year <= start_year + model_period,
+    filter(year <= params$start_year_ + params$model_period_,
            n_refund > 0) %>% 
     mutate(entry_year = year - (age - entry_age)) %>% 
     left_join(benefit_table, by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year", "entry_year")) %>% 
     select(entry_age, age, year, term_year, entry_year, n_refund, db_ee_balance) %>% 
     #allocate members to plan designs based on entry year
     mutate(n_refund_db_legacy = if_else(entry_year < 2018, n_refund * db_legacy_before_2018_ratio,
-                                        if_else(entry_year < new_year, n_refund * db_legacy_after_2018_ratio, 0)),
-           n_refund_db_new = if_else(entry_year < new_year, 0, n_refund * db_new_ratio)
+                                        if_else(entry_year < params$new_year_, n_refund * db_legacy_after_2018_ratio, 0)),
+           n_refund_db_new = if_else(entry_year < params$new_year_, 0, n_refund * db_new_ratio)
     ) %>%
     group_by(year) %>% 
     summarise(refund_db_legacy_est = sum(db_ee_balance * n_refund_db_legacy),
@@ -218,10 +178,9 @@ get_liability_data <- function(
     ungroup()
   
   
-  
   #Join wf retire table with benefit table to calculate the overall retirement benefits each year
   wf_retire_df_final <- wf_retire_df %>% 
-    filter(year <= start_year + model_period) %>% 
+    filter(year <= params$start_year_ + params$model_period_) %>% 
     mutate(entry_year = year - (age - entry_age)) %>%    
     left_join(benefit_table, by = c("entry_age", "entry_year", "term_year", "retire_year" = "dist_year")) %>% 
     select(entry_age, age, year, term_year, retire_year, entry_year, n_retire, db_benefit, cola) %>% 
@@ -234,8 +193,8 @@ get_liability_data <- function(
       db_benefit_final = base_db_benefit * (1 + cola)^(year - retire_year),
       
       n_retire_db_legacy = if_else(entry_year < 2018, n_retire * db_legacy_before_2018_ratio,
-                                   if_else(entry_year < new_year, n_retire * db_legacy_after_2018_ratio, 0)),
-      n_retire_db_new = if_else(entry_year < new_year, 0, n_retire * db_new_ratio),
+                                   if_else(entry_year < params$new_year_, n_retire * db_legacy_after_2018_ratio, 0)),
+      n_retire_db_new = if_else(entry_year < params$new_year_, 0, n_retire * db_new_ratio),
       #We use "AnnuityFactor_DR - 1" below because the PVFB for retirees excludes the first payment (i.e. the first payment has already been delivered when the PVFB is calculated)
       pvfb_db_retire = db_benefit_final * (ann_factor - 1)
     ) %>% 
@@ -247,22 +206,21 @@ get_liability_data <- function(
               aal_retire_db_new_est = sum(pvfb_db_retire * n_retire_db_new)
     ) %>% 
     ungroup()
-  
-  
+
   
   #Project benefit payments for current retirees
-  retire_current_int <- retiree_distribution %>% 
+  retire_current_int <- params$retiree_distribution %>% 
     select(age, n_retire_ratio:total_ben_ratio) %>% 
     mutate(
       n_retire_current = n_retire_ratio * retiree_pop_current,
       total_ben_current = total_ben_ratio * ben_payment_current,
       avg_ben_current = total_ben_current / n_retire_current,
-      year = start_year
+      year = params$start_year_
       )
   
   
   wf_retire_current <- ann_factor_retire_table %>% 
-    filter(year <= start_year + model_period) %>% 
+    filter(year <= params$start_year_ + params$model_period_) %>% 
     left_join(retire_current_int, by = c("age", "year")) %>% 
     select(base_age:ann_factor_retire, n_retire_current, avg_ben_current, total_ben_current) %>% 
     group_by(base_age) %>% 
@@ -275,6 +233,7 @@ get_liability_data <- function(
     filter(!is.na(n_retire_current)) %>% 
     ungroup()
   
+  
   wf_retire_current_final <- wf_retire_current %>% 
     group_by(year) %>% 
     summarise(retire_ben_current_est = sum(total_ben_current),
@@ -286,15 +245,20 @@ get_liability_data <- function(
   
   #Project benefit payments for current term vested members
   #Note that we use the original "dr_current_" in calculating the benefit payments so that any discount rate adjustment can work
-  retire_ben_term <- get_pmt(r = dr_current, nper = amo_period_term, pv = pvfb_term_current, g = payroll_growth)
+  retire_ben_term <- get_pmt(r = params$dr_current_, nper = params$amo_period_term_, pv = pvfb_term_current, g = params$payroll_growth_)
   
-  year <- start_year:(start_year + model_period)
-  amo_years_term <- (start_year + 1):(start_year + amo_period_term)
+  year <- params$start_year_:(params$start_year_ + params$model_period_)
+  
+  amo_years_term <- (params$start_year_ + 1):(params$start_year_ + params$amo_period_term_)
+  
   retire_ben_term_est <- double(length = length(year))
-  retire_ben_term_est[which(year %in% amo_years_term)] <- recur_grow3(retire_ben_term, payroll_growth, amo_period_term)
+  retire_ben_term_est[which(year %in% amo_years_term)] <- recur_grow3(retire_ben_term, params$payroll_growth_, params$amo_period_term_)
   
   wf_term_current <- data.frame(year, retire_ben_term_est) %>% 
-    mutate(aal_term_current_est = roll_pv(rate = dr_current, g = payroll_growth, nper = amo_period_term, pmt_vec = retire_ben_term_est))
+    mutate(aal_term_current_est = roll_pv(rate = params$dr_current_,
+                                          g = params$payroll_growth_, 
+                                          nper = params$amo_period_term_, 
+                                          pmt_vec = retire_ben_term_est))
   
   
   #####Funding model - liability side
@@ -333,11 +297,27 @@ get_liability_data <- function(
       
     } else {
       
-      funding_df$liability_gain_loss_legacy_est[i] <- round(funding_df$aal_legacy_est[i] - (funding_df$aal_legacy_est[i-1] * (1 + dr_current) + funding_df$payroll_db_legacy_est[i-1] * funding_df$nc_rate_db_legacy_est[i-1] - funding_df$tot_ben_refund_legacy_est[i]), digits = 1)
-      funding_df$liability_gain_loss_new_est[i] <- round(funding_df$aal_new_est[i] - (funding_df$aal_new_est[i-1] * (1 + dr_new) + funding_df$payroll_db_new_est[i-1] * funding_df$nc_rate_db_new_est[i-1] - funding_df$tot_ben_refund_new_est[i]), digits = 1)
+      funding_df$liability_gain_loss_legacy_est[i] <- round(funding_df$aal_legacy_est[i] -
+                                                              (funding_df$aal_legacy_est[i-1] * (1 + params$dr_current_) +
+                                                                 funding_df$payroll_db_legacy_est[i-1] * funding_df$nc_rate_db_legacy_est[i-1] -
+                                                                 funding_df$tot_ben_refund_legacy_est[i]),
+                                                            digits = 1)
       
-      funding_df$aal_legacy_roll[i] <- funding_df$aal_legacy_roll[i-1] * (1 + dr_current) + funding_df$payroll_db_legacy_est[i-1] * funding_df$nc_rate_db_legacy_est[i-1] - funding_df$tot_ben_refund_legacy_est[i] + funding_df$liability_gain_loss_legacy_est[i]
-      funding_df$aal_new_roll[i] <- funding_df$aal_new_roll[i-1] * (1 + dr_new) + funding_df$payroll_db_new_est[i-1] * funding_df$nc_rate_db_new_est[i-1] - funding_df$tot_ben_refund_new_est[i] + funding_df$liability_gain_loss_new_est[i]
+      funding_df$liability_gain_loss_new_est[i] <- round(funding_df$aal_new_est[i] -
+                                                           (funding_df$aal_new_est[i-1] * (1 + params$dr_new_) + 
+                                                              funding_df$payroll_db_new_est[i-1] * funding_df$nc_rate_db_new_est[i-1] -
+                                                              funding_df$tot_ben_refund_new_est[i]), 
+                                                         digits = 1)
+      
+      funding_df$aal_legacy_roll[i] <- funding_df$aal_legacy_roll[i-1] * (1 + params$dr_current_) +
+        funding_df$payroll_db_legacy_est[i-1] * funding_df$nc_rate_db_legacy_est[i-1] -
+        funding_df$tot_ben_refund_legacy_est[i] +
+        funding_df$liability_gain_loss_legacy_est[i]
+      
+      funding_df$aal_new_roll[i] <- funding_df$aal_new_roll[i-1] * (1 + params$dr_new_) +
+        funding_df$payroll_db_new_est[i-1] * funding_df$nc_rate_db_new_est[i-1] -
+        funding_df$tot_ben_refund_new_est[i] + 
+        funding_df$liability_gain_loss_new_est[i]
     }
   }
   

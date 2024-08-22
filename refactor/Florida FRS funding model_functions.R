@@ -995,27 +995,7 @@ get_funding_data <- function(
   liability_list <- mclapply(
                       X = class_names_no_drop_frs, 
                       FUN = get_liability_data,
-                      
-                      # Discount rates
-                      dr_current = dr_current,
-                      dr_new = dr_new,
-                      
-                      # COLA assumptions
-                      cola_tier_1_active_constant = cola_tier_1_active_constant,
-                      cola_tier_1_active = cola_tier_1_active,
-                      cola_tier_2_active = cola_tier_2_active,
-                      cola_tier_3_active = cola_tier_3_active,
-                      cola_current_retire = cola_current_retire,
-                      cola_current_retire_one = cola_current_retire_one,
-                      one_time_cola = one_time_cola,
-                      
-                      # Other factors
-                      retire_refund_ratio = retire_refund_ratio,
-                      cal_factor = cal_factor,
-                      
-                      # Liability model inputs
-                      non_special_db_new_ratio = non_special_db_new_ratio,
-                      special_db_new_ratio = special_db_new_ratio,
+                      params = params,
                       
                       # Set mc.cores to 1 for compatibility with Windows
                       mc.cores = 1
