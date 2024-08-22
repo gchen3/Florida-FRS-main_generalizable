@@ -9,9 +9,11 @@
 
 
 get_all_classes_funding_list <- function(init_funding_data,
-                                         class_names){
+                                         class_names,
+                                         model_period,
+                                         start_year){
   
-  funding_list <- lapply(class_names, get_funding_table, init_funding_data)
+  funding_list <- lapply(class_names, get_funding_table, init_funding_data, model_period, start_year)
   names(funding_list) <- class_names
   
   return(funding_list)
@@ -122,11 +124,12 @@ get_current_hire_debt_layer_table <- function(class_name,
 #Create 9 empty data frames from the init_funding_data (representing 7 classes, DROP, and FRS system), then put them in a list to store funding outputs for these entities
 get_funding_table <- function(class_name, 
                               init_funding_data, 
-                              model_period=params$model_period_) {
+                              model_period,
+                              start_year) {
   funding_table <- init_funding_data %>% 
     filter(class == class_name) %>% 
     select(-class) %>%
-    add_row(year = (start_year_ + 1):(start_year_ + model_period))
+    add_row(year = (start_year + 1):(start_year + model_period))
   
   funding_table[is.na(funding_table)] <- 0
   
