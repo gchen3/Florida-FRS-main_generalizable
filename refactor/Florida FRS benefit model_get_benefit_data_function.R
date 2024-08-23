@@ -224,16 +224,14 @@ get_benefit_val_table <- function(
     salary_benefit_table,
     final_benefit_table,
     sep_rate_table,
-    dr_current,
-    dr_new,
-    retire_refund_ratio){
+    params){
   
   benefit_val_table <- salary_benefit_table %>% 
     left_join(final_benefit_table, by = c("entry_year", "entry_age", "term_age")) %>%
     left_join(sep_rate_table) %>%
     mutate(
       #note that the tier below applies at termination age only
-      dr = if_else(str_detect(tier_at_term_age, "tier_3"), dr_new, dr_current),
+      dr = if_else(str_detect(tier_at_term_age, "tier_3"), params$dr_new_, params$dr_current_),
       sep_type = get_sep_type(tier_at_term_age),
       ben_decision = if_else(yos == 0, 
                              NA, 
@@ -241,7 +239,7 @@ get_benefit_val_table <- function(
                                      if_else(sep_type == "vested", "mix", "refund"))),
       pvfb_db_wealth_at_term_age = case_when(
         sep_type == "retire" ~ pvfb_db_at_term_age,
-        sep_type == "vested" ~ (retire_refund_ratio * pvfb_db_at_term_age + (1 - retire_refund_ratio) * db_ee_balance),
+        sep_type == "vested" ~ (params$retire_refund_ratio_ * pvfb_db_at_term_age + (1 - params$retire_refund_ratio_) * db_ee_balance),
         sep_type == "non_vested" ~ db_ee_balance
       )
     ) %>% 
@@ -410,9 +408,7 @@ get_benefit_data <- function(
     salary_benefit_table,
     final_benefit_table,
     sep_rate_table,
-    params$dr_current_,
-    params$dr_new_,
-    params$retire_refund_ratio_)
+    params)
   
   # next step too small to need its own function
   indv_norm_cost_table <- benefit_val_table %>% 
