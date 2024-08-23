@@ -2,8 +2,9 @@ extend_params <- function(params){
   
   # class groupings
   params$class_names_ <- params$init_funding_data$class
+  params$class_names_no_frs_ <- params$class_names_[!params$class_names_ %in% c("frs")]
   params$class_names_no_drop_frs_ <- params$class_names_[!params$class_names_ %in% c("drop", "frs")]
-  params$class_names_no_frs_ <- params$class_names_no_drop_frs_[!params$class_names_no_drop_frs_ %in% c("frs")]
+ 
   
   # create a tibble that has nc_cal_ values for each class
   var_names <- ls(pattern = "_nc_cal_$", envir=params)
