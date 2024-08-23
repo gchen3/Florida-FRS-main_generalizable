@@ -805,6 +805,7 @@ main_loop <- function(funding_list,
                       future_hire_amo_period_list,
                       current_hire_debt_layer_list,
                       future_hire_debt_layer_list,
+                      amo_pay_growth,
                       params){
   
   # return funding_list
@@ -1187,6 +1188,7 @@ get_funding_data <- function(
                             future_hire_amo_period_list = future_hire_amo_period_list,
                             current_hire_debt_layer_list = current_hire_debt_layer_list,
                             future_hire_debt_layer_list = future_hire_debt_layer_list,
+                            amo_pay_growth,
                             params)
   
   output <- funding_list
