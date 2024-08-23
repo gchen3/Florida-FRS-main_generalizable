@@ -315,22 +315,19 @@ get_salary_benefit_table <- function(class_name,
                                      entrant_profile_table,
                                      class_salary_growth_table,
                                      salary_headcount_table,
-                                     entry_year_range,
-                                     yos_range,
-                                     new_year,
-                                     max_age){
+                                     params){
   #Create a long-form table of entry year, entry age, and yos and merge with salary data
   #Note that "age" in the salary_table is active age
   # entry_age = entrant_profile_table$entry_age
-  salary_benefit_table <- expand_grid(entry_year = entry_year_range, 
+  salary_benefit_table <- expand_grid(entry_year = params$entry_year_range_, 
                                       entry_age = entrant_profile_table$entry_age, 
-                                      yos = yos_range) %>% 
+                                      yos = params$yos_range_) %>% 
     mutate(
       term_age = entry_age + yos,
       # term_year = entry_year + yos,
-      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, new_year)
+      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, params$new_year_)
     ) %>% 
-    filter(term_age <= max_age) %>% 
+    filter(term_age <= params$max_age_) %>% 
     arrange(entry_year, entry_age, yos) %>% 
     left_join(entrant_profile_table, by = "entry_age") %>% 
     left_join(class_salary_growth_table, by = "yos") %>% 
@@ -340,7 +337,7 @@ get_salary_benefit_table <- function(class_name,
     mutate(
       salary = if_else(entry_year <= max(salary_headcount_table$entry_year), 
                        entry_salary * cumprod_salary_increase,
-                       start_sal * cumprod_salary_increase * (1 + payroll_growth_)^(entry_year - max(salary_headcount_table$entry_year))),
+                       start_sal * cumprod_salary_increase * (1 + params$payroll_growth_)^(entry_year - max(salary_headcount_table$entry_year))),
       fas_period = if_else(str_detect(tier_at_term_age, "tier_1"), 5, 8)
     ) %>% 
     group_by(entry_year, entry_age) %>% 
@@ -377,10 +374,7 @@ get_benefit_data <- function(
                                                    entrant_profile_table,
                                                    class_salary_growth_table,
                                                    salary_headcount_table,
-                                                   entry_year_range = params$entry_year_range_,
-                                                   yos_range = params$yos_range_,
-                                                   new_year = params$new_year_,
-                                                   max_age = params$max_age_)
+                                                   params)
   
   ann_factor_table <- get_annuity_factor_table(
     mort_table,
