@@ -342,16 +342,16 @@ get_separation_table <- function(class_name,
   # class_name <- gsub(" ", "_", class_name)
   class_name <- str_replace(class_name, " ", "_")
   
-  assign("term_rate_male_table", get(paste0(class_name, "_term_rate_male_table_")))
-  assign("term_rate_female_table", get(paste0(class_name, "_term_rate_female_table_")))
+  assign("term_rate_male_table", get(paste0(class_name, "_term_rate_male_table_"), envir=benefit_model_data_env))
+  assign("term_rate_female_table", get(paste0(class_name, "_term_rate_female_table_"), envir=benefit_model_data_env))
   
-  assign("normal_retire_rate_tier_1_table", get(paste0(class_name, "_normal_retire_rate_tier_1_table")))
-  assign("normal_retire_rate_tier_2_table", get(paste0(class_name, "_normal_retire_rate_tier_2_table")))
+  assign("normal_retire_rate_tier_1_table", get(paste0(class_name, "_normal_retire_rate_tier_1_table"), envir=benefit_model_data_env))
+  assign("normal_retire_rate_tier_2_table", get(paste0(class_name, "_normal_retire_rate_tier_2_table"), envir=benefit_model_data_env))
   
-  assign("early_retire_rate_tier_1_table", get(paste0(class_name, "_early_retire_rate_tier_1_table")))
-  assign("early_retire_rate_tier_2_table", get(paste0(class_name, "_early_retire_rate_tier_2_table")))
+  assign("early_retire_rate_tier_1_table", get(paste0(class_name, "_early_retire_rate_tier_1_table"), envir=benefit_model_data_env))
+  assign("early_retire_rate_tier_2_table", get(paste0(class_name, "_early_retire_rate_tier_2_table"), envir=benefit_model_data_env))
   
-  assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table")))
+  assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table"), envir=benefit_model_data_env))
   
   term_rate_table <- ((term_rate_male_table + term_rate_female_table) / 2) %>% 
     add_row(yos = (max(term_rate_male_table$yos) + 1):max(yos_range)) %>% 

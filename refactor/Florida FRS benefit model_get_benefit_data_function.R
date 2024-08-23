@@ -32,27 +32,23 @@ get_agg_norm_cost_table <- function(
 
 get_annuity_factor_retire_table <- function(
     mort_retire_table,
-    dr_current,
-    one_time_cola,
-    cola_current_retire,
-    cola_current_retire_one,
-    new_year) {
+    params) {
   
   #Survival Probability and Annuity Factor for current retirees
   ann_factor_retire_table <- mort_retire_table %>% 
     mutate(
-      dr = dr_current,
-      cola_type = if_else(one_time_cola == TRUE, "one_time", "normal"),
+      dr = params$dr_current_,
+      cola_type = if_else(params$one_time_cola_ == TRUE, "one_time", "normal"),
       cola = if_else(cola_type == "one_time", 
-                     if_else(year == new_year, cola_current_retire_one, 0),
-                     cola_current_retire)
+                     if_else(year == params$new_year_, params$cola_current_retire_one_, 0),
+                     params$cola_current_retire_)
     ) %>% 
     group_by(base_age) %>% 
     mutate(
       cum_dr = cumprod(1 + lag(dr, default = 0)),
       cum_mort = cumprod(1 - lag(mort_final, default = 0)),
       cum_mort_dr = cum_mort / cum_dr,
-      ann_factor_retire = annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = one_time_cola)
+      ann_factor_retire = annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = params$one_time_cola_)
     )
   return(ann_factor_retire_table)
 }
@@ -61,26 +57,25 @@ get_annuity_factor_retire_table <- function(
 get_annuity_factor_table <- function(
     mort_table,
     salary_benefit_table,
-    dr_new, dr_current,
-    cola_tier_1_active_constant, cola_tier_1_active, cola_tier_2_active, cola_tier_3_active
+    params
     ) {
       # Survival Probability and Annuity Factor for active members
   ann_factor_table <- mort_table %>% 
     #Semi join the salary_benefit_able to reduce the size of the data that needs to be calculated
     semi_join(salary_benefit_table, by = c("entry_year", "entry_age")) %>%
     mutate(
-      dr = if_else(str_detect(tier_at_dist_age, "tier_3"), dr_new, dr_current),
+      dr = if_else(str_detect(tier_at_dist_age, "tier_3"), params$dr_new_, params$dr_current_),
       yos_b4_2011 = pmin(pmax(2011 - entry_year, 0), yos),
       cola = case_when(
         #Tier 1 cola (current policy) = 3% * YOS before 2011 / Total YOS
-        str_detect(tier_at_dist_age, "tier_1") & cola_tier_1_active_constant == "no" ~ 
-          if_else(yos > 0, cola_tier_1_active * yos_b4_2011 / yos, 0),
-        str_detect(tier_at_dist_age, "tier_1") & cola_tier_1_active_constant == "yes" ~ 
-          cola_tier_1_active,
+        str_detect(tier_at_dist_age, "tier_1") & params$cola_tier_1_active_constant_ == "no" ~ 
+          if_else(yos > 0, params$cola_tier_1_active_ * yos_b4_2011 / yos, 0),
+        str_detect(tier_at_dist_age, "tier_1") & params$cola_tier_1_active_constant_ == "yes" ~ 
+          params$cola_tier_1_active_,
         str_detect(tier_at_dist_age, "tier_2") ~ 
-          cola_tier_2_active,
+          params$cola_tier_2_active_,
         str_detect(tier_at_dist_age, "tier_3") ~ 
-          cola_tier_3_active
+          params$cola_tier_3_active_
       )
     ) %>% 
     group_by(entry_year, entry_age, yos) %>% 
@@ -367,18 +362,7 @@ get_salary_benefit_table <- function(class_name,
 
 get_benefit_data <- function(
     class_name,
-    dr_current,
-    dr_new,
-    cola_tier_1_active_constant,
-    cola_tier_1_active,
-    cola_tier_2_active,
-    cola_tier_3_active,
-    cola_current_retire,
-    cola_current_retire_one,
-    one_time_cola,
-    retire_refund_ratio,
-    cal_factor,
-    salary_growth_table
+    params
 ) {
   
   class_name <- str_replace(class_name, " ", "_")
@@ -389,42 +373,32 @@ get_benefit_data <- function(
   assign("mort_retire_table", get(paste0(class_name, "_mort_retire_table")))
   assign("sep_rate_table", get(paste0(class_name, "_separation_rate_table")))
 
-  class_salary_growth_table <- get_class_salary_growth_table(salary_growth_table, class_name)
+  class_salary_growth_table <- get_class_salary_growth_table(params$salary_growth_table_, class_name)
   
   salary_benefit_table <- get_salary_benefit_table(class_name,
                                                    entrant_profile_table,
                                                    class_salary_growth_table,
                                                    salary_headcount_table,
-                                                   # caution these are globals
-                                                   entry_year_range=entry_year_range_,
-                                                   yos_range=yos_range_,
-                                                   new_year=new_year_,
-                                                   max_age=max_age_)
+                                                   entry_year_range = params$entry_year_range_,
+                                                   yos_range = params$yos_range_,
+                                                   new_year = params$new_year_,
+                                                   max_age = params$max_age_)
   
   ann_factor_table <- get_annuity_factor_table(
     mort_table,
     salary_benefit_table,
-    dr_new, 
-    dr_current,
-    cola_tier_1_active_constant,
-    cola_tier_1_active, 
-    cola_tier_2_active, 
-    cola_tier_3_active)
+    params)
 
   ann_factor_retire_table <- get_annuity_factor_retire_table(
     mort_retire_table,
-    dr_current,
-    one_time_cola,
-    cola_current_retire,
-    cola_current_retire_one,
-    new_year=new_year_ # note GLOBAL
+    params
   )
   
   benefit_table <- get_benefit_table(
     ann_factor_table,
     salary_benefit_table,
     class_name,
-    cal_factor)
+    params$cal_factor_)
 
   dist_age_table <- get_dist_age_table(benefit_table)
   
@@ -436,9 +410,9 @@ get_benefit_data <- function(
     salary_benefit_table,
     final_benefit_table,
     sep_rate_table,
-    dr_current,
-    dr_new,
-    retire_refund_ratio)
+    params$dr_current_,
+    params$dr_new_,
+    params$retire_refund_ratio_)
   
   # next step too small to need its own function
   indv_norm_cost_table <- benefit_val_table %>% 
@@ -452,36 +426,15 @@ get_benefit_data <- function(
     
   # return list of tables ----
   output <- list(
-    ann_factor_table = ann_factor_table,
-    ann_factor_retire_table = ann_factor_retire_table,
-    benefit_table = benefit_table,
-    final_benefit_table = final_benefit_table,
-    benefit_val_table = benefit_val_table,
-    indv_norm_cost_table = indv_norm_cost_table,
-    agg_norm_cost_table = agg_norm_cost_table
+    ann_factor_table         = ann_factor_table,
+    ann_factor_retire_table  = ann_factor_retire_table,
+    benefit_table            = benefit_table,
+    final_benefit_table      = final_benefit_table,
+    benefit_val_table        = benefit_val_table,
+    indv_norm_cost_table     = indv_norm_cost_table,
+    agg_norm_cost_table      = agg_norm_cost_table
     )
   
   return(output)
 }
-
-
-# regular_benefit_data <- get_benefit_data(class_name = "regular")
-# special_benefit_data <- get_benefit_data(class_name = "special")
-# eco_benefit_data <- get_benefit_data(class_name = "eco")
-# eso_benefit_data <- get_benefit_data(class_name = "eso")
-# admin_benefit_data <- get_benefit_data(class_name = "admin")
-# judges_benefit_data <- get_benefit_data(class_name = "judges")
-# senior_management_benefit_data <- get_benefit_data(class_name = "senior management")
-# 
-# 
-# regular_norm_cost_diff <- regular_val_norm_cost / regular_benefit_data$agg_norm_cost_table[[1]]
-# special_norm_cost_diff <- special_val_norm_cost / special_benefit_data$agg_norm_cost_table[[1]]
-# admin_norm_cost_diff <- admin_val_norm_cost / admin_benefit_data$agg_norm_cost_table[[1]]
-# eco_norm_cost_diff <- eco_val_norm_cost / eco_benefit_data$agg_norm_cost_table[[1]]
-# eso_norm_cost_diff <- eso_val_norm_cost / eso_benefit_data$agg_norm_cost_table[[1]]
-# judges_norm_cost_diff <- judges_val_norm_cost / judges_benefit_data$agg_norm_cost_table[[1]]
-# senior_management_norm_cost_diff <- senior_management_val_norm_cost / senior_management_benefit_data$agg_norm_cost_table[[1]]
-
-
-
 

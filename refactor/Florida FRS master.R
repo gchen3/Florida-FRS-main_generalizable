@@ -32,8 +32,7 @@ print("Loading model functions...")
 # replace separate "Florida FRS benefit model.R" into functions and actions
 # source("Florida FRS benefit model.R")
 # source("Florida FRS benefit model_functions.R") # only creates functions - no live code
-print("sourcing Florida FRS benefit model_helper_functions.R...")
-source(here::here("refactor", "Florida FRS benefit model_helper_functions.R")) # only creates functions - no live code
+# print("sourcing Florida FRS benefit model_helper_functions.R...")
 
 print("sourcing Florida FRS benefit model_get_benefit_data_function.R...")
 source(here::here("refactor", "Florida FRS benefit model_get_benefit_data_function.R")) # only creates functions - no live code
@@ -57,6 +56,7 @@ source(here::here("refactor", "Florida FRS funding model_functions.R")) # only c
 
 print("sourcing Florida FRS model parameters.R...")
 # source(here::here("refactor", "FRS_model_parameters.R"))
+
 # ONETIME: save the modparm_data_env to a file
 # modparm_data_env <- new.env()
 # source(here::here("refactor", "FRS_model_parameters.R"), local = modparm_data_env)
@@ -76,11 +76,11 @@ load(here::here("refactor", "working_data", "frs_data_env.RData"))
 list2env(as.list(frs_data_env), envir = .GlobalEnv)
 # rm(frs_data_env)
 
+# create params environment -----------------------------------------------
 
-# create easier-to-see constants
-FIXED_CLASS_NAMES <- init_funding_data$class
-FIXED_CLASS_NAMES_NO_DROP_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("drop", "frs")]
-FIXED_CLASS_NAMES_NO_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("frs")]
+source(here::here("refactor", "create_params_env.R")) 
+params <- get_params(frs_data_env, modparm_data_env)
+ns(params)
 
 
 # create derived data -----------------------------------------------
@@ -88,73 +88,15 @@ FIXED_CLASS_NAMES_NO_FRS <- FIXED_CLASS_NAMES[!FIXED_CLASS_NAMES %in% c("frs")]
 # get initial data derived from raw model data - does NOT require modeling assumptions
 print("sourcing Florida FRS benefit model_actions.R...") 
 # ONETIME: save the benefit_model_data_env to a file
-# benefit_model_data_env <- new.env()
-# source(here::here("refactor", "Florida FRS benefit model_actions.R"), local = benefit_model_data_env)
-# save(benefit_model_data_env, file = here::here("refactor", "working_data", "benefit_model_data_env.RData"))
+benefit_model_data_env <- new.env()
+source(here::here("refactor", "Florida FRS benefit model_actions.R"), local = benefit_model_data_env)
+save(benefit_model_data_env, file = here::here("refactor", "working_data", "benefit_model_data_env.RData"))
 
 # system.time(source(here::here("refactor", "Florida FRS benefit model_actions.R"))) # 21 secs only creates objects - no functions
 load(here::here("refactor", "working_data", "benefit_model_data_env.RData"))
 list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
 # rm(benefit_model_data_env)
 # creates for each class: salary_headcount, entrant_profile, mort, retire_mort, drop entry, retire, early retire, sep rates
-
-
-# create params environment -----------------------------------------------
-
-get_params <- function(frs_data_env, modparm_data_env){
-  
-  frs_names <- ls(envir = frs_data_env) |> sort()
-  frs_underscore <- frs_names[grepl("_$", frs_names)]
-  # setdiff(frs_names, frs_underscore)
-  frs_extras <- c("eco_eso_judges_active_member_adjustment_ratio", "retiree_distribution", "init_funding_data", "return_scenarios")
-  frs_keep <- c(frs_underscore, frs_extras)
-  frs_objects <- mget(frs_keep, envir = frs_data_env)
-  
-  modparm_names <- ls(envir = modparm_data_env) |> sort()
-  modparm_underscore <- modparm_names[grepl("_$", modparm_names)]
-  # setdiff(modparm_names, modparm_underscore) # no names that don't end in non-underscore
-  modparm_keep <- modparm_underscore
-  modparm_objects <- mget(modparm_keep, envir = modparm_data_env)
-  
-  params <- new.env()
-  params_objects <- c(frs_objects, modparm_objects)
-  list2env(params_objects, envir = params) 
-  
-  # it is possible to make the names in params sorted, but work, and it won't
-  # be maintained if we modify params, so I don't do it
-  # create a temporary environment from which we will copy objects, sorted by name
-  # temp_env <- new.env()
-  # list2env(c(frs_objects, modparm_objects), envir = temp_env) 
-  # sorted_names <- ls(envir=temp_env)
-  # 
-  # params <- new.env()
-  # for (name in sorted_names) {
-  #   # use assign rather than list2env so we can control sort order
-  #   assign(name, temp_env[[name]], envir = params)
-  # }
-  return(params)
-}
-
-params <- get_params(frs_data_env, modparm_data_env)
-
-# enhance params
-# create a tibble that has nc_cal_ values for each class
-var_names <- ls(pattern = "_nc_cal_$", envir=params)
-classes <- gsub("_nc_cal_$", "", var_names) # Extract the class prefix
-values <- mget(var_names, envir = params)
-params$nc_cal_ <- tibble(class = classes, nc_cal_ = unlist(values))
-
-# add salary growth_table (NO TRAILING UNDERSCORE) to params!!!
-params$salary_growth_table <- params$salary_growth_table_ %>% 
-  bind_rows(tibble(yos = (max(params$salary_growth_table_$yos)+1):max(yos_range_))) %>% 
-  fill(everything(), .direction = "down") %>% 
-  mutate(across(contains("salary"), ~ cumprod(1 + lag(.x, default = 0)), .names = "cumprod_{.col}"), .keep = "unused")
-
-
-
-
-# ls(envir = params) # sorted
-# params$yos_range_
 
 
 # Prepare data for modeling -----------------------------------------------
@@ -177,6 +119,8 @@ system.time(source(here::here("refactor", "Florida FRS funding model_actions.R")
 print("Done building model...")
 
 ##############################################TESTING############################################
+
+# baseline_funding <- get_funding_data(funding_list, current_amort_layers_table, params=params)
 
 # baseline_funding <- get_funding_data()
 # 

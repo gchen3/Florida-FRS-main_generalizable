@@ -241,35 +241,12 @@ loop_through_arrays <- function(wf_active,
 
 get_wf_data <- function(
     class_name,
-    dr_current,
-    dr_new,
-    cola_tier_1_active,
-    cola_tier_2_active,
-    cola_tier_3_active,
-    cola_current_retire,
-    cola_current_retire_one,
-    one_time_cola,
-    retire_refund_ratio,
-    cal_factor,
-    salary_growth_table
+    params
 ) {
     
   benefit_data <- get_benefit_data(
     class_name,
-    dr_current,
-    dr_new,
-    cola_tier_1_active_constant = cola_tier_1_active_constant_, # djb added this - previously was a default
-    # perhaps use explicit named arguments once we've done in line above?
-    cola_tier_1_active,
-    cola_tier_2_active,
-    cola_tier_3_active,
-    cola_current_retire,
-    cola_current_retire_one,
-    one_time_cola,
-    retire_refund_ratio,
-    cal_factor,
-    # don't need to put params$salary_growth_table here because it was passed to salary_growth_table
-    salary_growth_table 
+    params
   )
   
   # TODO: replace assign statements with formal arguments to get_wf_data
@@ -297,10 +274,10 @@ get_wf_data <- function(
     salary_headcount_table,
     mort_table,
     separation_rate_table,
-    benefit_val_table=benefit_data$benefit_val_table,
-    retire_refund_ratio
+    benefit_val_table = benefit_data$benefit_val_table,
+    retire_refund_ratio = params$retire_refund_ratio_
   )
-  list2env(init_list, envir = environment()) # djb: copy each element of alist into the current environment
+  list2env(init_list, envir = environment()) # djb: copy each element of list into the current environment
   b <- proc.time()
   cat("\ninitialize_arrays user system elapsed: ", b - a)
   

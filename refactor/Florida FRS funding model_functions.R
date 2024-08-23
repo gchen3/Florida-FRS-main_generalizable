@@ -9,9 +9,11 @@
 
 
 get_all_classes_funding_list <- function(init_funding_data,
-                                         class_names=FIXED_CLASS_NAMES){
+                                         class_names,
+                                         model_period,
+                                         start_year){
   
-  funding_list <- lapply(class_names, get_funding_table, init_funding_data)
+  funding_list <- lapply(class_names, get_funding_table, init_funding_data, model_period, start_year)
   names(funding_list) <- class_names
   
   return(funding_list)
@@ -122,11 +124,12 @@ get_current_hire_debt_layer_table <- function(class_name,
 #Create 9 empty data frames from the init_funding_data (representing 7 classes, DROP, and FRS system), then put them in a list to store funding outputs for these entities
 get_funding_table <- function(class_name, 
                               init_funding_data, 
-                              model_period=model_period_) {
+                              model_period,
+                              start_year) {
   funding_table <- init_funding_data %>% 
     filter(class == class_name) %>% 
     select(-class) %>%
-    add_row(year = (start_year_ + 1):(start_year_ + model_period))
+    add_row(year = (start_year + 1):(start_year + model_period))
   
   funding_table[is.na(funding_table)] <- 0
   
@@ -797,8 +800,8 @@ inner_loop6_amortization <- function(i,
 
 main_loop <- function(funding_list,
                       liability_list,
-                      class_names_no_frs=FIXED_CLASS_NAMES_NO_FRS,
-                      class_names_no_drop_frs=FIXED_CLASS_NAMES_NO_DROP_FRS,
+                      class_names_no_frs=params$class_names_no_frs_,
+                      class_names_no_drop_frs=params$class_names_no_drop_frs_,
                       payroll_growth_,
                       amo_pay_growth,
                       dr_current,
@@ -949,33 +952,36 @@ get_funding_data <- function(
     funding_list,
     current_amort_layers_table,
     # globals
-    class_names_no_frs=FIXED_CLASS_NAMES_NO_FRS,
-    class_names_no_drop_frs=FIXED_CLASS_NAMES_NO_DROP_FRS,
-    funding_lag=funding_lag_,
-    model_period=model_period_,
-
-    dr_current = dr_current_,
-    dr_new = dr_new_,
-    cola_tier_1_active_constant = cola_tier_1_active_constant_,
-    cola_tier_1_active = cola_tier_1_active_,
-    cola_tier_2_active = cola_tier_2_active_,
-    cola_tier_3_active = cola_tier_3_active_,
-    cola_current_retire = cola_current_retire_,
-    cola_current_retire_one = cola_current_retire_one_,
-    one_time_cola = one_time_cola_,
-    retire_refund_ratio = retire_refund_ratio_,
-    cal_factor = cal_factor_,
-    #inputs below are for the liability model
-    non_special_db_new_ratio = non_special_db_new_ratio_,
-    special_db_new_ratio = special_db_new_ratio_,
-    #inputs below are for the funding model
-    return_scen = return_scen_,
-    model_return = model_return_,
-    amo_period_new = amo_period_new_,
-    amo_pay_growth = amo_pay_growth_,
-    amo_method = amo_method_,
     params 
 ) {
+  
+  # unpack parameters
+  class_names_no_frs <- params$class_names_no_frs_
+  class_names_no_drop_frs <- params$class_names_no_drop_frs_
+  funding_lag <- params$funding_lag_
+  model_period <- params$model_period_
+  
+  dr_current <- params$dr_current_
+  dr_new <- params$dr_new_
+  cola_tier_1_active_constant <- params$cola_tier_1_active_constant_
+  cola_tier_1_active <- params$cola_tier_1_active_
+  cola_tier_2_active <- params$cola_tier_2_active_
+  cola_tier_3_active <- params$cola_tier_3_active_
+  cola_current_retire <- params$cola_current_retire_
+  cola_current_retire_one <- params$cola_current_retire_one_
+  one_time_cola <- params$one_time_cola_
+  retire_refund_ratio <- params$retire_refund_ratio_
+  cal_factor <- params$cal_factor_
+  #inputs below are for the liability model
+  non_special_db_new_ratio <- params$non_special_db_new_ratio_
+  special_db_new_ratio <- params$special_db_new_ratio_
+  #inputs below are for the funding model
+  return_scen <- params$return_scen_
+  model_return <- params$model_return_
+  amo_period_new <- params$amo_period_new_
+  amo_pay_growth <- params$amo_pay_growth_
+  amo_method <- params$amo_method_
+  
   
   # returns updated funding_list
   

@@ -38,3 +38,16 @@ if (interactive()) {
   browseURL("profile.html")
   
 }
+
+
+profvis({			
+  dat <- data.frame(			
+    x = rnorm(5e4),			
+    y = rnorm(5e4)			
+  )			
+  
+  plot(x ~ y, data = dat)			
+  m <- lm(x ~ y, data = dat)			
+  abline(m, col = "red")			
+})
+
