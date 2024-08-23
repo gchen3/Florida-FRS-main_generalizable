@@ -32,8 +32,7 @@ print("Loading model functions...")
 # replace separate "Florida FRS benefit model.R" into functions and actions
 # source("Florida FRS benefit model.R")
 # source("Florida FRS benefit model_functions.R") # only creates functions - no live code
-print("sourcing Florida FRS benefit model_helper_functions.R...")
-source(here::here("refactor", "Florida FRS benefit model_helper_functions.R")) # only creates functions - no live code
+# print("sourcing Florida FRS benefit model_helper_functions.R...")
 
 print("sourcing Florida FRS benefit model_get_benefit_data_function.R...")
 source(here::here("refactor", "Florida FRS benefit model_get_benefit_data_function.R")) # only creates functions - no live code
@@ -57,6 +56,7 @@ source(here::here("refactor", "Florida FRS funding model_functions.R")) # only c
 
 print("sourcing Florida FRS model parameters.R...")
 # source(here::here("refactor", "FRS_model_parameters.R"))
+
 # ONETIME: save the modparm_data_env to a file
 # modparm_data_env <- new.env()
 # source(here::here("refactor", "FRS_model_parameters.R"), local = modparm_data_env)
@@ -76,6 +76,12 @@ load(here::here("refactor", "working_data", "frs_data_env.RData"))
 list2env(as.list(frs_data_env), envir = .GlobalEnv)
 # rm(frs_data_env)
 
+# create params environment -----------------------------------------------
+
+source(here::here("refactor", "create_params_env.R")) 
+params <- get_params(frs_data_env, modparm_data_env)
+ns(params)
+
 
 # create derived data -----------------------------------------------
 
@@ -91,13 +97,6 @@ load(here::here("refactor", "working_data", "benefit_model_data_env.RData"))
 list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
 # rm(benefit_model_data_env)
 # creates for each class: salary_headcount, entrant_profile, mort, retire_mort, drop entry, retire, early retire, sep rates
-
-
-# create params environment -----------------------------------------------
-
-source(here::here("refactor", "create_params_env.R")) 
-params <- get_params(frs_data_env, modparm_data_env)
-ns(params)
 
 
 # Prepare data for modeling -----------------------------------------------

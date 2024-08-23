@@ -9,6 +9,7 @@
 
 #Joining headcount data, salary data, and salary growth data
 
+source(here::here("refactor", "Florida FRS benefit model_helper_functions.R")) # only creates functions - no live code
 
 #.. call get_salary_headcount_table -----------------------------------------
 
@@ -18,6 +19,7 @@
 #   assign("total_active_member", get("eco_eso_judges_total_active_member_"))
 # }
 
+print("get salary_headcount and entrant_profile tables")
 temp <- get_salary_headcount_table(regular_salary_table_, 
                                    regular_headcount_table_, 
                                    regular_total_active_member_, 
@@ -82,6 +84,8 @@ rm(temp)
 
 # Mortality Assumptions ---------------------------------------------------
 
+print("get mortality tables")
+
 #.. base mortality table -----------------------------------------------
 
 base_general_mort_table <- get_base_mort_table(base_general_mort_table_)
@@ -135,6 +139,8 @@ senior_management_mort_retire_table <- get_mort_retire_table(base_general_mort_t
 
 
 # Separation Assumptions --------------------------------------------------
+
+print("get separation tables")
 
 #.. Clean retirement and drop ----
 

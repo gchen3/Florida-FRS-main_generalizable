@@ -246,9 +246,6 @@ get_wf_data <- function(
     
   benefit_data <- get_benefit_data(
     class_name,
-    params$retire_refund_ratio_,
-    params$cal_factor_,
-    params$salary_growth_table_,
     params
   )
   

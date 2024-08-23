@@ -39,9 +39,6 @@ get_liability_data <- function(
   print(paste0("processing get_benefit_data in liability model for: ", class_name))
   benefit_data <- get_benefit_data(    
     class_name,
-    params$retire_refund_ratio_,
-    params$cal_factor_,
-    params$salary_growth_table_,
     params)
   
   

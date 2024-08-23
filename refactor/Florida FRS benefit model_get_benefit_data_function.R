@@ -367,9 +367,6 @@ get_salary_benefit_table <- function(class_name,
 
 get_benefit_data <- function(
     class_name,
-    retire_refund_ratio,
-    cal_factor,
-    salary_growth_table,
     params
 ) {
   
@@ -381,17 +378,16 @@ get_benefit_data <- function(
   assign("mort_retire_table", get(paste0(class_name, "_mort_retire_table")))
   assign("sep_rate_table", get(paste0(class_name, "_separation_rate_table")))
 
-  class_salary_growth_table <- get_class_salary_growth_table(salary_growth_table, class_name)
+  class_salary_growth_table <- get_class_salary_growth_table(params$salary_growth_table_, class_name)
   
   salary_benefit_table <- get_salary_benefit_table(class_name,
                                                    entrant_profile_table,
                                                    class_salary_growth_table,
                                                    salary_headcount_table,
-                                                   # caution these are globals
-                                                   entry_year_range = entry_year_range_,
-                                                   yos_range = yos_range_,
-                                                   new_year = new_year_,
-                                                   max_age = max_age_)
+                                                   entry_year_range = params$entry_year_range_,
+                                                   yos_range = params$yos_range_,
+                                                   new_year = params$new_year_,
+                                                   max_age = params$max_age_)
   
   ann_factor_table <- get_annuity_factor_table(
     mort_table,
@@ -409,14 +405,14 @@ get_benefit_data <- function(
     params$one_time_cola_,
     params$cola_current_retire_,
     params$cola_current_retire_one_,
-    new_year=new_year_ # note GLOBAL
+    params$new_year_
   )
   
   benefit_table <- get_benefit_table(
     ann_factor_table,
     salary_benefit_table,
     class_name,
-    cal_factor)
+    params$cal_factor_)
 
   dist_age_table <- get_dist_age_table(benefit_table)
   
@@ -430,7 +426,7 @@ get_benefit_data <- function(
     sep_rate_table,
     params$dr_current_,
     params$dr_new_,
-    retire_refund_ratio)
+    params$retire_refund_ratio_)
   
   # next step too small to need its own function
   indv_norm_cost_table <- benefit_val_table %>% 
@@ -444,36 +440,15 @@ get_benefit_data <- function(
     
   # return list of tables ----
   output <- list(
-    ann_factor_table = ann_factor_table,
-    ann_factor_retire_table = ann_factor_retire_table,
-    benefit_table = benefit_table,
-    final_benefit_table = final_benefit_table,
-    benefit_val_table = benefit_val_table,
-    indv_norm_cost_table = indv_norm_cost_table,
-    agg_norm_cost_table = agg_norm_cost_table
+    ann_factor_table         = ann_factor_table,
+    ann_factor_retire_table  = ann_factor_retire_table,
+    benefit_table            = benefit_table,
+    final_benefit_table      = final_benefit_table,
+    benefit_val_table        = benefit_val_table,
+    indv_norm_cost_table     = indv_norm_cost_table,
+    agg_norm_cost_table      = agg_norm_cost_table
     )
   
   return(output)
 }
-
-
-# regular_benefit_data <- get_benefit_data(class_name = "regular")
-# special_benefit_data <- get_benefit_data(class_name = "special")
-# eco_benefit_data <- get_benefit_data(class_name = "eco")
-# eso_benefit_data <- get_benefit_data(class_name = "eso")
-# admin_benefit_data <- get_benefit_data(class_name = "admin")
-# judges_benefit_data <- get_benefit_data(class_name = "judges")
-# senior_management_benefit_data <- get_benefit_data(class_name = "senior management")
-# 
-# 
-# regular_norm_cost_diff <- regular_val_norm_cost / regular_benefit_data$agg_norm_cost_table[[1]]
-# special_norm_cost_diff <- special_val_norm_cost / special_benefit_data$agg_norm_cost_table[[1]]
-# admin_norm_cost_diff <- admin_val_norm_cost / admin_benefit_data$agg_norm_cost_table[[1]]
-# eco_norm_cost_diff <- eco_val_norm_cost / eco_benefit_data$agg_norm_cost_table[[1]]
-# eso_norm_cost_diff <- eso_val_norm_cost / eso_benefit_data$agg_norm_cost_table[[1]]
-# judges_norm_cost_diff <- judges_val_norm_cost / judges_benefit_data$agg_norm_cost_table[[1]]
-# senior_management_norm_cost_diff <- senior_management_val_norm_cost / senior_management_benefit_data$agg_norm_cost_table[[1]]
-
-
-
 
