@@ -42,8 +42,14 @@ purrr::walk(objnames, f)
 
 old_object <- get(objname, envir = oldws)
 new_object <- get(objname, envir = .GlobalEnv)
-new_object2
+new_object2 <- get(objname, envir = newws)
 
 
 old_object
 new_object
+new_object2
+
+new_object - old_object
+new_object2 - old_object
+
+params$return_scenarios
