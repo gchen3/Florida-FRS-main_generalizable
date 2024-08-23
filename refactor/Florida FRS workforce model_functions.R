@@ -259,14 +259,14 @@ get_wf_data <- function(
     class_name,
     params$dr_current_,
     params$dr_new_,
-    cola_tier_1_active_constant = cola_tier_1_active_constant_, # djb added this - previously was a default
+    cola_tier_1_active_constant = params$cola_tier_1_active_constant_, # djb added this - previously was a default
     # perhaps use explicit named arguments once we've done in line above?
-    cola_tier_1_active,
-    cola_tier_2_active,
-    cola_tier_3_active,
-    cola_current_retire,
-    cola_current_retire_one,
-    one_time_cola,
+    params$cola_tier_1_active_,
+    params$cola_tier_2_active_,
+    params$cola_tier_3_active_,
+    params$cola_current_retire_,
+    params$cola_current_retire_one_,
+    params$one_time_cola_,
     retire_refund_ratio,
     cal_factor,
     # don't need to put params$salary_growth_table here because it was passed to salary_growth_table
