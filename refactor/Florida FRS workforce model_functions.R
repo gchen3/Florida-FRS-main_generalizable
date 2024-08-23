@@ -241,9 +241,6 @@ loop_through_arrays <- function(wf_active,
 
 get_wf_data <- function(
     class_name,
-    retire_refund_ratio,
-    cal_factor,
-    salary_growth_table,
     params
 ) {
     
@@ -259,10 +256,9 @@ get_wf_data <- function(
     params$cola_current_retire_,
     params$cola_current_retire_one_,
     params$one_time_cola_,
-    retire_refund_ratio,
-    cal_factor,
-    # don't need to put params$salary_growth_table here because it was passed to salary_growth_table
-    salary_growth_table 
+    params$retire_refund_ratio_,
+    params$cal_factor_,
+    params$salary_growth_table_ 
   )
   
   # TODO: replace assign statements with formal arguments to get_wf_data
@@ -290,10 +286,10 @@ get_wf_data <- function(
     salary_headcount_table,
     mort_table,
     separation_rate_table,
-    benefit_val_table=benefit_data$benefit_val_table,
-    retire_refund_ratio
+    benefit_val_table = benefit_data$benefit_val_table,
+    retire_refund_ratio = params$retire_refund_ratio_
   )
-  list2env(init_list, envir = environment()) # djb: copy each element of alist into the current environment
+  list2env(init_list, envir = environment()) # djb: copy each element of list into the current environment
   b <- proc.time()
   cat("\ninitialize_arrays user system elapsed: ", b - a)
   
