@@ -378,7 +378,8 @@ get_benefit_data <- function(
     one_time_cola,
     retire_refund_ratio,
     cal_factor,
-    salary_growth_table
+    salary_growth_table,
+    params
 ) {
   
   class_name <- str_replace(class_name, " ", "_")
