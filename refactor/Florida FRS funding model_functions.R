@@ -396,6 +396,7 @@ inner_loop2_funding <- function(i,
                                 return_scen_index,
                                 params){
   # DANGER, TEMPORARY: not passing variables. will modify them and return
+  # looks like this should have return_scenarios passed to it
   
   for (class in params$class_names_no_frs_) {
     
@@ -797,9 +798,6 @@ inner_loop6_amortization <- function(i,
 main_loop <- function(funding_list,
                       liability_list,
                       payroll_growth_,
-                      amo_pay_growth,
-                      dr_current,
-                      dr_new,
                       return_scen_index,
                       current_hire_amo_payment_list,
                       future_hire_amo_payment_list,
@@ -900,8 +898,8 @@ main_loop <- function(funding_list,
                                        current_hire_amo_payment_list,
                                        future_hire_amo_payment_list,
                                        amo_pay_growth,
-                                       params) #
-    
+                                       params)
+
     # djb maybe these next 4 lists need to be returned as a second list??
     current_hire_debt_layer_list <- result$current_hire_debt_layer_list
     future_hire_debt_layer_list <- result$future_hire_debt_layer_list
@@ -920,14 +918,17 @@ main_loop <- function(funding_list,
 ################### Model function starts here ####################
 # dr_current = dr_current_
 # dr_new = dr_new_
+
 # cola_tier_1_active = cola_tier_1_active_
 # cola_tier_2_active = cola_tier_2_active_
 # cola_tier_3_active = cola_tier_3_active_
 # cola_current_retire = cola_current_retire_
 # cola_current_retire_one = cola_current_retire_one_
 # one_time_cola = one_time_cola_
+
 # retire_refund_ratio = retire_refund_ratio_
 # cal_factor = cal_factor_
+
 # #inputs below are for the liability model
 # non_special_db_new_ratio = non_special_db_new_ratio_
 # special_db_new_ratio = special_db_new_ratio_
@@ -949,8 +950,9 @@ get_funding_data <- function(
   funding_lag <- params$funding_lag_
   model_period <- params$model_period_
   
-  dr_current <- params$dr_current_
-  dr_new <- params$dr_new_
+  # dr_current <- params$dr_current_
+  # dr_new <- params$dr_new_
+  
   cola_tier_1_active_constant <- params$cola_tier_1_active_constant_
   cola_tier_1_active <- params$cola_tier_1_active_
   cola_tier_2_active <- params$cola_tier_2_active_
@@ -958,25 +960,21 @@ get_funding_data <- function(
   cola_current_retire <- params$cola_current_retire_
   cola_current_retire_one <- params$cola_current_retire_one_
   one_time_cola <- params$one_time_cola_
-  retire_refund_ratio <- params$retire_refund_ratio_
-  cal_factor <- params$cal_factor_
+  
+  # retire_refund_ratio <- params$retire_refund_ratio_
+  # cal_factor <- params$cal_factor_
+  
   #inputs below are for the liability model
   non_special_db_new_ratio <- params$non_special_db_new_ratio_
   special_db_new_ratio <- params$special_db_new_ratio_
+  
   #inputs below are for the funding model
-  return_scen <- params$return_scen_
-  model_return <- params$model_return_
   amo_period_new <- params$amo_period_new_
-  amo_pay_growth <- params$amo_pay_growth_
-  amo_method <- params$amo_method_
   
   
   # returns updated funding_list
   
-  #Level % or level $ for debt amortization 
-  # create LOCAL variable amo_pay_growth - I moved this up from below
-  amo_pay_growth <- ifelse(params$amo_method_ == "level $", 0, params$amo_pay_growth_)
-  
+
   # unpack funding_list into a stacked tibble
   funding_list_stacked <- bind_rows(funding_list, .id = "class")
   
@@ -1075,8 +1073,15 @@ get_funding_data <- function(
   # Each has 8 elements (1 per class excl. frs), each element is a matrix 31 years x 21 columns
   # current_hire_amo_period_list$regular
   
+  # djb Determine amo payment parameters BEFORE calling routines related to amo_payment ----
+  
   #Determine the number of columns for the amo period tables
   amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + funding_lag_)  
+  
+  #Level % or level $ for debt amortization 
+  # create LOCAL variable amo_pay_growth - I moved this up from below
+  amo_pay_growth <- ifelse(params$amo_method_ == "level $", 0, params$amo_pay_growth_)
+  
   
   current_hire_amo_period_list <- purrr::set_names(params$class_names_no_frs_) |> 
                                   # returns a list of 8 matrices, 31 x 21 (nyears x amo_col_num)
@@ -1161,22 +1166,20 @@ get_funding_data <- function(
   
   #Set return values for "model" and "assumption" scenarios
   #Set 2023 returns and update "model" and "assumption" scenarios
+  # djb CAUTION does this need to be in funding model?? ----
   return_scenarios <- params$return_scenarios |> 
     mutate(across(-year, \(x) ifelse(year==2023, params$return_2023_, x)),
-           model=ifelse(year > 2023, model_return, model),
-           assumption=ifelse(year > 2023, dr_current, assumption))    
+           model=ifelse(year > 2023, params$model_return_, model),
+           assumption=ifelse(year > 2023, params$dr_current_, assumption))    
   
   #Return scenario
   # return_scen <- "recur_recession"
-  return_scen_index <- which(colnames(return_scenarios) == return_scen)
+  return_scen_index <- which(colnames(return_scenarios) == params$return_scen_)
   
 
   funding_list <- main_loop(funding_list = funding_list,
                             liability_list = liability_list,
-                            payroll_growth_ = payroll_growth_,
-                            amo_pay_growth = amo_pay_growth,
-                            dr_current = dr_current,
-                            dr_new = dr_new,
+                            payroll_growth_ = params$payroll_growth_,
                             return_scen_index = return_scen_index,
                             current_hire_amo_payment_list = current_hire_amo_payment_list,
                             future_hire_amo_payment_list = future_hire_amo_payment_list,
