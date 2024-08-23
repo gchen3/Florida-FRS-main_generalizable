@@ -9,6 +9,9 @@ oldpath <- here::here("refactor", "reason_results", "reason_workspace.RData")
 load(oldpath, oldws <- new.env())
 
 objname <- "regular_wf_data"
+objname <- "funding_list"
+objname <- "current_amort_layers_table"
+
 
 f <- function(objname){
   test_that(paste0("Compare ", objname), {

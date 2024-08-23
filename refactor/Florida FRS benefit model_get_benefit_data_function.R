@@ -367,13 +367,6 @@ get_salary_benefit_table <- function(class_name,
 
 get_benefit_data <- function(
     class_name,
-    cola_tier_1_active_constant,
-    cola_tier_1_active,
-    cola_tier_2_active,
-    cola_tier_3_active,
-    cola_current_retire,
-    cola_current_retire_one,
-    one_time_cola,
     retire_refund_ratio,
     cal_factor,
     salary_growth_table,
@@ -405,17 +398,17 @@ get_benefit_data <- function(
     salary_benefit_table,
     params$dr_new_, 
     params$dr_current_,
-    cola_tier_1_active_constant,
-    cola_tier_1_active, 
-    cola_tier_2_active, 
-    cola_tier_3_active)
+    params$cola_tier_1_active_constant_,
+    params$cola_tier_1_active_, 
+    params$cola_tier_2_active_, 
+    params$cola_tier_3_active_)
 
   ann_factor_retire_table <- get_annuity_factor_retire_table(
     mort_retire_table,
     params$dr_current_,
-    one_time_cola,
-    cola_current_retire,
-    cola_current_retire_one,
+    params$one_time_cola_,
+    params$cola_current_retire_,
+    params$cola_current_retire_one_,
     new_year=new_year_ # note GLOBAL
   )
   
