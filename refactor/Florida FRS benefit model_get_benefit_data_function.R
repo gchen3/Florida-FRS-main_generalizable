@@ -36,7 +36,8 @@ get_annuity_factor_retire_table <- function(
     one_time_cola,
     cola_current_retire,
     cola_current_retire_one,
-    new_year) {
+    new_year,
+    params) {
   
   #Survival Probability and Annuity Factor for current retirees
   ann_factor_retire_table <- mort_retire_table %>% 
