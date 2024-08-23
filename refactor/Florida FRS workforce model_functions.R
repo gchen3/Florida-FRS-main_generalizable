@@ -20,13 +20,20 @@ initialize_arrays <- function(
                            age = age_range, 
                            year = year_range)
   
-  term_dim <- c(length(entry_age_range), length(age_range), length(year_range), length(term_year_range))
+  term_dim <- c(length(entry_age_range), 
+                length(age_range), 
+                length(year_range), 
+                length(term_year_range))
   term_dim_names <- list(entry_age = entry_age_range, 
                          age = age_range, 
                          year = year_range, 
                          term_year = term_year_range)
   
-  retire_dim <- c(length(entry_age_range), length(age_range), length(year_range), length(term_year_range), length(retire_year_range))
+  retire_dim <- c(length(entry_age_range), 
+                  length(age_range), 
+                  length(year_range), 
+                  length(term_year_range), 
+                  length(retire_year_range))
   retire_dim_names <- list(entry_age = entry_age_range,
                            age = age_range, 
                            year = year_range, 
@@ -243,6 +250,7 @@ get_wf_data <- function(
     class_name,
     params
 ) {
+  print(paste0("preparing wf_data for class: ", class_name))
     
   benefit_data <- get_benefit_data(
     class_name,
@@ -258,10 +266,13 @@ get_wf_data <- function(
   
   # Get age, entry_age, year, term_year, and retire_year ranges needed for array initialization ----
   entry_age_range <- entrant_profile_table$entry_age # djb: note that there are gaps in these ages
-  age_range <- min(entry_age_range):max(age_range_)
-  year_range <- start_year_:(start_year_ + model_period_)   #test now, fix this later
-  term_year_range <- year_range
+  year_range <- params$start_year_:(params$start_year_ + params$model_period_)   #test now, fix this later
+  
+  # local variables using ranges calculated above
+  age_range <- min(entry_age_range):max(params$age_range_)
   retire_year_range <- year_range
+  term_year_range <- year_range
+
   
   # Initialize empty workforce projection arrays ----
   a <- proc.time()
@@ -295,7 +306,7 @@ get_wf_data <- function(
     entry_age_range,
     year_range,
     entrant_profile_table,
-    pop_growth=pop_growth_)  # djb: !!GLOBAL!!
+    pop_growth=params$pop_growth_)
   b <- proc.time()
   cat("\nloop_through_arrays user system elapsed: ", b - a)
     
@@ -310,13 +321,15 @@ get_wf_data <- function(
   wf_term_df <- data.frame(expand.grid(entry_age = entry_age_range, 
                                        age = age_range, 
                                        year = year_range, 
-                                       term_year = term_year_range), n_term = as.vector(wf_term)) %>% 
+                                       term_year = term_year_range), 
+                           n_term = as.vector(wf_term)) %>% 
     filter(age >= entry_age, year >= term_year)
   
   wf_refund_df <- data.frame(expand.grid(entry_age = entry_age_range, 
                                          age = age_range, 
                                          year = year_range, 
-                                         term_year = term_year_range), n_refund = as.vector(wf_refund)) %>% 
+                                         term_year = term_year_range),
+                             n_refund = as.vector(wf_refund)) %>% 
     filter(age >= entry_age, year >= term_year)
   
   
@@ -328,9 +341,13 @@ get_wf_data <- function(
   
   for (i in seq_along(entrant_profile_table$entry_age)) {
     wf_retire_name <- paste0("wf_retire_", entrant_profile_table$entry_age[i])
+    
     assign(wf_retire_name, wf_retire[i,,,,])
-    wf_retire_i <- data.table(CJ(retire_year = retire_year_range, term_year = term_year_range, year = year_range, age = age_range), n_retire = as.vector(get(wf_retire_name)))[n_retire > 0,] %>% 
+    
+    wf_retire_i <- data.table(CJ(retire_year = retire_year_range, term_year = term_year_range, year = year_range, age = age_range), 
+                              n_retire = as.vector(get(wf_retire_name)))[n_retire > 0,] %>% 
       mutate(entry_age = entrant_profile_table$entry_age[i])
+    
     assign(wf_retire_name, wf_retire_i)   #do this to save memory space
     wf_retire_list <- append(wf_retire_list, list(get(wf_retire_name)))
   }
