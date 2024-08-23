@@ -258,7 +258,8 @@ get_wf_data <- function(
     params$one_time_cola_,
     params$retire_refund_ratio_,
     params$cal_factor_,
-    params$salary_growth_table_ 
+    params$salary_growth_table_,
+    params
   )
   
   # TODO: replace assign statements with formal arguments to get_wf_data
