@@ -94,10 +94,10 @@ get_annuity_factor_table <- function(
 }
 
 
-get_benefit_table <- function(ann_factor_table, 
+get_benefit_table <- function(class_name,
+                              ann_factor_table, 
                               salary_benefit_table,
-                              class_name,
-                              cal_factor){
+                              params){
   benefit_table <- ann_factor_table %>%
     mutate(
       term_age = entry_age + yos, .before = term_year,
@@ -207,7 +207,7 @@ get_benefit_table <- function(ann_factor_table,
       db_benefit = yos * ben_mult * fas * reduce_factor,
       
       #cal_factor is a calibration factor added to match the normal cost from the val report
-      db_benefit = db_benefit * cal_factor,
+      db_benefit = db_benefit * params$cal_factor_,
       
       #calculate the annuity factor at termination day
       ann_factor_term = ann_factor * cum_mort_dr,
@@ -395,10 +395,10 @@ get_benefit_data <- function(
   )
   
   benefit_table <- get_benefit_table(
+    class_name,
     ann_factor_table,
     salary_benefit_table,
-    class_name,
-    params$cal_factor_)
+    params)
 
   dist_age_table <- get_dist_age_table(benefit_table)
   
