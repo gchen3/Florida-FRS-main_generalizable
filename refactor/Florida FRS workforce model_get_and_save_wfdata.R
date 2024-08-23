@@ -10,7 +10,8 @@ get_wf_data(class_name = "regular",
             one_time_cola = one_time_cola_,
             retire_refund_ratio = retire_refund_ratio_,
             cal_factor = cal_factor_,
-            salary_growth_table=salary_growth_table)
+            salary_growth_table=salary_growth_table,
+            params = params)
 
 get_wf_data(class_name = "special", 
             dr_current = dr_current_,
@@ -23,7 +24,8 @@ get_wf_data(class_name = "special",
             one_time_cola = one_time_cola_,
             retire_refund_ratio = retire_refund_ratio_,
             cal_factor = cal_factor_,
-            salary_growth_table=salary_growth_table)
+            salary_growth_table=salary_growth_table,
+            params = params)
 
 get_wf_data(class_name = "admin", 
             dr_current = dr_current_,
@@ -36,7 +38,8 @@ get_wf_data(class_name = "admin",
             one_time_cola = one_time_cola_,
             retire_refund_ratio = retire_refund_ratio_,
             cal_factor = cal_factor_,
-            salary_growth_table=salary_growth_table)
+            salary_growth_table=salary_growth_table,
+            params = params)
 
 get_wf_data(class_name = "eco", 
             dr_current = dr_current_,
@@ -49,7 +52,8 @@ get_wf_data(class_name = "eco",
             one_time_cola = one_time_cola_,
             retire_refund_ratio = retire_refund_ratio_,
             cal_factor = cal_factor_,
-            salary_growth_table=salary_growth_table)
+            salary_growth_table=salary_growth_table,
+            params = params)
 
 get_wf_data(class_name = "eso", 
             dr_current = dr_current_,
@@ -62,7 +66,8 @@ get_wf_data(class_name = "eso",
             one_time_cola = one_time_cola_,
             retire_refund_ratio = retire_refund_ratio_,
             cal_factor = cal_factor_,
-            salary_growth_table=salary_growth_table)
+            salary_growth_table=salary_growth_table,
+            params = params)
 
 get_wf_data(class_name = "judges", 
             dr_current = dr_current_,
@@ -75,7 +80,8 @@ get_wf_data(class_name = "judges",
             one_time_cola = one_time_cola_,
             retire_refund_ratio = retire_refund_ratio_,
             cal_factor = cal_factor_,
-            salary_growth_table=salary_growth_table)
+            salary_growth_table=salary_growth_table,
+            params = params)
 
 get_wf_data(class_name = "senior management", 
             dr_current = dr_current_,
@@ -88,6 +94,7 @@ get_wf_data(class_name = "senior management",
             one_time_cola = one_time_cola_,
             retire_refund_ratio = retire_refund_ratio_,
             cal_factor = cal_factor_,
-            salary_growth_table=salary_growth_table)
+            salary_growth_table=salary_growth_table,
+            params = params)
 
 

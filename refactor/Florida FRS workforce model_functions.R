@@ -251,7 +251,8 @@ get_wf_data <- function(
     one_time_cola,
     retire_refund_ratio,
     cal_factor,
-    salary_growth_table
+    salary_growth_table,
+    params
 ) {
     
   benefit_data <- get_benefit_data(
