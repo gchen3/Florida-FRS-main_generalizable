@@ -367,8 +367,6 @@ get_salary_benefit_table <- function(class_name,
 
 get_benefit_data <- function(
     class_name,
-    dr_current,
-    dr_new,
     cola_tier_1_active_constant,
     cola_tier_1_active,
     cola_tier_2_active,
@@ -397,16 +395,16 @@ get_benefit_data <- function(
                                                    class_salary_growth_table,
                                                    salary_headcount_table,
                                                    # caution these are globals
-                                                   entry_year_range=entry_year_range_,
-                                                   yos_range=yos_range_,
-                                                   new_year=new_year_,
-                                                   max_age=max_age_)
+                                                   entry_year_range = entry_year_range_,
+                                                   yos_range = yos_range_,
+                                                   new_year = new_year_,
+                                                   max_age = max_age_)
   
   ann_factor_table <- get_annuity_factor_table(
     mort_table,
     salary_benefit_table,
-    dr_new, 
-    dr_current,
+    params$dr_new_, 
+    params$dr_current_,
     cola_tier_1_active_constant,
     cola_tier_1_active, 
     cola_tier_2_active, 
@@ -414,7 +412,7 @@ get_benefit_data <- function(
 
   ann_factor_retire_table <- get_annuity_factor_retire_table(
     mort_retire_table,
-    dr_current,
+    params$dr_current_,
     one_time_cola,
     cola_current_retire,
     cola_current_retire_one,
@@ -437,8 +435,8 @@ get_benefit_data <- function(
     salary_benefit_table,
     final_benefit_table,
     sep_rate_table,
-    dr_current,
-    dr_new,
+    params$dr_current_,
+    params$dr_new_,
     retire_refund_ratio)
   
   # next step too small to need its own function

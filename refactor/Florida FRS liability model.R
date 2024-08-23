@@ -39,8 +39,6 @@ get_liability_data <- function(
   print(paste0("processing get_benefit_data in liability model for: ", class_name))
   benefit_data <- get_benefit_data(    
     class_name,
-    params$dr_current_,
-    params$dr_new_,
     params$cola_tier_1_active_constant_,
     params$cola_tier_1_active_,
     params$cola_tier_2_active_,

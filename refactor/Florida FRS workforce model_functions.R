@@ -246,8 +246,6 @@ get_wf_data <- function(
     
   benefit_data <- get_benefit_data(
     class_name,
-    params$dr_current_,
-    params$dr_new_,
     cola_tier_1_active_constant = params$cola_tier_1_active_constant_, # djb added this - previously was a default
     # perhaps use explicit named arguments once we've done in line above?
     params$cola_tier_1_active_,
