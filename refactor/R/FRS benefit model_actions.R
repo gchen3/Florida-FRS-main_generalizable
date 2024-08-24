@@ -61,9 +61,9 @@ print("get mortality tables")
 
 #.. base mortality table -----------------------------------------------
 
-base_general_mort_table <- get_base_mort_table(base_general_mort_table_)
-base_teacher_mort_table <- get_base_mort_table(base_teacher_mort_table_)
-base_safety_mort_table <- get_base_mort_table(base_safety_mort_table_)
+base_general_mort_table <- get_base_mort_table(params$base_general_mort_table_)
+base_teacher_mort_table <- get_base_mort_table(params$base_teacher_mort_table_)
+base_safety_mort_table <- get_base_mort_table(params$base_safety_mort_table_)
 
 #Create this mort table for regular employees who are either teachers or general employees
 base_regular_mort_table <- (base_general_mort_table + base_teacher_mort_table)/2
