@@ -33,6 +33,8 @@ get_funding_df <- function(wf_active_df_final,
                            wf_retire_current_final,
                            wf_term_current,
                            params)
+  
+  ##### Funding model - liability side
   {
   funding_df <- wf_active_df_final %>% 
     left_join(wf_term_df_final) %>% 
@@ -130,7 +132,7 @@ get_ratios <- function(class_name,
 }
 
 
-get_wf_active_df <- function(wf_active_df,
+get_wf_active_df_final <- function(wf_active_df,
                              benefit_val_table,
                              ratios,
                              params){
@@ -198,6 +200,52 @@ get_wf_active_df <- function(wf_active_df,
 }
 
 
+get_wf_term_df_final <- function(
+    wf_term_df,
+    benefit_val_table,
+    benefit_table,
+    ratios,
+    params
+) {
+  #Term table
+  wf_term_df_final <- wf_term_df %>% 
+    filter(year <= params$start_year_ + params$model_period_,
+           n_term > 0) %>% 
+    mutate(entry_year = year - (age - entry_age)) %>% 
+    #join benefit_val_table to get PV_DB_Benefit (the present value of benefits at termination)
+    left_join(benefit_val_table, by = c("entry_age", "term_year", "entry_year")) %>% 
+    select(entry_age, age, year, term_year, entry_year, dist_age, n_term, pvfb_db_at_term_age) %>% 
+    #join benefit_table to get the surv_DR at current age
+    left_join(benefit_table %>% 
+                select(-pvfb_db_at_term_age), 
+              by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year", "entry_year")) %>% 
+    select(entry_age, age, year, term_year, entry_year, dist_age, n_term, pvfb_db_at_term_age, cum_mort_dr) %>% 
+    #rename to clarify variables' meanings
+    rename(cum_mort_dr_current = cum_mort_dr) %>% 
+    mutate(
+      #pvfb_db_term = First DB benefit * annuity factor at retirement * surv_DR at retirement / surv_DR at current time
+      #Note that pvfb_db_at_term_ag = First DB benefit * annuity factor at retirement * surv_DR at retirement
+      pvfb_db_term = pvfb_db_at_term_age / cum_mort_dr_current,
+      
+      n_term_db_legacy = if_else(entry_year < 2018, 
+                                 n_term * ratios$db_legacy_before_2018_ratio,
+                                 if_else(entry_year < params$new_year_,
+                                         n_term * ratios$db_legacy_after_2018_ratio, 
+                                         0)),
+      n_term_db_new = if_else(entry_year < params$new_year_, 
+                              0, 
+                              n_term * ratios$db_new_ratio)
+    ) %>% 
+    group_by(year) %>% 
+    summarise(aal_term_db_legacy_est = sum(pvfb_db_term * n_term_db_legacy),
+              aal_term_db_new_est = sum(pvfb_db_term * n_term_db_new)
+    ) %>% 
+    ungroup()
+  
+  return(wf_term_df_final)
+}
+
+
 
 
 # main function -----------------------------------------------------------
@@ -233,51 +281,21 @@ get_liability_data <- function(
   ratios <- get_ratios(class_name,
                        params)
   
-  wf_active_df_final <- get_wf_active_df(
+  wf_active_df_final <- get_wf_active_df_final(
     wf_active_df,
     benefit_val_table,
     ratios,
     params
   )
   
-
-
+  wf_term_df_final <- get_wf_term_df_final(
+    wf_term_df,
+    benefit_val_table,
+    benefit_table,
+    ratios,
+    params
+  )  
   
-  
-  #Term table
-  wf_term_df_final <- wf_term_df %>% 
-    filter(year <= params$start_year_ + params$model_period_,
-           n_term > 0) %>% 
-    mutate(entry_year = year - (age - entry_age)) %>% 
-    #join benefit_val_table to get PV_DB_Benefit (the present value of benefits at termination)
-    left_join(benefit_val_table, by = c("entry_age", "term_year", "entry_year")) %>% 
-    select(entry_age, age, year, term_year, entry_year, dist_age, n_term, pvfb_db_at_term_age) %>% 
-    #join benefit_table to get the surv_DR at current age
-    left_join(benefit_table %>% 
-                select(-pvfb_db_at_term_age), 
-              by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year", "entry_year")) %>% 
-    select(entry_age, age, year, term_year, entry_year, dist_age, n_term, pvfb_db_at_term_age, cum_mort_dr) %>% 
-    #rename to clarify variables' meanings
-    rename(cum_mort_dr_current = cum_mort_dr) %>% 
-    mutate(
-      #pvfb_db_term = First DB benefit * annuity factor at retirement * surv_DR at retirement / surv_DR at current time
-      #Note that pvfb_db_at_term_ag = First DB benefit * annuity factor at retirement * surv_DR at retirement
-      pvfb_db_term = pvfb_db_at_term_age / cum_mort_dr_current,
-      
-      n_term_db_legacy = if_else(entry_year < 2018, 
-                                 n_term * ratios$db_legacy_before_2018_ratio,
-                                 if_else(entry_year < params$new_year_,
-                                         n_term * ratios$db_legacy_after_2018_ratio, 
-                                         0)),
-      n_term_db_new = if_else(entry_year < params$new_year_, 
-                              0, 
-                              n_term * ratios$db_new_ratio)
-    ) %>% 
-    group_by(year) %>% 
-    summarise(aal_term_db_legacy_est = sum(pvfb_db_term * n_term_db_legacy),
-              aal_term_db_new_est = sum(pvfb_db_term * n_term_db_new)
-    ) %>% 
-    ungroup()
   
   
   
@@ -393,7 +411,7 @@ get_liability_data <- function(
                                           pmt_vec = retire_ben_term_est))
   
   
-  ##### Funding model - liability side ----
+  
 
   
   funding_df <- get_funding_df(wf_active_df_final,
