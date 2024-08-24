@@ -38,16 +38,10 @@ print("Loading model functions...")
 # source(fs::path(rdir, "utility_functions.R")) # only creates functions - no live code
 
 #Get benefit model
-# replace separate "FRS benefit model.R" into functions and actions
-# source("FRS benefit model.R")
-# source("FRS benefit model_functions.R") # only creates functions - no live code
-# print("sourcing FRS benefit model_helper_functions.R...")
-
 print("sourcing FRS benefit model_get_benefit_data_function.R...")
 source(fs::path(rdir, "FRS benefit model_get_benefit_data_function.R")) # only creates functions - no live code
 
 # Get workforce model
-# source("FRS workforce model.R") # only creates function - no live code
 print("sourcing FRS workforce model_functions....")
 source(fs::path(rdir, "FRS workforce model_functions.R")) # only creates function - no live code
 
@@ -56,7 +50,6 @@ print("sourcing FRS liability model.R...")
 source(fs::path(rdir, "FRS liability model.R")) # only creates function - no live code
 
 #Get funding model
-# source("FRS funding model.R")
 print("sourcing FRS funding model_functions.R...")
 source(fs::path(rdir, "FRS funding model_functions.R")) # only creates function - no live code
 
@@ -67,7 +60,7 @@ print("sourcing FRS model parameters.R...")
 # source(fs::path(rdir, "FRS_model_parameters.R"))
 
 # ONETIME: save the modparm_data_env to a file
-# modparm_data_env <- new.env()
+modparm_data_env <- new.env()
 # source(fs::path(rdir, "FRS_model_parameters.R"), local = modparm_data_env)
 # save(modparm_data_env, file = fs::path(wddir, "modparm_data_env.RData"))
 # ls(envir = modparm_data_env)
@@ -97,11 +90,10 @@ ns(params)
 # get initial data derived from raw model data - does NOT require modeling assumptions
 print("sourcing FRS benefit model_actions.R...") 
 # ONETIME: save the benefit_model_data_env to a file
-benefit_model_data_env <- new.env()
-source(fs::path(rdir, "FRS benefit model_actions.R"), local = benefit_model_data_env)
-save(benefit_model_data_env, file = fs::path(wddir, "benefit_model_data_env.RData"))
+# benefit_model_data_env <- new.env()
+# source(fs::path(rdir, "FRS benefit model_actions.R"), local = benefit_model_data_env)
+# save(benefit_model_data_env, file = fs::path(wddir, "benefit_model_data_env.RData"))
 
-# system.time(source(fs::path(rdir, "FRS benefit model_actions.R"))) # 21 secs only creates objects - no functions
 load(fs::path(wddir, "benefit_model_data_env.RData"))
 list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
 # rm(benefit_model_data_env)
