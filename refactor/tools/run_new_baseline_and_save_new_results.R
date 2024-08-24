@@ -4,7 +4,7 @@
 # MANUALLY RESET AND CLEAR ENVIRONMENT WITH Ctrl-Shift-F10 !!!!!  
 # Then source this file (or run line by line)
 
-system.time(source(here::here("refactor", "Florida FRS master.R"))) # load and run the full FRS Florida model
+system.time(source(fs::path(rdir, "Florida FRS master.R"))) # load and run the full FRS Florida model
 
 # generate baseline results
 system.time(baseline_funding <- get_funding_data(funding_list, current_amort_layers_table, params=params))
@@ -15,9 +15,9 @@ system.time(save.image(here::here("refactor", "new_results", "new_workspace.RDat
 
 # run one or the other of the following tests
 
-# system.time(source(here::here("refactor", "run_tests.R"))) # run selected tests
+# system.time(source(fs::path(tooldir, "run_tests.R"))) # run selected tests
 
-system.time(source(here::here("refactor", "run_allobjects_tests.R"))) # run tests on all objects appropriate to compare
+system.time(source(fs::path(tooldir, "run_allobjects_tests.R"))) # run tests on all objects appropriate to compare
 
 
 # NOTE:
