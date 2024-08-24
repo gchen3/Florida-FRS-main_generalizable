@@ -247,6 +247,35 @@ get_wf_term_df_final <- function(
 
 
 
+get_wf_refund_df_final <- function(wf_refund_df,
+                                   benefit_table,
+                                   ratios,
+                                   params){
+  # Join wf refund table with benefit table to calculate the overall refunds each year
+  wf_refund_df_final <- wf_refund_df %>% 
+    filter(year <= params$start_year_ + params$model_period_,
+           n_refund > 0) %>% 
+    mutate(entry_year = year - (age - entry_age)) %>% 
+    left_join(benefit_table, 
+              by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year", "entry_year")) %>% 
+    select(entry_age, age, year, term_year, entry_year, n_refund, db_ee_balance) %>% 
+    #allocate members to plan designs based on entry year
+    mutate(n_refund_db_legacy = if_else(entry_year < 2018, 
+                                        n_refund * ratios$db_legacy_before_2018_ratio,
+                                        if_else(entry_year < params$new_year_, 
+                                                n_refund * ratios$db_legacy_after_2018_ratio, 
+                                                0)),
+           n_refund_db_new = if_else(entry_year < params$new_year_, 0, n_refund * ratios$db_new_ratio)
+    ) %>%
+    group_by(year) %>% 
+    summarise(refund_db_legacy_est = sum(db_ee_balance * n_refund_db_legacy),
+              refund_db_new_est = sum(db_ee_balance * n_refund_db_new)
+    ) %>% 
+    ungroup()
+  
+  return(wf_refund_df_final)
+}
+
 
 # main function -----------------------------------------------------------
 
@@ -296,30 +325,14 @@ get_liability_data <- function(
     params
   )  
   
+  wf_refund_df_final <- get_wf_refund_df_final(
+    wf_refund_df,
+    benefit_table,
+    ratios,
+    params
+  )    
+
   
-  
-  
-  #Join wf refund table with benefit table to calculate the overall refunds each year
-  wf_refund_df_final <- wf_refund_df %>% 
-    filter(year <= params$start_year_ + params$model_period_,
-           n_refund > 0) %>% 
-    mutate(entry_year = year - (age - entry_age)) %>% 
-    left_join(benefit_table, 
-              by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year", "entry_year")) %>% 
-    select(entry_age, age, year, term_year, entry_year, n_refund, db_ee_balance) %>% 
-    #allocate members to plan designs based on entry year
-    mutate(n_refund_db_legacy = if_else(entry_year < 2018, 
-                                        n_refund * ratios$db_legacy_before_2018_ratio,
-                                        if_else(entry_year < params$new_year_, 
-                                                n_refund * ratios$db_legacy_after_2018_ratio, 
-                                                0)),
-           n_refund_db_new = if_else(entry_year < params$new_year_, 0, n_refund * ratios$db_new_ratio)
-    ) %>%
-    group_by(year) %>% 
-    summarise(refund_db_legacy_est = sum(db_ee_balance * n_refund_db_legacy),
-              refund_db_new_est = sum(db_ee_balance * n_refund_db_new)
-    ) %>% 
-    ungroup()
   
   
   #Join wf retire table with benefit table to calculate the overall retirement benefits each year
