@@ -39,24 +39,23 @@ get_current_hire_amo_payment_table <- function(class_name,
                                                current_hire_amo_payment_table,
                                                current_hire_debt_layer_list,
                                                current_hire_amo_period_list,
-                                               model_period,
                                                amo_col_num,
-                                               funding_lag,
-                                               amo_pay_growth) {
+                                               amo_pay_growth, # this can be different than params$amo_pay_growth_
+                                               params) {
   
-  current_hire_amo_payment_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num)
+  current_hire_amo_payment_table <- matrix(0, nrow = params$model_period_ + 1, ncol = amo_col_num)
   
   init_debt_layers <- current_hire_debt_layer_list[[class_name]][1,1:amo_col_num]
   
   amo_periods <- current_hire_amo_period_list[[class_name]][1,1:amo_col_num]
   
   current_hire_amo_payment_table[1,1:amo_col_num] <- get_pmt(pv = init_debt_layers,
-                                                             r = dr_old_,
+                                                             r = params$dr_old_,
                                                              g = amo_pay_growth,
                                                              nper = amo_periods,
                                                              t = 0.5)
-  if (funding_lag > 0) {
-    current_hire_amo_payment_table[1,1:funding_lag] <- 0
+  if (params$funding_lag_ > 0) {
+    current_hire_amo_payment_table[1,1:params$funding_lag_] <- 0
   }
   
   return(current_hire_amo_payment_table)
@@ -1120,20 +1119,20 @@ get_funding_data <- function(
                                    # returns a list of 8 matrices, 31 x 21 (nyears x amo_col_num)
                                    purrr::map(
                                               get_current_hire_amo_payment_table,
+                                              class_name,
                                               current_hire_amo_payment_table,
                                               current_hire_debt_layer_list,
                                               current_hire_amo_period_list,
-                                              model_period,
                                               amo_col_num,
-                                              funding_lag,
-                                              amo_pay_growth)
+                                              amo_pay_growth, # this can be different than params$amo_pay_growth_
+                                              params)
     
   ####Set up the UAL layer and amo payment tables for new members
   future_hire_debt_layer_list <- purrr::set_names(params$class_names_no_frs_) |> 
                                  # returns a list of 8 matrices, 31 x 22 (nyears x amo_col_num+1)
                                  purrr::map( 
                                             get_future_hire_debt_layer_table,
-                                            model_period,
+                                            params$model_period_,
                                             amo_col_num)
   
   #Amo payment tables for new members
