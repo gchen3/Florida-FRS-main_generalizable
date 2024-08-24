@@ -74,25 +74,25 @@ base_regular_mort_table <- (base_general_mort_table + base_teacher_mort_table)/2
 male_mp_table <- clean_mp_table(params$male_mp_table_, extend_2_yrs = TRUE)
 female_mp_table <- clean_mp_table(params$female_mp_table_, extend_2_yrs = TRUE)
 
-male_mp_final_table <- get_mp_final_table(male_mp_table, "male", 2010, age_range_, year_range_)
-female_mp_final_table <- get_mp_final_table(female_mp_table, "female", 2010, age_range_, year_range_)
+male_mp_final_table <- get_mp_final_table(male_mp_table, "male", 2010, params$age_range_, params$year_range_)
+female_mp_final_table <- get_mp_final_table(female_mp_table, "female", 2010, params$age_range_, params$year_range_)
 
 #.. mortality tables by class -----------------------------------------------
 
 regular_mort_table <- get_mort_table("regular", base_regular_mort_table, male_mp_final_table, female_mp_final_table, regular_entrant_profile_table,
-                                     entry_year_range_, age_range_, yos_range_, new_year_)
+                                     params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 special_mort_table <- get_mort_table("special", base_safety_mort_table, male_mp_final_table, female_mp_final_table, special_entrant_profile_table,
-                                     entry_year_range_, age_range_, yos_range_, new_year_)
+                                     params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 admin_mort_table <- get_mort_table("admin", base_safety_mort_table, male_mp_final_table, female_mp_final_table, admin_entrant_profile_table,
-                                   entry_year_range_, age_range_, yos_range_, new_year_)
+                                   params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 eco_mort_table <- get_mort_table("eco", base_general_mort_table, male_mp_final_table, female_mp_final_table, eco_entrant_profile_table,
-                                 entry_year_range_, age_range_, yos_range_, new_year_)
+                                 params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 eso_mort_table <- get_mort_table("eso", base_general_mort_table, male_mp_final_table, female_mp_final_table, eso_entrant_profile_table,
-                                 entry_year_range_, age_range_, yos_range_, new_year_)
+                                 params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 judges_mort_table <- get_mort_table("judges", base_general_mort_table, male_mp_final_table, female_mp_final_table, judges_entrant_profile_table,
-                                    entry_year_range_, age_range_, yos_range_, new_year_)
+                                    params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 senior_management_mort_table <- get_mort_table("senior management", base_general_mort_table, male_mp_final_table, female_mp_final_table, senior_management_entrant_profile_table,
-                                               entry_year_range_, age_range_, yos_range_, new_year_)
+                                               params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 
 
 regular_mort_retire_table <- get_mort_retire_table(base_regular_mort_table, male_mp_final_table, female_mp_final_table,
