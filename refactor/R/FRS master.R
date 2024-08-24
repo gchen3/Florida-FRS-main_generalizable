@@ -23,7 +23,8 @@ library(pentools) # use this instead of sourcing utility_functions.R
 
 # set FULL_RUN boolean ----------------------------------------------------
 
-FULL_RUN <- TRUE
+FULL_RUN <- FALSE
+BENEFIT_RUN <- TRUE
 
 
 # directories -------------------------------------------------------------
@@ -100,7 +101,7 @@ ns(params)
 
 # get initial data derived from raw model data - does NOT require modeling assumptions
 print("sourcing FRS benefit model_actions.R...") 
-if(FULL_RUN){
+if(BENEFIT_RUN){
   benefit_model_data_env <- new.env()
   source(fs::path(rdir, "FRS benefit model_actions.R"), local = benefit_model_data_env)
   save(benefit_model_data_env, file = fs::path(wddir, "benefit_model_data_env.RData"))
