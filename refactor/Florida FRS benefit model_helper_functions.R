@@ -1,10 +1,11 @@
 # Salary & Headcount Processing -------------------------------------------
 
-get_salary_headcount_table <- function(salary_table,
+get_salary_headcount_table <- function(class_name,
+                                       salary_table,
                                        headcount_table, 
                                        total_active_member, 
-                                       salary_growth_table, 
-                                       class_name){
+                                       salary_growth_table)
+  {
   
   class_name <- str_replace(class_name, " ", "_")
   

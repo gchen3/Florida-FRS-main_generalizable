@@ -263,7 +263,7 @@ get_benefit_val_table <- function(
 }
 
 
-get_class_salary_growth_table <- function(salary_growth_table, class_name){
+get_class_salary_growth_table <- function(class_name, salary_growth_table){
   
   class_salary_growth_table <- salary_growth_table %>% 
     select(yos, contains(class_name)) %>% 
@@ -368,7 +368,7 @@ get_benefit_data <- function(
   assign("mort_retire_table", get(paste0(class_name, "_mort_retire_table")))
   assign("sep_rate_table", get(paste0(class_name, "_separation_rate_table")))
 
-  class_salary_growth_table <- get_class_salary_growth_table(params$salary_growth_table_, class_name)
+  class_salary_growth_table <- get_class_salary_growth_table(class_name, params$salary_growth_table_)
   
   salary_benefit_table <- get_salary_benefit_table(class_name,
                                                    entrant_profile_table,
