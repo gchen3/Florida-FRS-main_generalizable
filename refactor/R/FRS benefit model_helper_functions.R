@@ -1,10 +1,7 @@
 # Salary & Headcount Processing -------------------------------------------
 
 get_salary_headcount_table <- function(class_name,
-                                       salary_table,
-                                       headcount_table, 
-                                       total_active_member, 
-                                       salary_growth_table)
+                                       params)
   {
   
   class_name <- str_replace(class_name, " ", "_")
@@ -15,18 +12,23 @@ get_salary_headcount_table <- function(class_name,
   #   assign("total_active_member", get("eco_eso_judges_total_active_member_"))
   # }
   
-  salary_growth_table <- salary_growth_table %>% 
+  # djb TEMPORARY: get params values for the class
+  
+  
+  
+  salary_growth_table <- params$salary_growth_table_ %>% 
     select(yos, contains(class_name)) %>% 
     rename(cumprod_salary_increase = 2)
   
-  salary_table_long <- salary_table %>% 
+  salary_table_long <- params$salary_table %>% 
     pivot_longer(cols = -1, names_to = "yos", values_to = "salary")
   
-  headcount_table_long <- headcount_table %>% 
+  headcount_table_long <- params$headcount_table %>% 
     pivot_longer(cols = -1, names_to = "yos", values_to = "count") %>% 
     mutate(
-      active_member_adjustment_ratio = if_else(str_detect(class_name, "eco|eso|judges"), eco_eso_judges_active_member_adjustment_ratio, 
-                                               total_active_member / sum(count, na.rm = T)),
+      active_member_adjustment_ratio = if_else(str_detect(class_name, "eco|eso|judges"),
+                                               params$eco_eso_judges_active_member_adjustment_ratio, 
+                                               params$total_active_member_ / sum(count, na.rm = TRUE)),
       count = count * active_member_adjustment_ratio
     ) %>% 
     select(-active_member_adjustment_ratio)
@@ -35,7 +37,7 @@ get_salary_headcount_table <- function(class_name,
     left_join(headcount_table_long) %>% 
     mutate(
       yos = as.numeric(yos),
-      start_year = start_year_,
+      start_year = params$start_year_,
       entry_age = age - yos,
       entry_year = start_year - yos) %>% 
     filter(!is.na(salary), entry_age >= 18) %>% 
