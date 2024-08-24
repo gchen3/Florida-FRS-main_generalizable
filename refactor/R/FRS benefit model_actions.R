@@ -96,19 +96,19 @@ senior_management_mort_table <- get_mort_table("senior management", base_general
 
 
 regular_mort_retire_table <- get_mort_retire_table(base_regular_mort_table, male_mp_final_table, female_mp_final_table,
-                                                   age_range_, year_range_, start_year_)
+                                                   params$age_range_, params$year_range_, params$start_year_)
 special_mort_retire_table <- get_mort_retire_table(base_safety_mort_table, male_mp_final_table, female_mp_final_table,
-                                                   age_range_, year_range_, start_year_)
+                                                   params$age_range_, params$year_range_, params$start_year_)
 admin_mort_retire_table <- get_mort_retire_table(base_safety_mort_table, male_mp_final_table, female_mp_final_table,
-                                                 age_range_, year_range_, start_year_)
+                                                 params$age_range_, params$year_range_, params$start_year_)
 eco_mort_retire_table <- get_mort_retire_table(base_general_mort_table, male_mp_final_table, female_mp_final_table,
-                                               age_range_, year_range_, start_year_)
+                                               params$age_range_, params$year_range_, params$start_year_)
 eso_mort_retire_table <- get_mort_retire_table(base_general_mort_table, male_mp_final_table, female_mp_final_table,
-                                               age_range_, year_range_, start_year_)
+                                               params$age_range_, params$year_range_, params$start_year_)
 judges_mort_retire_table <- get_mort_retire_table(base_general_mort_table, male_mp_final_table, female_mp_final_table,
-                                                  age_range_, year_range_, start_year_)
+                                                  params$age_range_, params$year_range_, params$start_year_)
 senior_management_mort_retire_table <- get_mort_retire_table(base_general_mort_table, male_mp_final_table, female_mp_final_table,
-                                                             age_range_, year_range_, start_year_)
+                                                             params$age_range_, params$year_range_, params$start_year_)
 
 
 # Separation Assumptions --------------------------------------------------
@@ -135,14 +135,14 @@ early_retire_table_col_names <- c("age", "regular_non_inst_female", "regular_non
                                   "senior_management_female", "senior_management_male")
 
 
-drop_entry_tier_1_table <- clean_retire_rate_table(drop_entry_tier_1_table_, drop_entry_table_col_names)
-drop_entry_tier_2_table <- clean_retire_rate_table(drop_entry_tier_2_table_, drop_entry_table_col_names)
+drop_entry_tier_1_table <- clean_retire_rate_table(params$drop_entry_tier_1_table_, drop_entry_table_col_names)
+drop_entry_tier_2_table <- clean_retire_rate_table(params$drop_entry_tier_2_table_, drop_entry_table_col_names)
 
-normal_retire_rate_tier_1_table <- clean_retire_rate_table(normal_retirement_tier_1_table_, normal_retire_table_col_names)
-normal_retire_rate_tier_2_table <- clean_retire_rate_table(normal_retirement_tier_2_table_, normal_retire_table_col_names)
+normal_retire_rate_tier_1_table <- clean_retire_rate_table(params$normal_retirement_tier_1_table_, normal_retire_table_col_names)
+normal_retire_rate_tier_2_table <- clean_retire_rate_table(params$normal_retirement_tier_2_table_, normal_retire_table_col_names)
 
-early_retire_rate_tier_1_table <- clean_retire_rate_table(early_retirement_tier_1_table_, early_retire_table_col_names)
-early_retire_rate_tier_2_table <- clean_retire_rate_table(early_retirement_tier_2_table_, early_retire_table_col_names)
+early_retire_rate_tier_1_table <- clean_retire_rate_table(params$early_retirement_tier_1_table_, early_retire_table_col_names)
+early_retire_rate_tier_2_table <- clean_retire_rate_table(params$early_retirement_tier_2_table_, early_retire_table_col_names)
 
 
 normal_retire_rate_tier_2_table <- normal_retire_rate_tier_2_table %>% 
