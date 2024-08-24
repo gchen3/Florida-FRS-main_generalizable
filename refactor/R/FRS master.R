@@ -20,6 +20,15 @@ library(btools) # ns, ht
 # devtools::install(pkg = here::here("pentools"))
 library(pentools) # use this instead of sourcing utility_functions.R
 
+
+# directories -------------------------------------------------------------
+
+iddir <- here::here("refactor", "interim_data")
+rdir <- here::here("refactor", "R")
+wddir <- here::here("refactor", "working_data")
+
+
+
 # Load functions ---------------------------------------------------------------
 
 print("Loading model functions...")
@@ -60,19 +69,19 @@ print("sourcing Florida FRS model parameters.R...")
 # ONETIME: save the modparm_data_env to a file
 # modparm_data_env <- new.env()
 # source(here::here("refactor", "FRS_model_parameters.R"), local = modparm_data_env)
-# save(modparm_data_env, file = here::here("refactor", "working_data", "modparm_data_env.RData"))
+# save(modparm_data_env, file = fs::path(wddir, "modparm_data_env.RData"))
 # ls(envir = modparm_data_env)
-load(here::here("refactor", "working_data", "modparm_data_env.RData"))
+load(fs::path(wddir, "modparm_data_env.RData"))
 list2env(as.list(modparm_data_env), envir = .GlobalEnv)
 
 print("sourcing Florida FRS model input.R or equivalent...") # this gets init_funding_data
 # ONETIME: save the frs_data_env to a file
 # frs_data_env <- new.env()
 # source(here::here("refactor", "FRS_import_input_data_and_constants.R"), local = frs_data_env)
-# save(frs_data_env, file = here::here("refactor", "working_data", "frs_data_env.RData"))
+# save(frs_data_env, file = fs::path(wddir, "frs_data_env.RData"))
 
 # system.time(source(here::here("refactor", "FRS_import_input_data_and_constants.R"))) # 13 secs only reads data and sets variable values - no functions
-load(here::here("refactor", "working_data", "frs_data_env.RData"))
+load(fs::path(wddir, "frs_data_env.RData"))
 list2env(as.list(frs_data_env), envir = .GlobalEnv)
 # rm(frs_data_env)
 
@@ -90,10 +99,10 @@ print("sourcing Florida FRS benefit model_actions.R...")
 # ONETIME: save the benefit_model_data_env to a file
 benefit_model_data_env <- new.env()
 source(here::here("refactor", "Florida FRS benefit model_actions.R"), local = benefit_model_data_env)
-save(benefit_model_data_env, file = here::here("refactor", "working_data", "benefit_model_data_env.RData"))
+save(benefit_model_data_env, file = fs::path(wddir, "benefit_model_data_env.RData"))
 
 # system.time(source(here::here("refactor", "Florida FRS benefit model_actions.R"))) # 21 secs only creates objects - no functions
-load(here::here("refactor", "working_data", "benefit_model_data_env.RData"))
+load(fs::path(wddir, "benefit_model_data_env.RData"))
 list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
 # rm(benefit_model_data_env)
 # creates for each class: salary_headcount, entrant_profile, mort, retire_mort, drop entry, retire, early retire, sep rates
