@@ -25,6 +25,83 @@
 
 # end CAUTIONS ----
 
+
+get_funding_df <- function(wf_active_df_final,
+                           wf_term_df_final,
+                           wf_refund_df_final,
+                           wf_retire_df_final,
+                           wf_retire_current_final,
+                           wf_term_current,
+                           params)
+  {
+  funding_df <- wf_active_df_final %>% 
+    left_join(wf_term_df_final) %>% 
+    left_join(wf_refund_df_final) %>% 
+    left_join(wf_retire_df_final) %>%
+    left_join(wf_retire_current_final) %>% 
+    left_join(wf_term_current) %>%
+    replace(is.na(.), 0) %>% 
+    mutate(
+      aal_legacy_est = aal_active_db_legacy_est + aal_term_db_legacy_est + aal_retire_db_legacy_est + aal_retire_current_est + aal_term_current_est,
+      aal_new_est = aal_active_db_new_est + aal_term_db_new_est + aal_retire_db_new_est,
+      total_aal_est = aal_legacy_est + aal_new_est,
+      tot_ben_refund_legacy_est = refund_db_legacy_est + retire_ben_db_legacy_est + retire_ben_current_est + retire_ben_term_est,
+      tot_ben_refund_new_est = refund_db_new_est + retire_ben_db_new_est,
+      tot_ben_refund_est = tot_ben_refund_legacy_est + tot_ben_refund_new_est
+    )
+  
+  #Calculate liability gain/loss if any and project AAL using the roll forward method
+  funding_df$liability_gain_loss_legacy_est <- 0
+  funding_df$liability_gain_loss_new_est <- 0
+  funding_df$total_liability_gain_loss_est <- 0
+  
+  funding_df$aal_legacy_roll <- 0
+  funding_df$aal_new_roll <- 0
+  funding_df$total_aal_roll <- 0
+  
+  for (i in 1:nrow(funding_df)) {
+    if (i == 1) {
+      funding_df$liability_gain_loss_legacy_est[i] <- 0
+      funding_df$liability_gain_loss_new_est[i] <- 0
+      
+      funding_df$aal_legacy_roll[i] <- funding_df$aal_legacy_est[i]
+      funding_df$aal_new_roll[i] <- funding_df$aal_new_est[i]
+      
+    } else {
+      
+      funding_df$liability_gain_loss_legacy_est[i] <- round(funding_df$aal_legacy_est[i] -
+                                                              (funding_df$aal_legacy_est[i-1] * (1 + params$dr_current_) +
+                                                                 funding_df$payroll_db_legacy_est[i-1] * funding_df$nc_rate_db_legacy_est[i-1] -
+                                                                 funding_df$tot_ben_refund_legacy_est[i]),
+                                                            digits = 1)
+      
+      funding_df$liability_gain_loss_new_est[i] <- round(funding_df$aal_new_est[i] -
+                                                           (funding_df$aal_new_est[i-1] * (1 + params$dr_new_) + 
+                                                              funding_df$payroll_db_new_est[i-1] * funding_df$nc_rate_db_new_est[i-1] -
+                                                              funding_df$tot_ben_refund_new_est[i]), 
+                                                         digits = 1)
+      
+      funding_df$aal_legacy_roll[i] <- funding_df$aal_legacy_roll[i-1] * (1 + params$dr_current_) +
+        funding_df$payroll_db_legacy_est[i-1] * funding_df$nc_rate_db_legacy_est[i-1] -
+        funding_df$tot_ben_refund_legacy_est[i] +
+        funding_df$liability_gain_loss_legacy_est[i]
+      
+      funding_df$aal_new_roll[i] <- funding_df$aal_new_roll[i-1] * (1 + params$dr_new_) +
+        funding_df$payroll_db_new_est[i-1] * funding_df$nc_rate_db_new_est[i-1] -
+        funding_df$tot_ben_refund_new_est[i] + 
+        funding_df$liability_gain_loss_new_est[i]
+    }
+  }
+  
+  funding_df$total_liability_gain_loss_est <- funding_df$liability_gain_loss_legacy_est + funding_df$liability_gain_loss_new_est
+  funding_df$total_aal_roll <- funding_df$aal_legacy_roll + funding_df$aal_new_roll
+  
+  return(funding_df)
+}
+
+
+
+
 get_liability_data <- function(
     class_name,
     params
@@ -282,69 +359,15 @@ get_liability_data <- function(
   
   
   ##### Funding model - liability side ----
+
   
-  
-  funding_df <- wf_active_df_final %>% 
-    left_join(wf_term_df_final) %>% 
-    left_join(wf_refund_df_final) %>% 
-    left_join(wf_retire_df_final) %>%
-    left_join(wf_retire_current_final) %>% 
-    left_join(wf_term_current) %>%
-    replace(is.na(.), 0) %>% 
-    mutate(
-      aal_legacy_est = aal_active_db_legacy_est + aal_term_db_legacy_est + aal_retire_db_legacy_est + aal_retire_current_est + aal_term_current_est,
-      aal_new_est = aal_active_db_new_est + aal_term_db_new_est + aal_retire_db_new_est,
-      total_aal_est = aal_legacy_est + aal_new_est,
-      tot_ben_refund_legacy_est = refund_db_legacy_est + retire_ben_db_legacy_est + retire_ben_current_est + retire_ben_term_est,
-      tot_ben_refund_new_est = refund_db_new_est + retire_ben_db_new_est,
-      tot_ben_refund_est = tot_ben_refund_legacy_est + tot_ben_refund_new_est
-    )
-  
-  #Calculate liability gain/loss if any and project AAL using the roll forward method
-  funding_df$liability_gain_loss_legacy_est <- 0
-  funding_df$liability_gain_loss_new_est <- 0
-  funding_df$total_liability_gain_loss_est <- 0
-  
-  funding_df$aal_legacy_roll <- 0
-  funding_df$aal_new_roll <- 0
-  funding_df$total_aal_roll <- 0
-  
-  for (i in 1:nrow(funding_df)) {
-    if (i == 1) {
-      funding_df$liability_gain_loss_legacy_est[i] <- 0
-      funding_df$liability_gain_loss_new_est[i] <- 0
-      
-      funding_df$aal_legacy_roll[i] <- funding_df$aal_legacy_est[i]
-      funding_df$aal_new_roll[i] <- funding_df$aal_new_est[i]
-      
-    } else {
-      
-      funding_df$liability_gain_loss_legacy_est[i] <- round(funding_df$aal_legacy_est[i] -
-                                                              (funding_df$aal_legacy_est[i-1] * (1 + params$dr_current_) +
-                                                                 funding_df$payroll_db_legacy_est[i-1] * funding_df$nc_rate_db_legacy_est[i-1] -
-                                                                 funding_df$tot_ben_refund_legacy_est[i]),
-                                                            digits = 1)
-      
-      funding_df$liability_gain_loss_new_est[i] <- round(funding_df$aal_new_est[i] -
-                                                           (funding_df$aal_new_est[i-1] * (1 + params$dr_new_) + 
-                                                              funding_df$payroll_db_new_est[i-1] * funding_df$nc_rate_db_new_est[i-1] -
-                                                              funding_df$tot_ben_refund_new_est[i]), 
-                                                         digits = 1)
-      
-      funding_df$aal_legacy_roll[i] <- funding_df$aal_legacy_roll[i-1] * (1 + params$dr_current_) +
-        funding_df$payroll_db_legacy_est[i-1] * funding_df$nc_rate_db_legacy_est[i-1] -
-        funding_df$tot_ben_refund_legacy_est[i] +
-        funding_df$liability_gain_loss_legacy_est[i]
-      
-      funding_df$aal_new_roll[i] <- funding_df$aal_new_roll[i-1] * (1 + params$dr_new_) +
-        funding_df$payroll_db_new_est[i-1] * funding_df$nc_rate_db_new_est[i-1] -
-        funding_df$tot_ben_refund_new_est[i] + 
-        funding_df$liability_gain_loss_new_est[i]
-    }
-  }
-  
-  funding_df$total_liability_gain_loss_est <- funding_df$liability_gain_loss_legacy_est + funding_df$liability_gain_loss_new_est
-  funding_df$total_aal_roll <- funding_df$aal_legacy_roll + funding_df$aal_new_roll
+  funding_df <- get_funding_df(wf_active_df_final,
+                               wf_term_df_final,
+                               wf_refund_df_final,
+                               wf_retire_df_final,
+                               wf_retire_current_final,
+                               wf_term_current,
+                               params)
   
   #Check liability gain/loss
   #If the liability gain/loss isn't 0 under the perfect condition (experience = assumption), something must be wrong.
