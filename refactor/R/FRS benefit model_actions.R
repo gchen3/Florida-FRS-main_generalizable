@@ -278,13 +278,13 @@ senior_management_early_retire_rate_tier_2_table <- get_early_retire_rate_table(
 
 # ..get separation rate tables --------------------------------------------
 
-regular_separation_rate_table <- get_separation_table("regular", age_range_, entry_year_range_, yos_range_, new_year_)
-special_separation_rate_table <- get_separation_table("special", age_range_, entry_year_range_, yos_range_, new_year_)
-admin_separation_rate_table <- get_separation_table("admin", age_range_, entry_year_range_, yos_range_, new_year_)
-eco_separation_rate_table <- get_separation_table("eco", age_range_, entry_year_range_, yos_range_, new_year_)
-eso_separation_rate_table <- get_separation_table("regular", age_range_, entry_year_range_, yos_range_, new_year_)
-judges_separation_rate_table <- get_separation_table("judges", age_range_, entry_year_range_, yos_range_, new_year_)
-senior_management_separation_rate_table <- get_separation_table("senior management", age_range_, entry_year_range_, yos_range_, new_year_)
+regular_separation_rate_table <- get_separation_table("regular", params)
+special_separation_rate_table <- get_separation_table("special", params)
+admin_separation_rate_table <- get_separation_table("admin", params)
+eco_separation_rate_table <- get_separation_table("eco", params)
+eso_separation_rate_table <- get_separation_table("regular", params)
+judges_separation_rate_table <- get_separation_table("judges", params)
+senior_management_separation_rate_table <- get_separation_table("senior management", params)
 
 print("All done with separation tables")
 
