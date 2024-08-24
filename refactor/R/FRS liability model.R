@@ -277,6 +277,118 @@ get_wf_refund_df_final <- function(wf_refund_df,
 }
 
 
+get_wf_retire_df_final <- function(wf_retire_df,
+                                   benefit_table,
+                                   ann_factor_table,
+                                   ratios,
+                                   params){
+  # Join wf retire table with benefit table to calculate the overall retirement benefits each year
+  wf_retire_df_final <- wf_retire_df %>% 
+    filter(year <= params$start_year_ + params$model_period_) %>% 
+    mutate(entry_year = year - (age - entry_age)) %>%    
+    left_join(benefit_table, by = c("entry_age", "entry_year", "term_year", "retire_year" = "dist_year")) %>% 
+    select(entry_age, age, year, term_year, retire_year, entry_year, n_retire, db_benefit, cola) %>% 
+    left_join(ann_factor_table %>% 
+                select(-cola), 
+              by = c("entry_age", "entry_year", "term_year", "year" = "dist_year")) %>% 
+    select(entry_age, age, year, term_year, retire_year, entry_year, n_retire, db_benefit, cola, ann_factor) %>% 
+    rename(base_db_benefit = db_benefit) %>% 
+    #Adjust the benefit based on COLA and allocate members to plan designs based on entry year
+    mutate(
+      db_benefit_final = base_db_benefit * (1 + cola)^(year - retire_year),
+      
+      n_retire_db_legacy = if_else(entry_year < 2018, 
+                                   n_retire * ratios$db_legacy_before_2018_ratio,
+                                   if_else(entry_year < params$new_year_, 
+                                           n_retire * ratios$db_legacy_after_2018_ratio, 
+                                           0)),
+      n_retire_db_new = if_else(entry_year < params$new_year_, 
+                                0,
+                                n_retire * ratios$db_new_ratio),
+      #We use "AnnuityFactor_DR - 1" below because the PVFB for retirees excludes the first payment (i.e. the first payment has already been delivered when the PVFB is calculated)
+      pvfb_db_retire = db_benefit_final * (ann_factor - 1)
+    ) %>% 
+    group_by(year) %>% 
+    summarise(retire_ben_db_legacy_est = sum(db_benefit_final * n_retire_db_legacy),
+              retire_ben_db_new_est = sum(db_benefit_final * n_retire_db_new),
+              
+              aal_retire_db_legacy_est = sum(pvfb_db_retire * n_retire_db_legacy),
+              aal_retire_db_new_est = sum(pvfb_db_retire * n_retire_db_new)
+    ) %>% 
+    ungroup()
+  
+  return(wf_retire_df_final)    
+}
+
+
+get_wf_retire_current_final <- function(
+    retiree_pop_current,
+    ben_payment_current,
+    ann_factor_retire_table,
+    params) {
+  
+  # Project benefit payments for current retirees
+  retire_current_int <- params$retiree_distribution %>% 
+    select(age, n_retire_ratio:total_ben_ratio) %>% 
+    mutate(
+      n_retire_current = n_retire_ratio * retiree_pop_current,
+      total_ben_current = total_ben_ratio * ben_payment_current,
+      avg_ben_current = total_ben_current / n_retire_current,
+      year = params$start_year_
+    )
+  
+  wf_retire_current <- ann_factor_retire_table %>% 
+    filter(year <= params$start_year_ + params$model_period_) %>% 
+    left_join(retire_current_int, by = c("age", "year")) %>% 
+    select(base_age:ann_factor_retire, n_retire_current, avg_ben_current, total_ben_current) %>% 
+    group_by(base_age) %>% 
+    mutate(n_retire_current = recur_grow(n_retire_current, -mort_final),
+           avg_ben_current = recur_grow2(avg_ben_current, cola),
+           total_ben_current = n_retire_current * avg_ben_current,
+           #W e use "AnnuityFactor_DR - 1" below because the PVFB for retirees excludes the first payment (i.e. the first payment has already been delivered when the PVFB is calculated)
+           pvfb_retire_current = avg_ben_current * (ann_factor_retire - 1)
+    ) %>% 
+    filter(!is.na(n_retire_current)) %>% 
+    ungroup()
+  
+  wf_retire_current_final <- wf_retire_current %>% 
+    group_by(year) %>% 
+    summarise(retire_ben_current_est = sum(total_ben_current),
+              aal_retire_current_est = sum(n_retire_current * pvfb_retire_current)
+    ) %>% 
+    ungroup()
+  # rename(year = Years)
+  
+  return(wf_retire_current_final)
+}
+
+
+get_wf_term_current <- function(
+    pvfb_term_current,
+    params){
+  
+  # Project benefit payments for current term vested members
+  # Note that we use the original "dr_current_" in calculating the benefit payments so that any discount rate adjustment can work
+  
+  retire_ben_term <- get_pmt(r = params$dr_current_, nper = params$amo_period_term_, pv = pvfb_term_current, g = params$payroll_growth_)
+  
+  year <- params$start_year_:(params$start_year_ + params$model_period_)
+  
+  amo_years_term <- (params$start_year_ + 1):(params$start_year_ + params$amo_period_term_)
+  
+  retire_ben_term_est <- double(length = length(year))
+  retire_ben_term_est[which(year %in% amo_years_term)] <- recur_grow3(retire_ben_term, params$payroll_growth_, params$amo_period_term_)
+  
+  wf_term_current <- data.frame(year, retire_ben_term_est) %>% 
+    mutate(aal_term_current_est = roll_pv(rate = params$dr_current_,
+                                          g = params$payroll_growth_, 
+                                          nper = params$amo_period_term_, 
+                                          pmt_vec = retire_ben_term_est))
+  
+  return(wf_term_current)
+}
+
+
 # main function -----------------------------------------------------------
 
 get_liability_data <- function(
@@ -332,100 +444,25 @@ get_liability_data <- function(
     params
   )    
 
+  wf_retire_df_final <- get_wf_retire_df_final(
+    wf_retire_df,
+    benefit_table,
+    ann_factor_table,
+    ratios,
+    params
+  )
   
+  wf_retire_current_final <- get_wf_retire_current_final(
+    retiree_pop_current,
+    ben_payment_current,
+    ann_factor_retire_table,
+    params
+  )
   
-  
-  #Join wf retire table with benefit table to calculate the overall retirement benefits each year
-  wf_retire_df_final <- wf_retire_df %>% 
-    filter(year <= params$start_year_ + params$model_period_) %>% 
-    mutate(entry_year = year - (age - entry_age)) %>%    
-    left_join(benefit_table, by = c("entry_age", "entry_year", "term_year", "retire_year" = "dist_year")) %>% 
-    select(entry_age, age, year, term_year, retire_year, entry_year, n_retire, db_benefit, cola) %>% 
-    left_join(ann_factor_table %>% 
-                select(-cola), 
-              by = c("entry_age", "entry_year", "term_year", "year" = "dist_year")) %>% 
-    select(entry_age, age, year, term_year, retire_year, entry_year, n_retire, db_benefit, cola, ann_factor) %>% 
-    rename(base_db_benefit = db_benefit) %>% 
-    #Adjust the benefit based on COLA and allocate members to plan designs based on entry year
-    mutate(
-      db_benefit_final = base_db_benefit * (1 + cola)^(year - retire_year),
-      
-      n_retire_db_legacy = if_else(entry_year < 2018, 
-                                   n_retire * ratios$db_legacy_before_2018_ratio,
-                                   if_else(entry_year < params$new_year_, 
-                                           n_retire * ratios$db_legacy_after_2018_ratio, 
-                                           0)),
-      n_retire_db_new = if_else(entry_year < params$new_year_, 
-                                0,
-                                n_retire * ratios$db_new_ratio),
-      #We use "AnnuityFactor_DR - 1" below because the PVFB for retirees excludes the first payment (i.e. the first payment has already been delivered when the PVFB is calculated)
-      pvfb_db_retire = db_benefit_final * (ann_factor - 1)
-    ) %>% 
-    group_by(year) %>% 
-    summarise(retire_ben_db_legacy_est = sum(db_benefit_final * n_retire_db_legacy),
-              retire_ben_db_new_est = sum(db_benefit_final * n_retire_db_new),
-              
-              aal_retire_db_legacy_est = sum(pvfb_db_retire * n_retire_db_legacy),
-              aal_retire_db_new_est = sum(pvfb_db_retire * n_retire_db_new)
-    ) %>% 
-    ungroup()
-
-  
-  #Project benefit payments for current retirees
-  retire_current_int <- params$retiree_distribution %>% 
-    select(age, n_retire_ratio:total_ben_ratio) %>% 
-    mutate(
-      n_retire_current = n_retire_ratio * retiree_pop_current,
-      total_ben_current = total_ben_ratio * ben_payment_current,
-      avg_ben_current = total_ben_current / n_retire_current,
-      year = params$start_year_
-      )
-  
-  
-  wf_retire_current <- ann_factor_retire_table %>% 
-    filter(year <= params$start_year_ + params$model_period_) %>% 
-    left_join(retire_current_int, by = c("age", "year")) %>% 
-    select(base_age:ann_factor_retire, n_retire_current, avg_ben_current, total_ben_current) %>% 
-    group_by(base_age) %>% 
-    mutate(n_retire_current = recur_grow(n_retire_current, -mort_final),
-           avg_ben_current = recur_grow2(avg_ben_current, cola),
-           total_ben_current = n_retire_current * avg_ben_current,
-           #We use "AnnuityFactor_DR - 1" below because the PVFB for retirees excludes the first payment (i.e. the first payment has already been delivered when the PVFB is calculated)
-           pvfb_retire_current = avg_ben_current * (ann_factor_retire - 1)
-    ) %>% 
-    filter(!is.na(n_retire_current)) %>% 
-    ungroup()
-  
-  
-  wf_retire_current_final <- wf_retire_current %>% 
-    group_by(year) %>% 
-    summarise(retire_ben_current_est = sum(total_ben_current),
-              aal_retire_current_est = sum(n_retire_current * pvfb_retire_current)
-    ) %>% 
-    ungroup()
-    # rename(year = Years)
-  
-  
-  #Project benefit payments for current term vested members
-  #Note that we use the original "dr_current_" in calculating the benefit payments so that any discount rate adjustment can work
-  retire_ben_term <- get_pmt(r = params$dr_current_, nper = params$amo_period_term_, pv = pvfb_term_current, g = params$payroll_growth_)
-  
-  year <- params$start_year_:(params$start_year_ + params$model_period_)
-  
-  amo_years_term <- (params$start_year_ + 1):(params$start_year_ + params$amo_period_term_)
-  
-  retire_ben_term_est <- double(length = length(year))
-  retire_ben_term_est[which(year %in% amo_years_term)] <- recur_grow3(retire_ben_term, params$payroll_growth_, params$amo_period_term_)
-  
-  wf_term_current <- data.frame(year, retire_ben_term_est) %>% 
-    mutate(aal_term_current_est = roll_pv(rate = params$dr_current_,
-                                          g = params$payroll_growth_, 
-                                          nper = params$amo_period_term_, 
-                                          pmt_vec = retire_ben_term_est))
-  
-  
-  
-
+  wf_term_current <- get_wf_term_current(
+    pvfb_term_current,
+    params
+  )
   
   funding_df <- get_funding_df(wf_active_df_final,
                                wf_term_df_final,
@@ -435,10 +472,9 @@ get_liability_data <- function(
                                wf_term_current,
                                params)
   
-  #Check liability gain/loss
-  #If the liability gain/loss isn't 0 under the perfect condition (experience = assumption), something must be wrong.
+  # Check liability gain/loss
+  # If the liability gain/loss isn't 0 under the perfect condition (experience = assumption), something must be wrong.
   
   return(funding_df)
-  
 }
 
