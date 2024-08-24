@@ -4,7 +4,7 @@
 # MANUALLY RESET AND CLEAR ENVIRONMENT WITH Ctrl-Shift-F10 !!!!!  
 # Then source this file (or run line by line)
 
-system.time(source(fs::path(rdir, "FRS master.R"))) # load and run the full FRS Florida model
+system.time(source(here::here("refactor", "R", "FRS master.R"))) # load and run the full FRS Florida model
 
 # generate baseline results
 system.time(baseline_funding <- get_funding_data(funding_list, current_amort_layers_table, params=params)) # about 60 secs tot, ~ 10 seconds for a single class
