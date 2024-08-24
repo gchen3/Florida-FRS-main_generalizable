@@ -21,6 +21,11 @@ library(btools) # ns, ht
 library(pentools) # use this instead of sourcing utility_functions.R
 
 
+# set FULL_RUN boolean ----------------------------------------------------
+
+FULL_RUN <- TRUE
+
+
 # directories -------------------------------------------------------------
 
 iddir <- here::here("refactor", "interim_data")
@@ -62,29 +67,30 @@ source(fs::path(rdir, "FRS funding model_functions.R")) # only creates function 
 # Get FRS model parameters, constants, raw initial data, and derived initial data --------------------------
 
 print("sourcing FRS model parameters.R...")
-# source(fs::path(rdir, "FRS_model_parameters.R"))
-
-# ONETIME: save the modparm_data_env to a file
-modparm_data_env <- new.env()
-# source(fs::path(rdir, "FRS_model_parameters.R"), local = modparm_data_env)
-# save(modparm_data_env, file = fs::path(wddir, "modparm_data_env.RData"))
-# ls(envir = modparm_data_env)
+if(FULL_RUN){
+  modparm_data_env <- new.env()
+  source(fs::path(rdir, "FRS_model_parameters.R"), local = modparm_data_env)
+  save(modparm_data_env, file = fs::path(wddir, "modparm_data_env.RData"))
+  ls(envir = modparm_data_env)
+}
 load(fs::path(wddir, "modparm_data_env.RData"))
 list2env(as.list(modparm_data_env), envir = .GlobalEnv)
+# rm(modparm_data_env)
+
 
 print("sourcing FRS model input.R or equivalent...") # this gets init_funding_data
-# ONETIME: save the frs_data_env to a file
-# frs_data_env <- new.env()
-# source(fs::path(rdir, "FRS_import_input_data_and_constants.R"), local = frs_data_env)
-# save(frs_data_env, file = fs::path(wddir, "frs_data_env.RData"))
-
-# system.time(source(fs::path(rdir, "FRS_import_input_data_and_constants.R"))) # 13 secs only reads data and sets variable values - no functions
+if(FULL_RUN){
+  frs_data_env <- new.env()
+  # 13 secs only reads data and sets variable values - no functions
+  source(fs::path(rdir, "FRS_import_input_data_and_constants.R"), local = frs_data_env)
+  save(frs_data_env, file = fs::path(wddir, "frs_data_env.RData"))
+}
 load(fs::path(wddir, "frs_data_env.RData"))
 list2env(as.list(frs_data_env), envir = .GlobalEnv)
 # rm(frs_data_env)
 
-# create params environment -----------------------------------------------
 
+# create params environment -----------------------------------------------
 source(fs::path(rdir, "create_params_env.R")) 
 params <- get_params(frs_data_env, modparm_data_env)
 ns(params)
@@ -94,11 +100,11 @@ ns(params)
 
 # get initial data derived from raw model data - does NOT require modeling assumptions
 print("sourcing FRS benefit model_actions.R...") 
-# ONETIME: save the benefit_model_data_env to a file
-# benefit_model_data_env <- new.env()
-# source(fs::path(rdir, "FRS benefit model_actions.R"), local = benefit_model_data_env)
-# save(benefit_model_data_env, file = fs::path(wddir, "benefit_model_data_env.RData"))
-
+if(FULL_RUN){
+  benefit_model_data_env <- new.env()
+  source(fs::path(rdir, "FRS benefit model_actions.R"), local = benefit_model_data_env)
+  save(benefit_model_data_env, file = fs::path(wddir, "benefit_model_data_env.RData"))
+}
 load(fs::path(wddir, "benefit_model_data_env.RData"))
 list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
 # rm(benefit_model_data_env)
@@ -106,8 +112,6 @@ list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
 
 
 # Prepare data for modeling -----------------------------------------------
-
-
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
 print("sourcing FRS workforce model_get_and_save_wfdata.R...")
 system.time(source(fs::path(rdir, "FRS workforce model_get_and_save_wfdata.R"))) # 2 mins -- only saves objects - no functions
