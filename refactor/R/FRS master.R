@@ -40,6 +40,9 @@ print("Loading model functions...")
 # source(fs::path(rdir, "utility_functions.R")) # only creates functions - no live code
 
 #Get benefit model
+print("sourcing FRS benefit model_helper_functions.R...")
+source(fs::path(rdir, "FRS benefit model_helper_functions.R")) # only creates functions - no live code
+
 print("sourcing FRS benefit model_get_benefit_data_function.R...")
 source(fs::path(rdir, "FRS benefit model_get_benefit_data_function.R")) # only creates functions - no live code
 
