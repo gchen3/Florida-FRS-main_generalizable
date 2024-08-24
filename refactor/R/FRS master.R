@@ -29,7 +29,6 @@ tooldir <- here::here("refactor", "tools")
 wddir <- here::here("refactor", "working_data")
 
 
-
 # Load functions ---------------------------------------------------------------
 
 print("Loading model functions...")
@@ -39,32 +38,32 @@ print("Loading model functions...")
 # source(fs::path(rdir, "utility_functions.R")) # only creates functions - no live code
 
 #Get benefit model
-# replace separate "Florida FRS benefit model.R" into functions and actions
-# source("Florida FRS benefit model.R")
-# source("Florida FRS benefit model_functions.R") # only creates functions - no live code
-# print("sourcing Florida FRS benefit model_helper_functions.R...")
+# replace separate "FRS benefit model.R" into functions and actions
+# source("FRS benefit model.R")
+# source("FRS benefit model_functions.R") # only creates functions - no live code
+# print("sourcing FRS benefit model_helper_functions.R...")
 
-print("sourcing Florida FRS benefit model_get_benefit_data_function.R...")
-source(fs::path(rdir, "Florida FRS benefit model_get_benefit_data_function.R")) # only creates functions - no live code
+print("sourcing FRS benefit model_get_benefit_data_function.R...")
+source(fs::path(rdir, "FRS benefit model_get_benefit_data_function.R")) # only creates functions - no live code
 
 # Get workforce model
-# source("Florida FRS workforce model.R") # only creates function - no live code
-print("sourcing Florida FRS workforce model_functions....")
-source(fs::path(rdir, "Florida FRS workforce model_functions.R")) # only creates function - no live code
+# source("FRS workforce model.R") # only creates function - no live code
+print("sourcing FRS workforce model_functions....")
+source(fs::path(rdir, "FRS workforce model_functions.R")) # only creates function - no live code
 
 #Get liability model
-print("sourcing Florida FRS liability model.R...")
-source(fs::path(rdir, "Florida FRS liability model.R")) # only creates function - no live code
+print("sourcing FRS liability model.R...")
+source(fs::path(rdir, "FRS liability model.R")) # only creates function - no live code
 
 #Get funding model
-# source("Florida FRS funding model.R")
-print("sourcing Florida FRS funding model_functions.R...")
-source(fs::path(rdir, "Florida FRS funding model_functions.R")) # only creates function - no live code
+# source("FRS funding model.R")
+print("sourcing FRS funding model_functions.R...")
+source(fs::path(rdir, "FRS funding model_functions.R")) # only creates function - no live code
 
 
 # Get FRS model parameters, constants, raw initial data, and derived initial data --------------------------
 
-print("sourcing Florida FRS model parameters.R...")
+print("sourcing FRS model parameters.R...")
 # source(fs::path(rdir, "FRS_model_parameters.R"))
 
 # ONETIME: save the modparm_data_env to a file
@@ -75,7 +74,7 @@ print("sourcing Florida FRS model parameters.R...")
 load(fs::path(wddir, "modparm_data_env.RData"))
 list2env(as.list(modparm_data_env), envir = .GlobalEnv)
 
-print("sourcing Florida FRS model input.R or equivalent...") # this gets init_funding_data
+print("sourcing FRS model input.R or equivalent...") # this gets init_funding_data
 # ONETIME: save the frs_data_env to a file
 # frs_data_env <- new.env()
 # source(fs::path(rdir, "FRS_import_input_data_and_constants.R"), local = frs_data_env)
@@ -96,13 +95,13 @@ ns(params)
 # create derived data -----------------------------------------------
 
 # get initial data derived from raw model data - does NOT require modeling assumptions
-print("sourcing Florida FRS benefit model_actions.R...") 
+print("sourcing FRS benefit model_actions.R...") 
 # ONETIME: save the benefit_model_data_env to a file
 benefit_model_data_env <- new.env()
-source(fs::path(rdir, "Florida FRS benefit model_actions.R"), local = benefit_model_data_env)
+source(fs::path(rdir, "FRS benefit model_actions.R"), local = benefit_model_data_env)
 save(benefit_model_data_env, file = fs::path(wddir, "benefit_model_data_env.RData"))
 
-# system.time(source(fs::path(rdir, "Florida FRS benefit model_actions.R"))) # 21 secs only creates objects - no functions
+# system.time(source(fs::path(rdir, "FRS benefit model_actions.R"))) # 21 secs only creates objects - no functions
 load(fs::path(wddir, "benefit_model_data_env.RData"))
 list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
 # rm(benefit_model_data_env)
@@ -113,18 +112,18 @@ list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
 
 
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
-print("sourcing Florida FRS workforce model_get_and_save_wfdata.R...")
-system.time(source(fs::path(rdir, "Florida FRS workforce model_get_and_save_wfdata.R"))) # 2 mins -- only saves objects - no functions
+print("sourcing FRS workforce model_get_and_save_wfdata.R...")
+system.time(source(fs::path(rdir, "FRS workforce model_get_and_save_wfdata.R"))) # 2 mins -- only saves objects - no functions
 # depends on assumptions in the model: 
 
-print("sourcing Florida FRS workforce model_get_saved_data.R...")
-system.time(source(fs::path(rdir, "Florida FRS workforce model_get_saved_data.R"))) # < 1 sec -- only gets saved data - no functions
+print("sourcing FRS workforce model_get_saved_data.R...")
+system.time(source(fs::path(rdir, "FRS workforce model_get_saved_data.R"))) # < 1 sec -- only gets saved data - no functions
 # simply loads wf data -- 4 table types per 7 classes
 
 # Get funding data
-print("sourcing Florida FRS funding model_actions.R...")
+print("sourcing FRS funding model_actions.R...")
 # gets current_amort_layers_table and funding_list with all classes
-system.time(source(fs::path(rdir, "Florida FRS funding model_actions.R"))) # < 1 sec only creates objects - no functions
+system.time(source(fs::path(rdir, "FRS funding model_actions.R"))) # < 1 sec only creates objects - no functions
 
 print("Done building model...")
 
