@@ -130,6 +130,76 @@ get_ratios <- function(class_name,
 }
 
 
+get_wf_active_df <- function(wf_active_df,
+                             benefit_val_table,
+                             ratios,
+                             params){
+  #Join wf active table with FinalData table to calculate the overall payroll, normal costs, PVFB, and PVFS each year
+  wf_active_df_final <- wf_active_df %>% 
+    filter(year <= params$start_year_ + params$model_period_) %>% 
+    mutate(entry_year = year - (age - entry_age)) %>% 
+    left_join(benefit_val_table, by = c("entry_age", "age" = "term_age", "year" = "term_year", "entry_year")) %>% 
+    select(entry_age, age, year, entry_year, n_active, indv_norm_cost, salary, 
+           pvfb_db_wealth_at_current_age, pvfnc_db, pvfs_at_current_age) %>% 
+    replace(is.na(.), 0) %>% 
+    # filter(n_active > 0) %>% 
+    #allocate members to plan designs based on entry year
+    mutate(
+      n_active_db_legacy = if_else(entry_year < 2018, 
+                                   n_active * ratios$db_legacy_before_2018_ratio,
+                                   if_else(entry_year < params$new_year_,
+                                           n_active * ratios$db_legacy_after_2018_ratio, 
+                                           0)),
+      n_active_db_new = if_else(entry_year < params$new_year_,
+                                0, 
+                                n_active * ratios$db_new_ratio),
+      n_active_dc_legacy = if_else(entry_year < 2018, 
+                                   n_active * ratios$dc_legacy_before_2018_ratio,
+                                   if_else(entry_year < params$new_year_,
+                                           n_active * ratios$dc_legacy_after_2018_ratio, 
+                                           0)),
+      n_active_dc_new = if_else(entry_year < params$new_year_, 
+                                0, 
+                                n_active * ratios$dc_new_ratio)
+    ) %>% 
+    group_by(year) %>% 
+    summarise(
+      #Payroll
+      payroll_db_legacy_est = sum(salary * n_active_db_legacy),
+      payroll_db_new_est = sum(salary * n_active_db_new),
+      payroll_dc_legacy_est = sum(salary * n_active_dc_legacy),
+      payroll_dc_new_est = sum(salary * n_active_dc_new),
+      total_payroll_est = sum(salary * n_active),
+      #Normal cost rates
+      nc_rate_db_legacy_est = if_else(payroll_db_legacy_est == 0, 
+                                      0, 
+                                      sum(indv_norm_cost * salary * n_active_db_legacy) / sum(salary * n_active_db_legacy)),
+      nc_rate_db_new_est = if_else(payroll_db_new_est == 0, 
+                                   0, 
+                                   sum(indv_norm_cost * salary * n_active_db_new) / sum(salary * n_active_db_new)),
+      #Present value of future benefits
+      pvfb_active_db_legacy_est = sum(pvfb_db_wealth_at_current_age * n_active_db_legacy),
+      pvfb_active_db_new_est = sum(pvfb_db_wealth_at_current_age * n_active_db_new),
+      #Present value of future normal costs
+      pvfnc_db_legacy_est = sum(pvfnc_db * n_active_db_legacy),
+      pvfnc_db_new_est = sum(pvfnc_db * n_active_db_new),
+      #Count of active members
+      total_n_active = sum(n_active)
+    ) %>% 
+    ungroup() %>% 
+    mutate(payroll_db_est = payroll_db_legacy_est + payroll_db_new_est,
+           payroll_dc_est = payroll_dc_legacy_est + payroll_dc_new_est,
+           total_nc_rate_est = if_else(payroll_db_est == 0, 0, (nc_rate_db_legacy_est * payroll_db_legacy_est + nc_rate_db_new_est * payroll_db_new_est) / payroll_db_est),
+           aal_active_db_legacy_est = pvfb_active_db_legacy_est - pvfnc_db_legacy_est,
+           aal_active_db_new_est = pvfb_active_db_new_est - pvfnc_db_new_est) %>% 
+    replace(is.na(.), 0)
+  
+  return(wf_active_df_final)
+}
+
+
+
+
 # main function -----------------------------------------------------------
 
 get_liability_data <- function(
@@ -163,71 +233,15 @@ get_liability_data <- function(
   ratios <- get_ratios(class_name,
                        params)
   
-  # wf_active_df_final <- get_wf_active_df(
-  #   wf_active_df,
-  #   benefit_val_table,
-  #   params
-  # )
+  wf_active_df_final <- get_wf_active_df(
+    wf_active_df,
+    benefit_val_table,
+    ratios,
+    params
+  )
   
-  #Join wf active table with FinalData table to calculate the overall payroll, normal costs, PVFB, and PVFS each year
-  wf_active_df_final <- wf_active_df %>% 
-    filter(year <= params$start_year_ + params$model_period_) %>% 
-    mutate(entry_year = year - (age - entry_age)) %>% 
-    left_join(benefit_val_table, by = c("entry_age", "age" = "term_age", "year" = "term_year", "entry_year")) %>% 
-    select(entry_age, age, year, entry_year, n_active, indv_norm_cost, salary, 
-           pvfb_db_wealth_at_current_age, pvfnc_db, pvfs_at_current_age) %>% 
-    replace(is.na(.), 0) %>% 
-    # filter(n_active > 0) %>% 
-    #allocate members to plan designs based on entry year
-    mutate(
-      n_active_db_legacy = if_else(entry_year < 2018, 
-                                   n_active * ratios$db_legacy_before_2018_ratio,
-                                   if_else(entry_year < params$new_year_,
-                                           n_active * ratios$db_legacy_after_2018_ratio, 
-                                           0)),
-      n_active_db_new = if_else(entry_year < params$new_year_,
-                                0, 
-                                n_active * ratios$db_new_ratio),
-      n_active_dc_legacy = if_else(entry_year < 2018, 
-                                   n_active * ratios$dc_legacy_before_2018_ratio,
-                                   if_else(entry_year < params$new_year_,
-                                           n_active * ratios$dc_legacy_after_2018_ratio, 
-                                           0)),
-      n_active_dc_new = if_else(entry_year < params$new_year_, 
-                                0, 
-                                n_active * ratios$dc_new_ratio)
-      ) %>% 
-    group_by(year) %>% 
-    summarise(
-      #Payroll
-      payroll_db_legacy_est = sum(salary * n_active_db_legacy),
-      payroll_db_new_est = sum(salary * n_active_db_new),
-      payroll_dc_legacy_est = sum(salary * n_active_dc_legacy),
-      payroll_dc_new_est = sum(salary * n_active_dc_new),
-      total_payroll_est = sum(salary * n_active),
-      #Normal cost rates
-      nc_rate_db_legacy_est = if_else(payroll_db_legacy_est == 0, 
-                                      0, 
-                                      sum(indv_norm_cost * salary * n_active_db_legacy) / sum(salary * n_active_db_legacy)),
-      nc_rate_db_new_est = if_else(payroll_db_new_est == 0, 
-                                   0, 
-                                   sum(indv_norm_cost * salary * n_active_db_new) / sum(salary * n_active_db_new)),
-      #Present value of future benefits
-      pvfb_active_db_legacy_est = sum(pvfb_db_wealth_at_current_age * n_active_db_legacy),
-      pvfb_active_db_new_est = sum(pvfb_db_wealth_at_current_age * n_active_db_new),
-      #Present value of future normal costs
-      pvfnc_db_legacy_est = sum(pvfnc_db * n_active_db_legacy),
-      pvfnc_db_new_est = sum(pvfnc_db * n_active_db_new),
-      #Count of active members
-      total_n_active = sum(n_active)
-    ) %>% 
-    ungroup() %>% 
-    mutate(payroll_db_est = payroll_db_legacy_est + payroll_db_new_est,
-           payroll_dc_est = payroll_dc_legacy_est + payroll_dc_new_est,
-           total_nc_rate_est = if_else(payroll_db_est == 0, 0, (nc_rate_db_legacy_est * payroll_db_legacy_est + nc_rate_db_new_est * payroll_db_new_est) / payroll_db_est),
-           aal_active_db_legacy_est = pvfb_active_db_legacy_est - pvfnc_db_legacy_est,
-           aal_active_db_new_est = pvfb_active_db_new_est - pvfnc_db_new_est) %>% 
-    replace(is.na(.), 0)
+
+
   
   
   #Term table
