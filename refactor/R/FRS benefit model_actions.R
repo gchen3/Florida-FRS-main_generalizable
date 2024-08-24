@@ -71,8 +71,8 @@ base_regular_mort_table <- (base_general_mort_table + base_teacher_mort_table)/2
 
 # .. mortality improvement ------------------------------------------------
 
-male_mp_table <- clean_mp_table(male_mp_table_, extend_2_yrs = T)
-female_mp_table <- clean_mp_table(female_mp_table_, extend_2_yrs = T)
+male_mp_table <- clean_mp_table(params$male_mp_table_, extend_2_yrs = TRUE)
+female_mp_table <- clean_mp_table(params$female_mp_table_, extend_2_yrs = TRUE)
 
 male_mp_final_table <- get_mp_final_table(male_mp_table, "male", 2010, age_range_, year_range_)
 female_mp_final_table <- get_mp_final_table(female_mp_table, "female", 2010, age_range_, year_range_)
