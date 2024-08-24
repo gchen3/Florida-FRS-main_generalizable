@@ -3,14 +3,14 @@
 # Get FRS data ------------------------------------------------------------
 
 #.. Import key data tables ----
-FileName <- 'refactor/Florida FRS inputs.xlsx'
+FileName <- fs::path(sddir, "Florida FRS inputs.xlsx")
 
-base_teacher_mort_table_ <- read_excel("refactor/pub-2010-headcount-mort-rates.xlsx", sheet = "PubT.H-2010")
-base_safety_mort_table_ <- read_excel("refactor/pub-2010-headcount-mort-rates.xlsx", sheet = "PubS.H-2010")
-base_general_mort_table_ <- read_excel("refactor/pub-2010-headcount-mort-rates.xlsx", sheet = "PubG.H-2010")
+base_teacher_mort_table_ <- read_excel(fs::path(sddir, "pub-2010-headcount-mort-rates.xlsx"), sheet = "PubT.H-2010")
+base_safety_mort_table_ <- read_excel(fs::path(sddir, "pub-2010-headcount-mort-rates.xlsx"), sheet = "PubS.H-2010")
+base_general_mort_table_ <- read_excel(fs::path(sddir, "pub-2010-headcount-mort-rates.xlsx"), sheet = "PubG.H-2010")
 
-male_mp_table_ <- read_excel("refactor/mortality-improvement-scale-mp-2018-rates.xlsx", sheet = "Male")
-female_mp_table_ <- read_excel("refactor/mortality-improvement-scale-mp-2018-rates.xlsx", sheet = "Female")
+male_mp_table_ <- read_excel(fs::path(sddir, "mortality-improvement-scale-mp-2018-rates.xlsx"), sheet = "Male")
+female_mp_table_ <- read_excel(fs::path(sddir, "mortality-improvement-scale-mp-2018-rates.xlsx"), sheet = "Female")
 
 salary_growth_table_ <- read_excel(FileName, sheet = "Salary Growth")
 
@@ -44,14 +44,14 @@ senior_management_headcount_table_ <- read_excel(FileName, sheet="HeadCount Dist
 
 # Retirement rate tables
 
-drop_entry_tier_1_table_ <- read_excel("refactor/Reports/extracted inputs/drop entry tier 1.xlsx")
-drop_entry_tier_2_table_ <- read_excel("refactor/Reports/extracted inputs/drop entry tier 2.xlsx")
+drop_entry_tier_1_table_ <- read_excel(fs::path(xidir, "drop entry tier 1.xlsx"))
+drop_entry_tier_2_table_ <- read_excel(fs::path(xidir, "drop entry tier 2.xlsx"))
 
-normal_retirement_tier_1_table_ <- read_excel("refactor/Reports/extracted inputs/normal retirement tier 1.xlsx")
-normal_retirement_tier_2_table_ <- read_excel("refactor/Reports/extracted inputs/normal retirement tier 2.xlsx")
+normal_retirement_tier_1_table_ <- read_excel(fs::path(xidir, "normal retirement tier 1.xlsx"))
+normal_retirement_tier_2_table_ <- read_excel(fs::path(xidir, "normal retirement tier 2.xlsx"))
 
-early_retirement_tier_1_table_ <- read_excel("refactor/Reports/extracted inputs/early retirement tier 1.xlsx")
-early_retirement_tier_2_table_ <- read_excel("refactor/Reports/extracted inputs/early retirement tier 2.xlsx")
+early_retirement_tier_1_table_ <- read_excel(fs::path(xidir, "early retirement tier 1.xlsx"))
+early_retirement_tier_2_table_ <- read_excel(fs::path(xidir, "early retirement tier 2.xlsx"))
 
 #Termination rate tables
 
@@ -83,8 +83,6 @@ init_funding_data <- read_excel(FileName, sheet = "Funding Input")
 return_scenarios <- read_excel(FileName, sheet = "Return Scenarios")
 
 current_amort_layers_table_ <- read_excel(FileName, sheet = "Amort Input")
-
-
 
 
 # FRS constants -----------------------------------------------------------

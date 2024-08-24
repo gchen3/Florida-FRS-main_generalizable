@@ -320,5 +320,3 @@ get_liability_data <- function(
   
 }
 
-# funding_df <- get_liability_data()
-# export(funding_df, "funding_df.xlsx")
