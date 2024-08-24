@@ -1114,12 +1114,11 @@ get_funding_data <- function(
                                              current_amort_layers_table,
                                              model_period,
                                              amo_col_num)
-  
+
   current_hire_amo_payment_list <- purrr::set_names(params$class_names_no_frs_) |> 
                                    # returns a list of 8 matrices, 31 x 21 (nyears x amo_col_num)
                                    purrr::map(
                                               get_current_hire_amo_payment_table,
-                                              class_name,
                                               current_hire_amo_payment_table,
                                               current_hire_debt_layer_list,
                                               current_hire_amo_period_list,
