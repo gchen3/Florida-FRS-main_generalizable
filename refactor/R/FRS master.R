@@ -25,8 +25,10 @@ library(pentools) # use this instead of sourcing utility_functions.R
 
 iddir <- here::here("refactor", "interim_data")
 rdir <- here::here("refactor", "R")
+sddir <- here::here("refactor", "source_data")
 tooldir <- here::here("refactor", "tools")
 wddir <- here::here("refactor", "working_data")
+xidir <- here::here("refactor", "source_data", "Reports", "extracted inputs")
 
 
 # Load functions ---------------------------------------------------------------
@@ -140,7 +142,7 @@ print("Done building model...")
 #   select(year, total_ual_mva, total_ual_ava, fr_mva, fr_ava)
 # 
 # 
-# export(baseline_funding, "baseline_funding.xlsx")
+# export(baseline_funding, "baseline_funding.xlsx") OLD LOCATION
 # 
 # 
 # baseline_liability <- get_liability_data()
