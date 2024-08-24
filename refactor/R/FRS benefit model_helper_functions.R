@@ -12,23 +12,29 @@ get_salary_headcount_table <- function(class_name,
   #   assign("total_active_member", get("eco_eso_judges_total_active_member_"))
   # }
   
-  # djb TEMPORARY: get params values for the class
-  
-  
-  
-  salary_growth_table <- params$salary_growth_table_ %>% 
+  # djb TEMPORARY until we have stacked data: get params values for the class
+  salary_table <- params[[paste0(class_name, "_salary_table_")]]
+  headcount_table <- params[[paste0(class_name, "_headcount_table_")]]
+
+  if (class_name %in% c("eco", "eso", "judges")) {
+    total_active_member <- params$eco_eso_judges_total_active_member_
+  } else {
+    total_active_member <- params[[paste0(class_name, "_total_active_member_")]]
+  }
+
+  salary_growth_table <- params$salary_growth_table_ %>% # one talbe for all classes
     select(yos, contains(class_name)) %>% 
     rename(cumprod_salary_increase = 2)
   
-  salary_table_long <- params$salary_table %>% 
+  salary_table_long <- salary_table %>% 
     pivot_longer(cols = -1, names_to = "yos", values_to = "salary")
   
-  headcount_table_long <- params$headcount_table %>% 
+  headcount_table_long <- headcount_table %>% 
     pivot_longer(cols = -1, names_to = "yos", values_to = "count") %>% 
     mutate(
       active_member_adjustment_ratio = if_else(str_detect(class_name, "eco|eso|judges"),
                                                params$eco_eso_judges_active_member_adjustment_ratio, 
-                                               params$total_active_member_ / sum(count, na.rm = TRUE)),
+                                               total_active_member / sum(count, na.rm = TRUE)),
       count = count * active_member_adjustment_ratio
     ) %>% 
     select(-active_member_adjustment_ratio)
