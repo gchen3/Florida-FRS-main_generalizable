@@ -708,7 +708,7 @@ inner_loop5_all_in_cost <- function(i,
     
     frs_fund$cum_er_cont_real[i] <- frs_fund$cum_er_cont_real[i] + class_fund$cum_er_cont_real[i]
     
-    class_fund$total_ual_mva_real[i] <- class_fund$total_ual_mva[i] / (1 + inflation_)^(class_fund$year[i] - params$start_year_)
+    class_fund$total_ual_mva_real[i] <- class_fund$total_ual_mva[i] / (1 + params$inflation_)^(class_fund$year[i] - params$start_year_)
     frs_fund$total_ual_mva_real[i] <- frs_fund$total_ual_mva_real[i] + class_fund$total_ual_mva_real[i]
     
     class_fund$all_in_cost_real[i] <- class_fund$cum_er_cont_real[i] + class_fund$total_ual_mva_real[i]
@@ -796,7 +796,6 @@ inner_loop6_amortization <- function(i,
 
 main_loop <- function(funding_list,
                       liability_list,
-                      payroll_growth_,
                       return_scen_index,
                       current_hire_amo_payment_list,
                       future_hire_amo_payment_list,
@@ -916,29 +915,6 @@ main_loop <- function(funding_list,
 
 
 ################### Model function starts here ####################
-# dr_current = dr_current_
-# dr_new = dr_new_
-
-# cola_tier_1_active = cola_tier_1_active_
-# cola_tier_2_active = cola_tier_2_active_
-# cola_tier_3_active = cola_tier_3_active_
-# cola_current_retire = cola_current_retire_
-# cola_current_retire_one = cola_current_retire_one_
-# one_time_cola = one_time_cola_
-
-# retire_refund_ratio = retire_refund_ratio_
-# cal_factor = cal_factor_
-
-# #inputs below are for the liability model
-# non_special_db_new_ratio = non_special_db_new_ratio_
-# special_db_new_ratio = special_db_new_ratio_
-# #inputs below are for the funding model
-# return_scen = return_scen_
-# model_return = model_return_
-# amo_period_new = amo_period_new_
-# amo_pay_growth = amo_pay_growth_
-# amo_method = amo_method_
-
 
 get_funding_data <- function(
     funding_list,
@@ -950,9 +926,6 @@ get_funding_data <- function(
   funding_lag <- params$funding_lag_
   model_period <- params$model_period_
   
-  # dr_current <- params$dr_current_
-  # dr_new <- params$dr_new_
-  
   cola_tier_1_active_constant <- params$cola_tier_1_active_constant_
   cola_tier_1_active <- params$cola_tier_1_active_
   cola_tier_2_active <- params$cola_tier_2_active_
@@ -960,9 +933,6 @@ get_funding_data <- function(
   cola_current_retire <- params$cola_current_retire_
   cola_current_retire_one <- params$cola_current_retire_one_
   one_time_cola <- params$one_time_cola_
-  
-  # retire_refund_ratio <- params$retire_refund_ratio_
-  # cal_factor <- params$cal_factor_
   
   #inputs below are for the liability model
   non_special_db_new_ratio <- params$non_special_db_new_ratio_
@@ -1006,7 +976,7 @@ get_funding_data <- function(
               by = join_by(class, year)) |> 
     left_join(params$nc_cal_ |> 
                 mutate(class = str_replace(class, "_", "")) |> # make senior management uniform SOON!!
-                rename(nc_cal = nc_cal_),
+                rename(nc_cal = nc_cal_), # djb this is correct - refers to a column name not the global variable
               by = join_by(class)) |> 
     arrange(class, year) |> # make sure we get the lags right
     # new variables,  use lag to align with the funding mechanism
@@ -1076,7 +1046,7 @@ get_funding_data <- function(
   # djb Determine amo payment parameters BEFORE calling routines related to amo_payment ----
   
   #Determine the number of columns for the amo period tables
-  amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + funding_lag_)  
+  amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + params$funding_lag_)  
   
   #Level % or level $ for debt amortization 
   # create LOCAL variable amo_pay_growth - I moved this up from below
@@ -1123,7 +1093,7 @@ get_funding_data <- function(
                                               current_hire_debt_layer_list,
                                               current_hire_amo_period_list,
                                               amo_col_num,
-                                              amo_pay_growth, # this can be different than params$amo_pay_growth_
+                                              amo_pay_growth, # DO NOT CHANGE TO params$amo_pay_growth, this can be different
                                               params)
     
   ####Set up the UAL layer and amo payment tables for new members
@@ -1178,7 +1148,6 @@ get_funding_data <- function(
 
   funding_list <- main_loop(funding_list = funding_list,
                             liability_list = liability_list,
-                            payroll_growth_ = params$payroll_growth_,
                             return_scen_index = return_scen_index,
                             current_hire_amo_payment_list = current_hire_amo_payment_list,
                             future_hire_amo_payment_list = future_hire_amo_payment_list,
