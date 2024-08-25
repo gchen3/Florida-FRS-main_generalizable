@@ -98,12 +98,11 @@ get_current_hire_amo_period_table <- function(class_name,
 
 get_current_hire_debt_layer_table <- function(class_name,
                                               current_amort_layers_table,
-                                              model_period,
                                               amo_col_num,
                                               params
                                               ) {
   
-  current_hire_debt_layer_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num + 1)
+  current_hire_debt_layer_table <- matrix(0, nrow = params$model_period_ + 1, ncol = amo_col_num + 1)
   
   current_hire_debt_layers <- current_amort_layers_table %>% 
     filter(class == class_name) %>% 
@@ -133,11 +132,10 @@ get_funding_table <- function(class_name,
 
 
 get_future_hire_amo_payment_table <- function(class_name,
-                                              model_period,
                                               amo_col_num,
                                               params) {
   # Amo payment tables for new members
-  future_hire_amo_payment_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num)
+  future_hire_amo_payment_table <- matrix(0, nrow = params$model_period_ + 1, ncol = amo_col_num)
   return(future_hire_amo_payment_table)
 }
 
@@ -1080,7 +1078,6 @@ get_funding_data <- function(
                                   purrr::map(
                                              get_current_hire_debt_layer_table,
                                              current_amort_layers_table,
-                                             model_period,
                                              amo_col_num,
                                              params)
 
@@ -1109,7 +1106,6 @@ get_funding_data <- function(
                                   # returns a list of 8 matrices, 31 x 21 (nyears x amo_col_num)
                                   purrr::map(
                                              get_future_hire_amo_payment_table,
-                                             model_period,
                                              amo_col_num,
                                              params)
   
