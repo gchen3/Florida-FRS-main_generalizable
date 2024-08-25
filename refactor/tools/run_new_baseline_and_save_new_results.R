@@ -1,3 +1,4 @@
+cat("\014") # clear console in Windows
 rm(list = ls())
 
 
