@@ -63,9 +63,6 @@ get_current_hire_amo_payment_table <- function(class_name,
 get_current_hire_amo_period_table <- function(class_name,
                                               current_amort_layers_table,
                                               class_amo_layers_table,
-                                              model_period,
-                                              amo_period_new,
-                                              funding_lag,
                                               amo_col_num,
                                               params) {
   
@@ -73,13 +70,13 @@ get_current_hire_amo_period_table <- function(class_name,
     filter(class == class_name)
   
   current_periods <- class_amo_layers_table$amo_period
-  future_periods <- amo_period_new + funding_lag
+  future_periods <- params$amo_period_new_ + params$funding_lag_
   length(current_periods) <- amo_col_num
   length(future_periods) <- amo_col_num
   
   current_hire_amo_period_table <- rbind(current_periods, 
                                          matrix(future_periods,
-                                                nrow = model_period,
+                                                nrow = params$model_period_,
                                                 ncol = amo_col_num,
                                                 byrow = TRUE))
   
@@ -1061,9 +1058,6 @@ get_funding_data <- function(
                                              get_current_hire_amo_period_table,
                                              current_amort_layers_table,
                                              class_amo_layers_table,
-                                             model_period,
-                                             amo_period_new,
-                                             funding_lag,
                                              amo_col_num,
                                              params)  
   
