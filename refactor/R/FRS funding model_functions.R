@@ -960,9 +960,10 @@ get_funding_data <- function(
   print("liability_list time")
   print(b - a)
   
-  # unpack liability_list into a stacked tibble
+  # FOR LATER USE (djb): unpack liability_list into a stacked tibble
   liability_list_stacked <- bind_rows(liability_list, .id = "class")
   
+  # FOR LATER USE (djb) classes_stacked
   classes_stacked <- funding_list_stacked |> 
     filter(class %in% params$class_names_no_drop_frs_) |>
     left_join(liability_list_stacked,
