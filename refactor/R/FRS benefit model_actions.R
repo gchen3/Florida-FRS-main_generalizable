@@ -12,12 +12,6 @@
 
 #.. call get_salary_headcount_table -----------------------------------------
 
-# if (!class_name %in% c("eco", "eso", "judges")) {
-#   assign("total_active_member", get(paste0(class_name, "_total_active_member_")))
-# } else {
-#   assign("total_active_member", get("eco_eso_judges_total_active_member_"))
-# }
-
 print("get salary_headcount and entrant_profile tables")
 temp <- get_salary_headcount_table("regular", params)
 regular_salary_headcount_table <- temp$salary_headcount_table
