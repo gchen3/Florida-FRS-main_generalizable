@@ -394,12 +394,13 @@ get_wf_term_current <- function(
 get_liability_data <- function(
     class_name,
     wf_data,
+    ben_payment_current,
     params
     ) {
   
   class_name <- str_replace(class_name, " ", "_")
   # assign("wf_data", get(paste0(class_name, "_wf_data")))
-  assign("ben_payment_current", get(paste0(class_name, "_ben_payment_current_")))
+  # assign("ben_payment_current", get(paste0(class_name, "_ben_payment_current_")))
   assign("retiree_pop_current", get(paste0(class_name, "_retiree_pop_current_")))
   assign("pvfb_term_current", get(paste0(class_name, "_pvfb_term_current_")))
   

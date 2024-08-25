@@ -956,9 +956,15 @@ get_funding_data <- function(
   wf_data_list <- mget(paste0(underscored_class_names, "_wf_data"), envir = .GlobalEnv) # does not waste memory because R is copy on modify
   
   call_get_liability_data <- function(class_name) {
-    element_name <- paste0(str_replace(class_name, " ", "_"), "_wf_data")
+    underscored_name <- str_replace(class_name, " ", "_")
+    element_name <- paste0(underscored_name, "_wf_data")
     wf_data <- wf_data_list[[element_name]]
-    get_liability_data(class_name, wf_data, params)
+    ben_payment_current <- params[[paste0(underscored_name, "_ben_payment_current_")]]
+    
+    get_liability_data(class_name, 
+                       wf_data, 
+                       ben_payment_current, 
+                       params)
   }
   
   liability_list <- mclapply(
