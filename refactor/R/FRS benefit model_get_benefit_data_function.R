@@ -357,7 +357,7 @@ get_salary_benefit_table <- function(class_name,
 
 get_benefit_data <- function(
     class_name,
-    # entrant_profile_table,
+    entrant_profile_table,
     # salary_headcount_table,
     # mort_table,
     # mort_retire_table,

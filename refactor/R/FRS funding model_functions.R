@@ -914,6 +914,7 @@ main_loop <- function(funding_list,
 get_funding_data <- function(
     funding_list,
     current_amort_layers_table,
+    wf_data_list,
     params 
 ) {
   
