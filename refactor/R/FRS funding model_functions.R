@@ -167,11 +167,10 @@ get_future_hire_amo_period_table <- function(class_name,
 
 
 get_future_hire_debt_layer_table <- function(class_name,
-                                             model_period,
                                              amo_col_num,
                                              params) {
   # UAAL layers tables for new members
-  future_hire_debt_layer_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num + 1)
+  future_hire_debt_layer_table <- matrix(0, nrow = params$model_period_ + 1, ncol = amo_col_num + 1)
   return(future_hire_debt_layer_table)
 }
 
@@ -1091,7 +1090,6 @@ get_funding_data <- function(
                                  # returns a list of 8 matrices, 31 x 22 (nyears x amo_col_num+1)
                                  purrr::map( 
                                             get_future_hire_debt_layer_table,
-                                            params$model_period_,
                                             amo_col_num,
                                             params)
   
