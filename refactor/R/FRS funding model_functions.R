@@ -960,10 +960,14 @@ get_funding_data <- function(
     element_name <- paste0(underscored_name, "_wf_data")
     wf_data <- wf_data_list[[element_name]]
     ben_payment_current <- params[[paste0(underscored_name, "_ben_payment_current_")]]
+    retiree_pop_current <- params[[paste0(underscored_name, "_retiree_pop_current_")]]
+    pvfb_term_current <- params[[paste0(underscored_name, "_pvfb_term_current_")]]
     
     get_liability_data(class_name, 
                        wf_data, 
                        ben_payment_current, 
+                       retiree_pop_current,
+                       pvfb_term_current,
                        params)
   }
   
