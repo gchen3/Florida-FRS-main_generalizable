@@ -248,6 +248,7 @@ loop_through_arrays <- function(wf_active,
 
 get_wf_data <- function(
     class_name,
+    entrant_profile_table,
     params
 ) {
   print(paste0("preparing wf_data for class: ", class_name))
@@ -259,7 +260,7 @@ get_wf_data <- function(
   
   # TODO: replace assign statements with formal arguments to get_wf_data
   class_name <- str_replace(class_name, " ", "_")
-  assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table")))
+  # assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table")))
   assign("salary_headcount_table", get(paste0(class_name, "_salary_headcount_table")))
   assign("mort_table", get(paste0(class_name, "_mort_table")))
   assign("separation_rate_table", get(paste0(class_name, "_separation_rate_table")))
