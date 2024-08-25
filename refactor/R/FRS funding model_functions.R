@@ -141,17 +141,14 @@ get_future_hire_amo_payment_table <- function(class_name,
 
 
 get_future_hire_amo_period_table <- function(class_name,
-                                             amo_period_new,
-                                             funding_lag,
                                              amo_col_num,
-                                             model_period,
                                              params) {
   
-  future_periods <- amo_period_new + funding_lag
+  future_periods <- params$amo_period_new_ + params$funding_lag_
   length(future_periods) <- amo_col_num
   
   future_hire_amo_period_table <- matrix(future_periods, 
-                                         nrow = model_period + 1,
+                                         nrow = params$model_period_ + 1,
                                          ncol = amo_col_num,
                                          byrow = TRUE) 
   
@@ -1063,10 +1060,7 @@ get_funding_data <- function(
                                  # returns a list of 8 matrices, 31 x 21 (nyears x amo_col_num)
                                  purrr::map(
                                             get_future_hire_amo_period_table,
-                                            amo_period_new,
-                                            funding_lag,
                                             amo_col_num,
-                                            model_period,
                                             params)
   
 
