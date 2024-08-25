@@ -18,7 +18,7 @@ library(btools) # ns, ht
 # load pension-specific libraries
 # For first time installing package, or each time package is updated, install as follows
 # devtools::install(pkg = here::here("pentools"))
-library(pentools) # use this instead of sourcing utility_functions.R
+library(pentools) # use this instead of sourcing "FRS utility_functions.R"
 
 
 # set FULL_RUN boolean ----------------------------------------------------
@@ -42,8 +42,8 @@ xidir <- here::here("refactor", "source_data", "Reports", "extracted inputs")
 print("Loading model functions...")
 
 #Get actuarial and financial functions
-# print("NOT sourcing utility_functions.R but loading pentools...")
-# source(fs::path(rdir, "utility_functions.R")) # only creates functions - no live code
+# print("NOT sourcing FRS utility_functions.R but loading pentools...")
+# source(fs::path(rdir, "FRS utility_functions.R")) # only creates functions - no live code
 
 #Get benefit model
 print("sourcing FRS benefit model_helper_functions.R...")
@@ -92,7 +92,7 @@ list2env(as.list(frs_data_env), envir = .GlobalEnv)
 
 
 # create params environment -----------------------------------------------
-source(fs::path(rdir, "create_params_env.R")) 
+source(fs::path(rdir, "FRS create_params_env.R")) 
 params <- get_params(frs_data_env, modparm_data_env)
 ns(params)
 
