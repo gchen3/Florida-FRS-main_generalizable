@@ -952,8 +952,8 @@ get_funding_data <- function(
   
   # create lists of data frames so that get_liablity_data does not have to (dangerously) pull data from the global environment with assign
   # djb CAUTION -- getting data from the global environment should instead be passed to this function!!! ----
-  underscored_class_names <- str_replace(params$class_names_no_drop_frs_, " ", "_")
-  wf_data_list <- mget(paste0(underscored_class_names, "_wf_data"), envir = .GlobalEnv) # does not waste memory because R is copy on modify
+  # underscored_class_names <- str_replace(params$class_names_no_drop_frs_, " ", "_")
+  # wf_data_list <- mget(paste0(underscored_class_names, "_wf_data"), envir = .GlobalEnv) # does not waste memory because R is copy on modify
   
   call_get_liability_data <- function(class_name) {
     underscored_name <- str_replace(class_name, " ", "_")
@@ -968,7 +968,7 @@ get_funding_data <- function(
                        ben_payment_current, 
                        retiree_pop_current,
                        pvfb_term_current,
-                       entrant_profile_table,
+                       # entrant_profile_table,
                        # salary_headcount_table,
                        # mort_table,
                        # mort_retire_table,

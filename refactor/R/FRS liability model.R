@@ -409,7 +409,7 @@ get_liability_data <- function(
   print(paste0("processing get_benefit_data in liability model for: ", class_name))
   benefit_data <- get_benefit_data(    
     class_name,
-    entrant_profile_table,
+    # entrant_profile_table,
     # salary_headcount_table,
     # mort_table,
     # mort_retire_table,

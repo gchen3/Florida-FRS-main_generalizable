@@ -122,6 +122,11 @@ print("sourcing FRS workforce model_get_saved_data.R...")
 system.time(source(fs::path(rdir, "FRS workforce model_get_saved_data.R"))) # < 1 sec -- only gets saved data - no functions
 # simply loads wf data -- 4 table types per 7 classes
 
+underscored_class_names <- str_replace(params$class_names_no_drop_frs_, " ", "_")
+wf_data_list <- mget(paste0(underscored_class_names, "_wf_data"), envir = .GlobalEnv) # does not waste memory because R is copy on modify
+
+entrant_profile_table_list <- ""
+
 # Get funding data
 print("sourcing FRS funding model_actions.R...")
 # gets current_amort_layers_table and funding_list with all classes
