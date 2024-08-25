@@ -387,8 +387,6 @@ inner_loop2_funding <- function(i,
                                 future_hire_amo_payment_list,
                                 return_scen_index,
                                 params){
-  # DANGER, TEMPORARY: not passing variables. will modify them and return
-  # looks like this should have return_scenarios passed to it
   
   for (class in params$class_names_no_frs_) {
     
@@ -426,9 +424,12 @@ inner_loop2_funding <- function(i,
       class_fund$er_dc_rate_legacy[i] <- 0
       class_fund$er_dc_rate_new[i] <- 0
     } else {
-      # djb CAUTION this is getting a global variable!! ----
-      class_fund$er_dc_rate_legacy[i] <- get(str_replace(paste0(class, "_er_dc_cont_rate_"), " ", "_"))
-      class_fund$er_dc_rate_new[i] <- get(str_replace(paste0(class, "_er_dc_cont_rate_"), " ", "_"))
+      
+      # djb: temporary fix to prior code that used get to grab a global variable - now get from params
+      temp_er_dc_cont_rate <- params[[str_replace(paste0(class, "_er_dc_cont_rate_"), " ", "_")]]
+      class_fund$er_dc_rate_legacy[i] <- temp_er_dc_cont_rate
+      class_fund$er_dc_rate_new[i] <- temp_er_dc_cont_rate
+      rm(temp_er_dc_cont_rate) # clean up. too bad this is in a loop
     } # end if else
     
     #Admin rate
