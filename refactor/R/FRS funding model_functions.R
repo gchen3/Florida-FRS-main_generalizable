@@ -11,9 +11,10 @@
 get_all_classes_funding_list <- function(init_funding_data,
                                          class_names,
                                          model_period,
-                                         start_year){
+                                         start_year,
+                                         params){
   
-  funding_list <- lapply(class_names, get_funding_table, init_funding_data, model_period, start_year)
+  funding_list <- lapply(class_names, get_funding_table, init_funding_data, model_period, start_year, params)
   names(funding_list) <- class_names
   
   return(funding_list)
@@ -68,7 +69,8 @@ get_current_hire_amo_period_table <- function(class_name,
                                               model_period,
                                               amo_period_new,
                                               funding_lag,
-                                              amo_col_num) {
+                                              amo_col_num,
+                                              params) {
   
   class_amo_layers_table <- current_amort_layers_table %>% 
     filter(class == class_name)
@@ -103,7 +105,8 @@ get_current_hire_amo_period_table <- function(class_name,
 get_current_hire_debt_layer_table <- function(class_name,
                                               current_amort_layers_table,
                                               model_period,
-                                              amo_col_num
+                                              amo_col_num,
+                                              params
                                               ) {
   
   current_hire_debt_layer_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num + 1)
@@ -124,7 +127,8 @@ get_current_hire_debt_layer_table <- function(class_name,
 get_funding_table <- function(class_name, 
                               init_funding_data, 
                               model_period,
-                              start_year) {
+                              start_year,
+                              params) {
   funding_table <- init_funding_data %>% 
     filter(class == class_name) %>% 
     select(-class) %>%
@@ -138,7 +142,8 @@ get_funding_table <- function(class_name,
 
 get_future_hire_amo_payment_table <- function(class_name,
                                               model_period,
-                                              amo_col_num) {
+                                              amo_col_num,
+                                              params) {
   # Amo payment tables for new members
   future_hire_amo_payment_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num)
   return(future_hire_amo_payment_table)
@@ -149,7 +154,8 @@ get_future_hire_amo_period_table <- function(class_name,
                                              amo_period_new,
                                              funding_lag,
                                              amo_col_num,
-                                             model_period) {
+                                             model_period,
+                                             params) {
   
   future_periods <- amo_period_new + funding_lag
   length(future_periods) <- amo_col_num
@@ -175,7 +181,8 @@ get_future_hire_amo_period_table <- function(class_name,
 
 get_future_hire_debt_layer_table <- function(class_name,
                                              model_period,
-                                             amo_col_num) {
+                                             amo_col_num,
+                                             params) {
   # UAAL layers tables for new members
   future_hire_debt_layer_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num + 1)
   return(future_hire_debt_layer_table)
@@ -1062,7 +1069,8 @@ get_funding_data <- function(
                                              model_period,
                                              amo_period_new,
                                              funding_lag,
-                                             amo_col_num)  
+                                             amo_col_num,
+                                             params)  
   
   future_hire_amo_period_list <- purrr::set_names(params$class_names_no_frs_) |> 
                                  # returns a list of 8 matrices, 31 x 21 (nyears x amo_col_num)
@@ -1071,7 +1079,8 @@ get_funding_data <- function(
                                             amo_period_new,
                                             funding_lag,
                                             amo_col_num,
-                                            model_period)
+                                            model_period,
+                                            params)
   
 
   
@@ -1083,7 +1092,8 @@ get_funding_data <- function(
                                              get_current_hire_debt_layer_table,
                                              current_amort_layers_table,
                                              model_period,
-                                             amo_col_num)
+                                             amo_col_num,
+                                             params)
 
   current_hire_amo_payment_list <- purrr::set_names(params$class_names_no_frs_) |> 
                                    # returns a list of 8 matrices, 31 x 21 (nyears x amo_col_num)
@@ -1102,7 +1112,8 @@ get_funding_data <- function(
                                  purrr::map( 
                                             get_future_hire_debt_layer_table,
                                             params$model_period_,
-                                            amo_col_num)
+                                            amo_col_num,
+                                            params)
   
   #Amo payment tables for new members
   future_hire_amo_payment_list <- purrr::set_names(params$class_names_no_frs_) |> 
@@ -1110,7 +1121,8 @@ get_funding_data <- function(
                                   purrr::map(
                                              get_future_hire_amo_payment_table,
                                              model_period,
-                                             amo_col_num)
+                                             amo_col_num,
+                                             params)
   
   # djb: create nested tibble with these matrices
   # verify that all names are the same and in the same order
