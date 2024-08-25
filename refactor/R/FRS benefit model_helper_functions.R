@@ -1,10 +1,7 @@
 # Salary & Headcount Processing -------------------------------------------
 
 get_salary_headcount_table <- function(class_name,
-                                       salary_table,
-                                       headcount_table, 
-                                       total_active_member, 
-                                       salary_growth_table)
+                                       params)
   {
   
   class_name <- str_replace(class_name, " ", "_")
@@ -15,7 +12,17 @@ get_salary_headcount_table <- function(class_name,
   #   assign("total_active_member", get("eco_eso_judges_total_active_member_"))
   # }
   
-  salary_growth_table <- salary_growth_table %>% 
+  # djb TEMPORARY until we have stacked data: get params values for the class
+  salary_table <- params[[paste0(class_name, "_salary_table_")]]
+  headcount_table <- params[[paste0(class_name, "_headcount_table_")]]
+
+  if (class_name %in% c("eco", "eso", "judges")) {
+    total_active_member <- params$eco_eso_judges_total_active_member_
+  } else {
+    total_active_member <- params[[paste0(class_name, "_total_active_member_")]]
+  }
+
+  salary_growth_table <- params$salary_growth_table_ %>% # one talbe for all classes
     select(yos, contains(class_name)) %>% 
     rename(cumprod_salary_increase = 2)
   
@@ -25,8 +32,9 @@ get_salary_headcount_table <- function(class_name,
   headcount_table_long <- headcount_table %>% 
     pivot_longer(cols = -1, names_to = "yos", values_to = "count") %>% 
     mutate(
-      active_member_adjustment_ratio = if_else(str_detect(class_name, "eco|eso|judges"), eco_eso_judges_active_member_adjustment_ratio, 
-                                               total_active_member / sum(count, na.rm = T)),
+      active_member_adjustment_ratio = if_else(str_detect(class_name, "eco|eso|judges"),
+                                               params$eco_eso_judges_active_member_adjustment_ratio, 
+                                               total_active_member / sum(count, na.rm = TRUE)),
       count = count * active_member_adjustment_ratio
     ) %>% 
     select(-active_member_adjustment_ratio)
@@ -35,7 +43,7 @@ get_salary_headcount_table <- function(class_name,
     left_join(headcount_table_long) %>% 
     mutate(
       yos = as.numeric(yos),
-      start_year = start_year_,
+      start_year = params$start_year_,
       entry_age = age - yos,
       entry_year = start_year - yos) %>% 
     filter(!is.na(salary), entry_age >= 18) %>% 
@@ -337,8 +345,7 @@ get_early_retire_rate_table <- function(class_name, init_early_retire_rate_table
 
 
 get_separation_table <- function(class_name,
-                                 age_range, entry_year_range, yos_range, 
-                                 new_year){
+                                 params){
   
   # class_name <- gsub(" ", "_", class_name)
   class_name <- str_replace(class_name, " ", "_")
@@ -355,7 +362,7 @@ get_separation_table <- function(class_name,
   assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table"), envir=benefit_model_data_env))
   
   term_rate_table <- ((term_rate_male_table + term_rate_female_table) / 2) %>% 
-    add_row(yos = (max(term_rate_male_table$yos) + 1):max(yos_range)) %>% 
+    add_row(yos = (max(term_rate_male_table$yos) + 1):max(params$yos_range_)) %>% 
     fill(everything(), .direction="down")
   
   breaks <- c(-Inf, 24, 29, 34, 44, 54, Inf)
@@ -363,9 +370,9 @@ get_separation_table <- function(class_name,
   
   long_term_rate_table <- pivot_longer(term_rate_table, cols = -yos, names_to = "age_group", values_to = "term_rate")
   
-  sep_rate_table <- expand_grid(entry_year = entry_year_range,
-                                term_age = age_range, 
-                                yos = yos_range) %>% 
+  sep_rate_table <- expand_grid(entry_year = params$entry_year_range_,
+                                term_age = params$age_range_, 
+                                yos = params$yos_range_) %>% 
     mutate(
       entry_age = term_age  - yos,
       term_year = entry_year + yos,
@@ -382,7 +389,7 @@ get_separation_table <- function(class_name,
     fill(contains("retire_rate"), .direction="downup") %>% 
     ungroup() %>% 
     mutate(
-      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, new_year),
+      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, params$new_year_),
       separation_rate = case_when(
         tier_at_term_age %in% c("tier_3_norm", "tier_2_norm") ~ normal_retire_rate_tier_2,
         tier_at_term_age %in% c("tier_3_early", "tier_2_early") ~ early_retire_rate_tier_2,

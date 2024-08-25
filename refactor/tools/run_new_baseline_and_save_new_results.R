@@ -1,3 +1,6 @@
+cat("\014") # clear console in Windows
+rm(list = ls())
+
 
 # run the following in a CLEAN environment with the branch of interest checked out --------------------------------
 

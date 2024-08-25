@@ -9,12 +9,10 @@
 
 
 get_all_classes_funding_list <- function(init_funding_data,
-                                         class_names,
-                                         model_period,
-                                         start_year){
+                                         params){
   
-  funding_list <- lapply(class_names, get_funding_table, init_funding_data, model_period, start_year)
-  names(funding_list) <- class_names
+  funding_list <- lapply(params$class_names_, get_funding_table, init_funding_data, params)
+  names(funding_list) <- params$class_names_
   
   return(funding_list)
 }
@@ -39,24 +37,23 @@ get_current_hire_amo_payment_table <- function(class_name,
                                                current_hire_amo_payment_table,
                                                current_hire_debt_layer_list,
                                                current_hire_amo_period_list,
-                                               model_period,
                                                amo_col_num,
-                                               funding_lag,
-                                               amo_pay_growth) {
+                                               amo_pay_growth, # this can be different than params$amo_pay_growth_
+                                               params) {
   
-  current_hire_amo_payment_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num)
+  current_hire_amo_payment_table <- matrix(0, nrow = params$model_period_ + 1, ncol = amo_col_num)
   
   init_debt_layers <- current_hire_debt_layer_list[[class_name]][1,1:amo_col_num]
   
   amo_periods <- current_hire_amo_period_list[[class_name]][1,1:amo_col_num]
   
   current_hire_amo_payment_table[1,1:amo_col_num] <- get_pmt(pv = init_debt_layers,
-                                                             r = dr_old_,
+                                                             r = params$dr_old_,
                                                              g = amo_pay_growth,
                                                              nper = amo_periods,
                                                              t = 0.5)
-  if (funding_lag > 0) {
-    current_hire_amo_payment_table[1,1:funding_lag] <- 0
+  if (params$funding_lag_ > 0) {
+    current_hire_amo_payment_table[1,1:params$funding_lag_] <- 0
   }
   
   return(current_hire_amo_payment_table)
@@ -66,22 +63,20 @@ get_current_hire_amo_payment_table <- function(class_name,
 get_current_hire_amo_period_table <- function(class_name,
                                               current_amort_layers_table,
                                               class_amo_layers_table,
-                                              model_period,
-                                              amo_period_new,
-                                              funding_lag,
-                                              amo_col_num) {
+                                              amo_col_num,
+                                              params) {
   
   class_amo_layers_table <- current_amort_layers_table %>% 
     filter(class == class_name)
   
   current_periods <- class_amo_layers_table$amo_period
-  future_periods <- amo_period_new + funding_lag
+  future_periods <- params$amo_period_new_ + params$funding_lag_
   length(current_periods) <- amo_col_num
   length(future_periods) <- amo_col_num
   
   current_hire_amo_period_table <- rbind(current_periods, 
                                          matrix(future_periods,
-                                                nrow = model_period,
+                                                nrow = params$model_period_,
                                                 ncol = amo_col_num,
                                                 byrow = TRUE))
   
@@ -103,11 +98,11 @@ get_current_hire_amo_period_table <- function(class_name,
 
 get_current_hire_debt_layer_table <- function(class_name,
                                               current_amort_layers_table,
-                                              model_period,
-                                              amo_col_num
+                                              amo_col_num,
+                                              params
                                               ) {
   
-  current_hire_debt_layer_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num + 1)
+  current_hire_debt_layer_table <- matrix(0, nrow = params$model_period_ + 1, ncol = amo_col_num + 1)
   
   current_hire_debt_layers <- current_amort_layers_table %>% 
     filter(class == class_name) %>% 
@@ -123,13 +118,12 @@ get_current_hire_debt_layer_table <- function(class_name,
 #### Data preparation
 #Create 9 empty data frames from the init_funding_data (representing 7 classes, DROP, and FRS system), then put them in a list to store funding outputs for these entities
 get_funding_table <- function(class_name, 
-                              init_funding_data, 
-                              model_period,
-                              start_year) {
+                              init_funding_data,
+                              params) {
   funding_table <- init_funding_data %>% 
     filter(class == class_name) %>% 
     select(-class) %>%
-    add_row(year = (start_year + 1):(start_year + model_period))
+    add_row(year = (params$start_year_ + 1):(params$start_year_ + params$model_period_))
   
   funding_table[is.na(funding_table)] <- 0
   
@@ -138,25 +132,23 @@ get_funding_table <- function(class_name,
 
 
 get_future_hire_amo_payment_table <- function(class_name,
-                                              model_period,
-                                              amo_col_num) {
+                                              amo_col_num,
+                                              params) {
   # Amo payment tables for new members
-  future_hire_amo_payment_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num)
+  future_hire_amo_payment_table <- matrix(0, nrow = params$model_period_ + 1, ncol = amo_col_num)
   return(future_hire_amo_payment_table)
 }
 
 
 get_future_hire_amo_period_table <- function(class_name,
-                                             amo_period_new,
-                                             funding_lag,
                                              amo_col_num,
-                                             model_period) {
+                                             params) {
   
-  future_periods <- amo_period_new + funding_lag
+  future_periods <- params$amo_period_new_ + params$funding_lag_
   length(future_periods) <- amo_col_num
   
   future_hire_amo_period_table <- matrix(future_periods, 
-                                         nrow = model_period + 1,
+                                         nrow = params$model_period_ + 1,
                                          ncol = amo_col_num,
                                          byrow = TRUE) 
   
@@ -175,10 +167,10 @@ get_future_hire_amo_period_table <- function(class_name,
 
 
 get_future_hire_debt_layer_table <- function(class_name,
-                                             model_period,
-                                             amo_col_num) {
+                                             amo_col_num,
+                                             params) {
   # UAAL layers tables for new members
-  future_hire_debt_layer_table <- matrix(0, nrow = model_period + 1, ncol = amo_col_num + 1)
+  future_hire_debt_layer_table <- matrix(0, nrow = params$model_period_ + 1, ncol = amo_col_num + 1)
   return(future_hire_debt_layer_table)
 }
 
@@ -395,8 +387,6 @@ inner_loop2_funding <- function(i,
                                 future_hire_amo_payment_list,
                                 return_scen_index,
                                 params){
-  # DANGER, TEMPORARY: not passing variables. will modify them and return
-  # looks like this should have return_scenarios passed to it
   
   for (class in params$class_names_no_frs_) {
     
@@ -434,9 +424,12 @@ inner_loop2_funding <- function(i,
       class_fund$er_dc_rate_legacy[i] <- 0
       class_fund$er_dc_rate_new[i] <- 0
     } else {
-      # djb CAUTION this is getting a global variable!! ----
-      class_fund$er_dc_rate_legacy[i] <- get(str_replace(paste0(class, "_er_dc_cont_rate_"), " ", "_"))
-      class_fund$er_dc_rate_new[i] <- get(str_replace(paste0(class, "_er_dc_cont_rate_"), " ", "_"))
+      
+      # djb: temporary fix to prior code that used get to grab a global variable - now get from params
+      temp_er_dc_cont_rate <- params[[str_replace(paste0(class, "_er_dc_cont_rate_"), " ", "_")]]
+      class_fund$er_dc_rate_legacy[i] <- temp_er_dc_cont_rate
+      class_fund$er_dc_rate_new[i] <- temp_er_dc_cont_rate
+      rm(temp_er_dc_cont_rate) # clean up. too bad this is in a loop
     } # end if else
     
     #Admin rate
@@ -709,7 +702,7 @@ inner_loop5_all_in_cost <- function(i,
     
     frs_fund$cum_er_cont_real[i] <- frs_fund$cum_er_cont_real[i] + class_fund$cum_er_cont_real[i]
     
-    class_fund$total_ual_mva_real[i] <- class_fund$total_ual_mva[i] / (1 + inflation_)^(class_fund$year[i] - params$start_year_)
+    class_fund$total_ual_mva_real[i] <- class_fund$total_ual_mva[i] / (1 + params$inflation_)^(class_fund$year[i] - params$start_year_)
     frs_fund$total_ual_mva_real[i] <- frs_fund$total_ual_mva_real[i] + class_fund$total_ual_mva_real[i]
     
     class_fund$all_in_cost_real[i] <- class_fund$cum_er_cont_real[i] + class_fund$total_ual_mva_real[i]
@@ -797,7 +790,6 @@ inner_loop6_amortization <- function(i,
 
 main_loop <- function(funding_list,
                       liability_list,
-                      payroll_growth_,
                       return_scen_index,
                       current_hire_amo_payment_list,
                       future_hire_amo_payment_list,
@@ -917,29 +909,6 @@ main_loop <- function(funding_list,
 
 
 ################### Model function starts here ####################
-# dr_current = dr_current_
-# dr_new = dr_new_
-
-# cola_tier_1_active = cola_tier_1_active_
-# cola_tier_2_active = cola_tier_2_active_
-# cola_tier_3_active = cola_tier_3_active_
-# cola_current_retire = cola_current_retire_
-# cola_current_retire_one = cola_current_retire_one_
-# one_time_cola = one_time_cola_
-
-# retire_refund_ratio = retire_refund_ratio_
-# cal_factor = cal_factor_
-
-# #inputs below are for the liability model
-# non_special_db_new_ratio = non_special_db_new_ratio_
-# special_db_new_ratio = special_db_new_ratio_
-# #inputs below are for the funding model
-# return_scen = return_scen_
-# model_return = model_return_
-# amo_period_new = amo_period_new_
-# amo_pay_growth = amo_pay_growth_
-# amo_method = amo_method_
-
 
 get_funding_data <- function(
     funding_list,
@@ -951,9 +920,6 @@ get_funding_data <- function(
   funding_lag <- params$funding_lag_
   model_period <- params$model_period_
   
-  # dr_current <- params$dr_current_
-  # dr_new <- params$dr_new_
-  
   cola_tier_1_active_constant <- params$cola_tier_1_active_constant_
   cola_tier_1_active <- params$cola_tier_1_active_
   cola_tier_2_active <- params$cola_tier_2_active_
@@ -961,9 +927,6 @@ get_funding_data <- function(
   cola_current_retire <- params$cola_current_retire_
   cola_current_retire_one <- params$cola_current_retire_one_
   one_time_cola <- params$one_time_cola_
-  
-  # retire_refund_ratio <- params$retire_refund_ratio_
-  # cal_factor <- params$cal_factor_
   
   #inputs below are for the liability model
   non_special_db_new_ratio <- params$non_special_db_new_ratio_
@@ -998,16 +961,17 @@ get_funding_data <- function(
   print("liability_list time")
   print(b - a)
   
-  # unpack liability_list into a stacked tibble
+  # FOR LATER USE (djb): unpack liability_list into a stacked tibble
   liability_list_stacked <- bind_rows(liability_list, .id = "class")
   
+  # FOR LATER USE (djb) classes_stacked
   classes_stacked <- funding_list_stacked |> 
     filter(class %in% params$class_names_no_drop_frs_) |>
     left_join(liability_list_stacked,
               by = join_by(class, year)) |> 
     left_join(params$nc_cal_ |> 
                 mutate(class = str_replace(class, "_", "")) |> # make senior management uniform SOON!!
-                rename(nc_cal = nc_cal_),
+                rename(nc_cal = nc_cal_), # djb this is correct - refers to a column name not the global variable
               by = join_by(class)) |> 
     arrange(class, year) |> # make sure we get the lags right
     # new variables,  use lag to align with the funding mechanism
@@ -1077,7 +1041,7 @@ get_funding_data <- function(
   # djb Determine amo payment parameters BEFORE calling routines related to amo_payment ----
   
   #Determine the number of columns for the amo period tables
-  amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + funding_lag_)  
+  amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + params$funding_lag_)  
   
   #Level % or level $ for debt amortization 
   # create LOCAL variable amo_pay_growth - I moved this up from below
@@ -1090,19 +1054,15 @@ get_funding_data <- function(
                                              get_current_hire_amo_period_table,
                                              current_amort_layers_table,
                                              class_amo_layers_table,
-                                             model_period,
-                                             amo_period_new,
-                                             funding_lag,
-                                             amo_col_num)  
+                                             amo_col_num,
+                                             params)  
   
   future_hire_amo_period_list <- purrr::set_names(params$class_names_no_frs_) |> 
                                  # returns a list of 8 matrices, 31 x 21 (nyears x amo_col_num)
                                  purrr::map(
                                             get_future_hire_amo_period_table,
-                                            amo_period_new,
-                                            funding_lag,
                                             amo_col_num,
-                                            model_period)
+                                            params)
   
 
   
@@ -1113,9 +1073,9 @@ get_funding_data <- function(
                                   purrr::map(
                                              get_current_hire_debt_layer_table,
                                              current_amort_layers_table,
-                                             model_period,
-                                             amo_col_num)
-  
+                                             amo_col_num,
+                                             params)
+
   current_hire_amo_payment_list <- purrr::set_names(params$class_names_no_frs_) |> 
                                    # returns a list of 8 matrices, 31 x 21 (nyears x amo_col_num)
                                    purrr::map(
@@ -1123,26 +1083,25 @@ get_funding_data <- function(
                                               current_hire_amo_payment_table,
                                               current_hire_debt_layer_list,
                                               current_hire_amo_period_list,
-                                              model_period,
                                               amo_col_num,
-                                              funding_lag,
-                                              amo_pay_growth)
+                                              amo_pay_growth, # DO NOT CHANGE TO params$amo_pay_growth, this can be different
+                                              params)
     
   ####Set up the UAL layer and amo payment tables for new members
   future_hire_debt_layer_list <- purrr::set_names(params$class_names_no_frs_) |> 
                                  # returns a list of 8 matrices, 31 x 22 (nyears x amo_col_num+1)
                                  purrr::map( 
                                             get_future_hire_debt_layer_table,
-                                            model_period,
-                                            amo_col_num)
+                                            amo_col_num,
+                                            params)
   
   #Amo payment tables for new members
   future_hire_amo_payment_list <- purrr::set_names(params$class_names_no_frs_) |> 
                                   # returns a list of 8 matrices, 31 x 21 (nyears x amo_col_num)
                                   purrr::map(
                                              get_future_hire_amo_payment_table,
-                                             model_period,
-                                             amo_col_num)
+                                             amo_col_num,
+                                             params)
   
   # djb: create nested tibble with these matrices
   # verify that all names are the same and in the same order
@@ -1180,7 +1139,6 @@ get_funding_data <- function(
 
   funding_list <- main_loop(funding_list = funding_list,
                             liability_list = liability_list,
-                            payroll_growth_ = params$payroll_growth_,
                             return_scen_index = return_scen_index,
                             current_hire_amo_payment_list = current_hire_amo_payment_list,
                             future_hire_amo_payment_list = future_hire_amo_payment_list,

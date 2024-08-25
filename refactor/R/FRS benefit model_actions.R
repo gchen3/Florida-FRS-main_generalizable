@@ -19,59 +19,31 @@
 # }
 
 print("get salary_headcount and entrant_profile tables")
-temp <- get_salary_headcount_table("regular",
-                                   regular_salary_table_, 
-                                   regular_headcount_table_, 
-                                   regular_total_active_member_, 
-                                   params$salary_growth_table_)
+temp <- get_salary_headcount_table("regular", params)
 regular_salary_headcount_table <- temp$salary_headcount_table
 regular_entrant_profile_table <- temp$entrant_profile
 
-temp <- get_salary_headcount_table("special",
-                                   special_salary_table_, 
-                                   special_headcount_table_, 
-                                   special_total_active_member_, 
-                                   params$salary_growth_table_)
+temp <- get_salary_headcount_table("special", params)
 special_salary_headcount_table <- temp$salary_headcount_table
 special_entrant_profile_table <- temp$entrant_profile
 
-temp <- get_salary_headcount_table("admin",
-                                   admin_salary_table_, 
-                                   admin_headcount_table_, 
-                                   admin_total_active_member_, 
-                                   params$salary_growth_table_)
+temp <- get_salary_headcount_table("admin", params)
 admin_salary_headcount_table <- temp$salary_headcount_table
 admin_entrant_profile_table <- temp$entrant_profile
 
-temp <- get_salary_headcount_table("eco",
-                                   eco_salary_table_, 
-                                   eco_headcount_table_, 
-                                   eco_eso_judges_total_active_member_, 
-                                   params$salary_growth_table_)
+temp <- get_salary_headcount_table("eco", params)
 eco_salary_headcount_table <- temp$salary_headcount_table
 eco_entrant_profile_table <- temp$entrant_profile
 
-temp <- get_salary_headcount_table("eso",
-                                   eso_salary_table_, 
-                                   eso_headcount_table_, 
-                                   eco_eso_judges_total_active_member_, 
-                                   params$salary_growth_table_)
+temp <- get_salary_headcount_table("eso", params)
 eso_salary_headcount_table <- temp$salary_headcount_table
 eso_entrant_profile_table <- temp$entrant_profile
 
-temp <- get_salary_headcount_table("judges",
-                                   judges_salary_table_, 
-                                   judges_headcount_table_, 
-                                   eco_eso_judges_total_active_member_, 
-                                   params$salary_growth_table_)
+temp <- get_salary_headcount_table("judges", params)
 judges_salary_headcount_table <- temp$salary_headcount_table
 judges_entrant_profile_table <- temp$entrant_profile
 
-temp <- get_salary_headcount_table("senior management",
-                                   senior_management_salary_table_, 
-                                   senior_management_headcount_table_, 
-                                   senior_management_total_active_member_, 
-                                   params$salary_growth_table_)
+temp <- get_salary_headcount_table("senior management", params)
 senior_management_salary_headcount_table <- temp$salary_headcount_table
 senior_management_entrant_profile_table <- temp$entrant_profile
 
@@ -89,9 +61,9 @@ print("get mortality tables")
 
 #.. base mortality table -----------------------------------------------
 
-base_general_mort_table <- get_base_mort_table(base_general_mort_table_)
-base_teacher_mort_table <- get_base_mort_table(base_teacher_mort_table_)
-base_safety_mort_table <- get_base_mort_table(base_safety_mort_table_)
+base_general_mort_table <- get_base_mort_table(params$base_general_mort_table_)
+base_teacher_mort_table <- get_base_mort_table(params$base_teacher_mort_table_)
+base_safety_mort_table <- get_base_mort_table(params$base_safety_mort_table_)
 
 #Create this mort table for regular employees who are either teachers or general employees
 base_regular_mort_table <- (base_general_mort_table + base_teacher_mort_table)/2
@@ -99,44 +71,44 @@ base_regular_mort_table <- (base_general_mort_table + base_teacher_mort_table)/2
 
 # .. mortality improvement ------------------------------------------------
 
-male_mp_table <- clean_mp_table(male_mp_table_, extend_2_yrs = T)
-female_mp_table <- clean_mp_table(female_mp_table_, extend_2_yrs = T)
+male_mp_table <- clean_mp_table(params$male_mp_table_, extend_2_yrs = TRUE)
+female_mp_table <- clean_mp_table(params$female_mp_table_, extend_2_yrs = TRUE)
 
-male_mp_final_table <- get_mp_final_table(male_mp_table, "male", 2010, age_range_, year_range_)
-female_mp_final_table <- get_mp_final_table(female_mp_table, "female", 2010, age_range_, year_range_)
+male_mp_final_table <- get_mp_final_table(male_mp_table, "male", 2010, params$age_range_, params$year_range_)
+female_mp_final_table <- get_mp_final_table(female_mp_table, "female", 2010, params$age_range_, params$year_range_)
 
 #.. mortality tables by class -----------------------------------------------
 
 regular_mort_table <- get_mort_table("regular", base_regular_mort_table, male_mp_final_table, female_mp_final_table, regular_entrant_profile_table,
-                                     entry_year_range_, age_range_, yos_range_, new_year_)
+                                     params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 special_mort_table <- get_mort_table("special", base_safety_mort_table, male_mp_final_table, female_mp_final_table, special_entrant_profile_table,
-                                     entry_year_range_, age_range_, yos_range_, new_year_)
+                                     params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 admin_mort_table <- get_mort_table("admin", base_safety_mort_table, male_mp_final_table, female_mp_final_table, admin_entrant_profile_table,
-                                   entry_year_range_, age_range_, yos_range_, new_year_)
+                                   params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 eco_mort_table <- get_mort_table("eco", base_general_mort_table, male_mp_final_table, female_mp_final_table, eco_entrant_profile_table,
-                                 entry_year_range_, age_range_, yos_range_, new_year_)
+                                 params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 eso_mort_table <- get_mort_table("eso", base_general_mort_table, male_mp_final_table, female_mp_final_table, eso_entrant_profile_table,
-                                 entry_year_range_, age_range_, yos_range_, new_year_)
+                                 params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 judges_mort_table <- get_mort_table("judges", base_general_mort_table, male_mp_final_table, female_mp_final_table, judges_entrant_profile_table,
-                                    entry_year_range_, age_range_, yos_range_, new_year_)
+                                    params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 senior_management_mort_table <- get_mort_table("senior management", base_general_mort_table, male_mp_final_table, female_mp_final_table, senior_management_entrant_profile_table,
-                                               entry_year_range_, age_range_, yos_range_, new_year_)
+                                               params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 
 
 regular_mort_retire_table <- get_mort_retire_table(base_regular_mort_table, male_mp_final_table, female_mp_final_table,
-                                                   age_range_, year_range_, start_year_)
+                                                   params$age_range_, params$year_range_, params$start_year_)
 special_mort_retire_table <- get_mort_retire_table(base_safety_mort_table, male_mp_final_table, female_mp_final_table,
-                                                   age_range_, year_range_, start_year_)
+                                                   params$age_range_, params$year_range_, params$start_year_)
 admin_mort_retire_table <- get_mort_retire_table(base_safety_mort_table, male_mp_final_table, female_mp_final_table,
-                                                 age_range_, year_range_, start_year_)
+                                                 params$age_range_, params$year_range_, params$start_year_)
 eco_mort_retire_table <- get_mort_retire_table(base_general_mort_table, male_mp_final_table, female_mp_final_table,
-                                               age_range_, year_range_, start_year_)
+                                               params$age_range_, params$year_range_, params$start_year_)
 eso_mort_retire_table <- get_mort_retire_table(base_general_mort_table, male_mp_final_table, female_mp_final_table,
-                                               age_range_, year_range_, start_year_)
+                                               params$age_range_, params$year_range_, params$start_year_)
 judges_mort_retire_table <- get_mort_retire_table(base_general_mort_table, male_mp_final_table, female_mp_final_table,
-                                                  age_range_, year_range_, start_year_)
+                                                  params$age_range_, params$year_range_, params$start_year_)
 senior_management_mort_retire_table <- get_mort_retire_table(base_general_mort_table, male_mp_final_table, female_mp_final_table,
-                                                             age_range_, year_range_, start_year_)
+                                                             params$age_range_, params$year_range_, params$start_year_)
 
 
 # Separation Assumptions --------------------------------------------------
@@ -163,14 +135,14 @@ early_retire_table_col_names <- c("age", "regular_non_inst_female", "regular_non
                                   "senior_management_female", "senior_management_male")
 
 
-drop_entry_tier_1_table <- clean_retire_rate_table(drop_entry_tier_1_table_, drop_entry_table_col_names)
-drop_entry_tier_2_table <- clean_retire_rate_table(drop_entry_tier_2_table_, drop_entry_table_col_names)
+drop_entry_tier_1_table <- clean_retire_rate_table(params$drop_entry_tier_1_table_, drop_entry_table_col_names)
+drop_entry_tier_2_table <- clean_retire_rate_table(params$drop_entry_tier_2_table_, drop_entry_table_col_names)
 
-normal_retire_rate_tier_1_table <- clean_retire_rate_table(normal_retirement_tier_1_table_, normal_retire_table_col_names)
-normal_retire_rate_tier_2_table <- clean_retire_rate_table(normal_retirement_tier_2_table_, normal_retire_table_col_names)
+normal_retire_rate_tier_1_table <- clean_retire_rate_table(params$normal_retirement_tier_1_table_, normal_retire_table_col_names)
+normal_retire_rate_tier_2_table <- clean_retire_rate_table(params$normal_retirement_tier_2_table_, normal_retire_table_col_names)
 
-early_retire_rate_tier_1_table <- clean_retire_rate_table(early_retirement_tier_1_table_, early_retire_table_col_names)
-early_retire_rate_tier_2_table <- clean_retire_rate_table(early_retirement_tier_2_table_, early_retire_table_col_names)
+early_retire_rate_tier_1_table <- clean_retire_rate_table(params$early_retirement_tier_1_table_, early_retire_table_col_names)
+early_retire_rate_tier_2_table <- clean_retire_rate_table(params$early_retirement_tier_2_table_, early_retire_table_col_names)
 
 
 normal_retire_rate_tier_2_table <- normal_retire_rate_tier_2_table %>% 
@@ -306,13 +278,13 @@ senior_management_early_retire_rate_tier_2_table <- get_early_retire_rate_table(
 
 # ..get separation rate tables --------------------------------------------
 
-regular_separation_rate_table <- get_separation_table("regular", age_range_, entry_year_range_, yos_range_, new_year_)
-special_separation_rate_table <- get_separation_table("special", age_range_, entry_year_range_, yos_range_, new_year_)
-admin_separation_rate_table <- get_separation_table("admin", age_range_, entry_year_range_, yos_range_, new_year_)
-eco_separation_rate_table <- get_separation_table("eco", age_range_, entry_year_range_, yos_range_, new_year_)
-eso_separation_rate_table <- get_separation_table("regular", age_range_, entry_year_range_, yos_range_, new_year_)
-judges_separation_rate_table <- get_separation_table("judges", age_range_, entry_year_range_, yos_range_, new_year_)
-senior_management_separation_rate_table <- get_separation_table("senior management", age_range_, entry_year_range_, yos_range_, new_year_)
+regular_separation_rate_table <- get_separation_table("regular", params)
+special_separation_rate_table <- get_separation_table("special", params)
+admin_separation_rate_table <- get_separation_table("admin", params)
+eco_separation_rate_table <- get_separation_table("eco", params)
+eso_separation_rate_table <- get_separation_table("regular", params)
+judges_separation_rate_table <- get_separation_table("judges", params)
+senior_management_separation_rate_table <- get_separation_table("senior management", params)
 
 print("All done with separation tables")
 
