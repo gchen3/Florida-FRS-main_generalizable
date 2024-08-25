@@ -968,6 +968,11 @@ get_funding_data <- function(
                        ben_payment_current, 
                        retiree_pop_current,
                        pvfb_term_current,
+                       entrant_profile_table,
+                       # salary_headcount_table,
+                       # mort_table,
+                       # mort_retire_table,
+                       # sep_rate_table,
                        params)
   }
   

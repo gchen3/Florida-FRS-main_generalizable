@@ -17,7 +17,13 @@ system.time(baseline_liability <- get_liability_data(class = "regular",
                                                      ben_payment_current = params$regular_ben_payment_current_,
                                                      retiree_pop_current = params$regular_retiree_pop_current_,
                                                      pvfb_term_current = params$regular_pvfb_term_current_,
-                                                     params = params)) # ~ 10 seconds for a single class
+                                                     entrant_profile_table,
+                                                     # salary_headcount_table,
+                                                     # mort_table,
+                                                     # mort_retire_table,
+                                                     # sep_rate_table,
+                                                     params = params)
+            ) # ~ 10 seconds for a single class
 
 system.time(save.image(here::here("refactor", "new_results", "new_workspace.RData"))) # save the entire workspace, ~ 10-15 secs
 
