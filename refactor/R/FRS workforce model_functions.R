@@ -261,8 +261,6 @@ get_wf_data <- function(
     params
   )
   
-  class_name <- str_replace(class_name, " ", "_")
-  
   # Get age, entry_age, year, term_year, and retire_year ranges needed for array initialization ----
   entry_age_range <- entrant_profile_table$entry_age # djb: note that there are gaps in these ages
   year_range <- params$start_year_:(params$start_year_ + params$model_period_)   #test now, fix this later
@@ -362,10 +360,8 @@ get_wf_data <- function(
                   wf_refund_df = wf_refund_df,
                   wf_retire_df = wf_retire_df)
   
+  class_name <- str_replace(class_name, " ", "_")
   saveRDS(wf_data, fs::path(iddir, paste0(class_name, "_wf_data.rds")))
   
 }
-
-
-
 
