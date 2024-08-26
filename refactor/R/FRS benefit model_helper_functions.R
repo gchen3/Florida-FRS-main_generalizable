@@ -358,7 +358,6 @@ get_separation_table <- function(class_name,
   assign("early_retire_rate_tier_1_table", get(paste0(class_name, "_early_retire_rate_tier_1_table"), envir=benefit_model_data_env))
   assign("early_retire_rate_tier_2_table", get(paste0(class_name, "_early_retire_rate_tier_2_table"), envir=benefit_model_data_env))
   
-  # assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table"), envir=benefit_model_data_env))
   element_name <- paste0(class_name, "_entrant_profile_table")
   entrant_profile_table <- entrant_profile_table_list[[element_name]]
   

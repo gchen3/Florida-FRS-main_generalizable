@@ -135,9 +135,18 @@ salary_headcount_table_list <- mget(paste0(underscored_class_names, "_salary_hea
 mort_table_list <- mget(paste0(underscored_class_names, "_mort_table"), envir = .GlobalEnv)
 mort_retire_table_list <- mget(paste0(underscored_class_names, "_mort_retire_table"), envir = .GlobalEnv)
 separation_rate_table_list <- mget(paste0(underscored_class_names, "_separation_rate_table"), envir = .GlobalEnv)
-# entrant_profile_table_list, salary_headcount_table_list, mort_table_list, mort_retire_table_list, separation_rate_table_list
+
+term_rate_male_table_list <- mget(paste0(underscored_class_names, "_term_rate_male_table_"), envir = params)
+term_rate_female_table_list <- mget(paste0(underscored_class_names, "_term_rate_female_table_"), envir = params)
+
+normal_retire_rate_tier_1_table_list <- mget(paste0(underscored_class_names, "_normal_retire_rate_tier_1_table"), envir = benefit_model_data_env)
+normal_retire_rate_tier_2_table_list <- mget(paste0(underscored_class_names, "_normal_retire_rate_tier_2_table"), envir = benefit_model_data_env)
+
+early_retire_rate_tier_1_table_list <- mget(paste0(underscored_class_names, "_early_retire_rate_tier_1_table"), envir = benefit_model_data_env) 
+early_retire_rate_tier_2_table_list <- mget(paste0(underscored_class_names, "_early_retire_rate_tier_2_table"), envir = benefit_model_data_env)
 
 # ns(.GlobalEnv) |> str_subset("separation_rate_table")
+# ns(benefit_model_data_env)
 
 
 # Get funding data
