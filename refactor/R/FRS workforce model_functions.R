@@ -254,7 +254,8 @@ get_wf_data <- function(
     separation_rate_table,
     params
 ) {
-  print(paste0("preparing wf_data for class: ", class_name))
+  cat("\n\n")
+  print(paste0("..preparing wf_data for class: ", class_name))
     
   benefit_data <- get_benefit_data(
     class_name,
@@ -292,7 +293,7 @@ get_wf_data <- function(
   )
   list2env(init_list, envir = environment()) # djb: copy each element of list into the current environment
   b <- proc.time()
-  cat("\ninitialize_arrays user system elapsed: ", b - a)
+  cat("initialize_arrays user system elapsed: ", b - a)
   
   a <- proc.time()
   array_list <- loop_through_arrays(

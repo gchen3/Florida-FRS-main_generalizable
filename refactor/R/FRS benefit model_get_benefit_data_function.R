@@ -277,12 +277,11 @@ get_class_salary_growth_table <- function(class_name, salary_growth_table){
 get_dist_age_table <- function(benefit_table){
   # Determine the ultimate distribution age for each member (the age when they're assumed to retire/get a refund, given their termination age)
   dist_age_table <- benefit_table %>% 
-    group_by(entry_year, entry_age, term_age) %>% 
     summarise(
       earliest_norm_retire_age = n() - sum(is_norm_retire_elig) + min(dist_age),
-      term_status = tier_at_term_age[1]
+      term_status = tier_at_term_age[1],
+      .by=c(entry_year, entry_age, term_age)
     ) %>% 
-    ungroup() %>%
     mutate(
       dist_age = if_else(
         str_detect(term_status, "vested") & !str_detect(term_status, "non_vested"),
