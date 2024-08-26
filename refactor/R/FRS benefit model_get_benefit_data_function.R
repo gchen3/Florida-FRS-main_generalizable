@@ -223,12 +223,12 @@ get_benefit_table <- function(class_name,
 get_benefit_val_table <- function(
     salary_benefit_table,
     final_benefit_table,
-    sep_rate_table,
+    separation_rate_table,
     params){
   
   benefit_val_table <- salary_benefit_table %>% 
     left_join(final_benefit_table, by = c("entry_year", "entry_age", "term_age")) %>%
-    left_join(sep_rate_table,
+    left_join(separation_rate_table,
               by = join_by(entry_year, entry_age, yos, term_age)) %>%
     mutate(
       #note that the tier below applies at termination age only
@@ -362,7 +362,7 @@ get_benefit_data <- function(
     salary_headcount_table,
     mort_table,
     mort_retire_table,
-    # sep_rate_table,
+    separation_rate_table,
     params
 ) {
   
@@ -372,7 +372,7 @@ get_benefit_data <- function(
   # assign("salary_headcount_table", get(paste0(class_name, "_salary_headcount_table")))
   # assign("mort_table", get(paste0(class_name, "_mort_table")))
   # assign("mort_retire_table", get(paste0(class_name, "_mort_retire_table")))
-  assign("sep_rate_table", get(paste0(class_name, "_separation_rate_table")))
+  # assign("separation_rate_table", get(paste0(class_name, "_separation_rate_table")))
 
   class_salary_growth_table <- get_class_salary_growth_table(class_name, params$salary_growth_table_)
   
@@ -407,7 +407,7 @@ get_benefit_data <- function(
   benefit_val_table <- get_benefit_val_table(
     salary_benefit_table,
     final_benefit_table,
-    sep_rate_table,
+    separation_rate_table,
     params)
   
   # next step too small to need its own function

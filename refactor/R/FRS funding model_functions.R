@@ -980,6 +980,9 @@ get_funding_data <- function(
     element_name <- paste0(underscored_name, "_mort_table")
     mort_table <- mort_table_list[[element_name]]     
     
+    element_name <- paste0(underscored_name, "_separation_rate_table")
+    separation_rate_table <- separation_rate_table_list[[element_name]]         
+    
     element_name <- paste0(underscored_name, "_mort_retire_table")
     mort_retire_table <- mort_retire_table_list[[element_name]]         
     
@@ -992,7 +995,7 @@ get_funding_data <- function(
                        salary_headcount_table,
                        mort_table,
                        mort_retire_table,
-                       # separation_rate_table,
+                       separation_rate_table,
                        params)
   }
   

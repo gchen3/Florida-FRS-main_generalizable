@@ -264,7 +264,7 @@ get_wf_data <- function(
     salary_headcount_table,
     mort_table,
     mort_retire_table,
-    # separation_rate_table,    
+    separation_rate_table,    
     params
   )
   

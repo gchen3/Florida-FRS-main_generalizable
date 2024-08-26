@@ -377,7 +377,7 @@ get_separation_table <- function(class_name,
   
   long_term_rate_table <- pivot_longer(term_rate_table, cols = -yos, names_to = "age_group", values_to = "term_rate")
   
-  sep_rate_table <- expand_grid(entry_year = params$entry_year_range_,
+  separation_rate_table <- expand_grid(entry_year = params$entry_year_range_,
                                 term_age = params$age_range_, 
                                 yos = params$yos_range_) %>% 
     mutate(
@@ -414,6 +414,6 @@ get_separation_table <- function(class_name,
     ungroup() %>% 
     select(entry_year, entry_age, term_age, yos, term_year, separation_rate, remaining_prob, separation_prob)
   
-  return(sep_rate_table)
+  return(separation_rate_table)
 }
 

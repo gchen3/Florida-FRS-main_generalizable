@@ -127,7 +127,7 @@ system.time(source(fs::path(rdir, "FRS workforce model_get_saved_data.R"))) # < 
 underscored_class_names <- str_replace(params$class_names_no_drop_frs_, " ", "_")
 
 # djb return here ----
-# wf_data_list: each class has 4 tables: entrant_profile_table, salary_headcount_table, mort_table, sep_rate_table
+# wf_data_list: each class has 4 tables: entrant_profile_table, salary_headcount_table, mort_table, separation_rate_table
 wf_data_list <- mget(paste0(underscored_class_names, "_wf_data"), envir = .GlobalEnv) # does not waste memory because R is copy on modify
 entrant_profile_table_list <- benefit_model_data_env$entrant_profile_table_list # previously created
 
