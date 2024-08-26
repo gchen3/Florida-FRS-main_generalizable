@@ -134,6 +134,8 @@ mort_table_list <- mget(paste0(underscored_class_names, "_mort_table"), envir = 
 mort_retire_table_list <- mget(paste0(underscored_class_names, "_mort_retire_table"), envir = .GlobalEnv)
 separation_rate_table_list <- mget(paste0(underscored_class_names, "_separation_rate_table"), envir = .GlobalEnv)
 
+# entrant_profile_table_list, salary_headcount_table_list, mort_table_list, mort_retire_table_list, separation_rate_table_list
+
 # ns(.GlobalEnv) |> str_subset("separation_rate_table")
 
 

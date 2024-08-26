@@ -13,6 +13,11 @@ system.time(source(here::here("refactor", "R", "FRS master.R"))) # load and buil
 system.time(baseline_funding <- get_funding_data(funding_list, 
                                                  current_amort_layers_table, 
                                                  wf_data_list,
+                                                 entrant_profile_table_list, 
+                                                 salary_headcount_table_list, 
+                                                 mort_table_list, 
+                                                 mort_retire_table_list, 
+                                                 separation_rate_table_list,
                                                  params=params)) # about 60 secs tot, ~ 10 seconds for a single class
 
 system.time(baseline_liability <- get_liability_data(class = "regular", 

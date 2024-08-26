@@ -915,6 +915,11 @@ get_funding_data <- function(
     funding_list,
     current_amort_layers_table,
     wf_data_list,
+    entrant_profile_table_list, 
+    salary_headcount_table_list, 
+    mort_table_list, 
+    mort_retire_table_list, 
+    separation_rate_table_list,
     params 
 ) {
   
