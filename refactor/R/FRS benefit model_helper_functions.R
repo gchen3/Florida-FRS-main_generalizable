@@ -350,9 +350,6 @@ get_separation_table <- function(class_name,
   # class_name <- gsub(" ", "_", class_name)
   class_name <- str_replace(class_name, " ", "_")
   
-  # assign("term_rate_male_table", get(paste0(class_name, "_term_rate_male_table_"), envir=benefit_model_data_env))
-  # assign("term_rate_female_table", get(paste0(class_name, "_term_rate_female_table_"), envir=benefit_model_data_env))
-  
   assign("normal_retire_rate_tier_1_table", get(paste0(class_name, "_normal_retire_rate_tier_1_table"), envir=benefit_model_data_env))
   assign("normal_retire_rate_tier_2_table", get(paste0(class_name, "_normal_retire_rate_tier_2_table"), envir=benefit_model_data_env))
   
