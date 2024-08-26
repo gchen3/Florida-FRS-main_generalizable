@@ -248,21 +248,23 @@ loop_through_arrays <- function(wf_active,
 
 get_wf_data <- function(
     class_name,
+    entrant_profile_table,
+    salary_headcount_table,
+    mort_table,
+    separation_rate_table,
     params
 ) {
   print(paste0("preparing wf_data for class: ", class_name))
     
   benefit_data <- get_benefit_data(
     class_name,
+    entrant_profile_table,
+    # salary_headcount_table,
+    # mort_table,
+    # mort_retire_table,
+    # sep_rate_table,    
     params
   )
-  
-  # TODO: replace assign statements with formal arguments to get_wf_data
-  class_name <- str_replace(class_name, " ", "_")
-  assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table")))
-  assign("salary_headcount_table", get(paste0(class_name, "_salary_headcount_table")))
-  assign("mort_table", get(paste0(class_name, "_mort_table")))
-  assign("separation_rate_table", get(paste0(class_name, "_separation_rate_table")))
   
   # Get age, entry_age, year, term_year, and retire_year ranges needed for array initialization ----
   entry_age_range <- entrant_profile_table$entry_age # djb: note that there are gaps in these ages
@@ -363,10 +365,8 @@ get_wf_data <- function(
                   wf_refund_df = wf_refund_df,
                   wf_retire_df = wf_retire_df)
   
+  class_name <- str_replace(class_name, " ", "_")
   saveRDS(wf_data, fs::path(iddir, paste0(class_name, "_wf_data.rds")))
   
 }
-
-
-
 

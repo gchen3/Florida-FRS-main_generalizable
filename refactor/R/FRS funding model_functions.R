@@ -17,6 +17,7 @@ get_all_classes_funding_list <- function(init_funding_data,
   return(funding_list)
 }
 
+
 get_current_amort_layers_summary_table <- function(current_amort_layers_table){
   
   #Summarize current amortization layers
@@ -913,6 +914,12 @@ main_loop <- function(funding_list,
 get_funding_data <- function(
     funding_list,
     current_amort_layers_table,
+    wf_data_list,
+    entrant_profile_table_list, 
+    salary_headcount_table_list, 
+    mort_table_list, 
+    mort_retire_table_list, 
+    separation_rate_table_list,
     params 
 ) {
   
@@ -948,11 +955,42 @@ get_funding_data <- function(
   # with Windows OS or API. Switch back to lapply if needed. When working,
   # mclapply will be about twice as fast as lapply.
   a <- proc.time()
+  
+  # create lists of data frames so that get_liablity_data does not have to (dangerously) pull data from the global environment with assign
+  # djb CAUTION -- getting data from the global environment should instead be passed to this function!!! ----
+  # underscored_class_names <- str_replace(params$class_names_no_drop_frs_, " ", "_")
+  # wf_data_list <- mget(paste0(underscored_class_names, "_wf_data"), envir = .GlobalEnv) # does not waste memory because R is copy on modify
+  
+  # get values of arguments to get_liability_data for this class and then call it
+  call_get_liability_data <- function(class_name) {
+    underscored_name <- str_replace(class_name, " ", "_")
+    
+    element_name <- paste0(underscored_name, "_wf_data")
+    wf_data <- wf_data_list[[element_name]]
+    
+    ben_payment_current <- params[[paste0(underscored_name, "_ben_payment_current_")]]
+    retiree_pop_current <- params[[paste0(underscored_name, "_retiree_pop_current_")]]
+    pvfb_term_current <- params[[paste0(underscored_name, "_pvfb_term_current_")]]
+    
+    element_name <- paste0(underscored_name, "_entrant_profile_table")
+    entrant_profile_table <- entrant_profile_table_list[[element_name]]
+    
+    get_liability_data(class_name, 
+                       wf_data, 
+                       ben_payment_current, 
+                       retiree_pop_current,
+                       pvfb_term_current,
+                       entrant_profile_table,
+                       # salary_headcount_table,
+                       # mort_table,
+                       # mort_retire_table,
+                       # sep_rate_table,
+                       params)
+  }
+  
   liability_list <- mclapply(
                       X = params$class_names_no_drop_frs_, 
-                      FUN = get_liability_data,
-                      params = params,
-                      
+                      FUN = call_get_liability_data,
                       # Set mc.cores to 1 for compatibility with Windows
                       mc.cores = 1
                     )
