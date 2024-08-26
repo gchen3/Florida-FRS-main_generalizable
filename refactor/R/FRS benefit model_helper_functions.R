@@ -6,12 +6,6 @@ get_salary_headcount_table <- function(class_name,
   
   class_name <- str_replace(class_name, " ", "_")
   
-  # if (!class_name %in% c("eco", "eso", "judges")) {
-  #   assign("total_active_member", get(paste0(class_name, "_total_active_member_")))
-  # } else {
-  #   assign("total_active_member", get("eco_eso_judges_total_active_member_"))
-  # }
-  
   # djb TEMPORARY until we have stacked data: get params values for the class
   salary_table <- params[[paste0(class_name, "_salary_table_")]]
   headcount_table <- params[[paste0(class_name, "_headcount_table_")]]
