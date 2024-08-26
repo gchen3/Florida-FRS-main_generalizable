@@ -367,7 +367,7 @@ get_benefit_data <- function(
   
   class_name <- str_replace(class_name, " ", "_")
   
-  assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table")))
+  # assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table")))
   assign("salary_headcount_table", get(paste0(class_name, "_salary_headcount_table")))
   assign("mort_table", get(paste0(class_name, "_mort_table")))
   assign("mort_retire_table", get(paste0(class_name, "_mort_retire_table")))
