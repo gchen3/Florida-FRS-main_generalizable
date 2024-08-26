@@ -345,16 +345,20 @@ get_separation_table <- function(class_name,
                                  entrant_profile_table_list,
                                  term_rate_male_table_list,
                                  term_rate_female_table_list,
+                                 normal_retire_rate_tier_1_table_list,
+                                 normal_retire_rate_tier_2_table_list,
+                                 early_retire_rate_tier_1_table_list,
+                                 early_retire_rate_tier_2_table_list,
                                  params){
   
   # class_name <- gsub(" ", "_", class_name)
   class_name <- str_replace(class_name, " ", "_")
   
-  assign("normal_retire_rate_tier_1_table", get(paste0(class_name, "_normal_retire_rate_tier_1_table"), envir=benefit_model_data_env))
-  assign("normal_retire_rate_tier_2_table", get(paste0(class_name, "_normal_retire_rate_tier_2_table"), envir=benefit_model_data_env))
+  # assign("normal_retire_rate_tier_1_table", get(paste0(class_name, "_normal_retire_rate_tier_1_table"), envir=benefit_model_data_env))
+  # assign("normal_retire_rate_tier_2_table", get(paste0(class_name, "_normal_retire_rate_tier_2_table"), envir=benefit_model_data_env))
   
-  assign("early_retire_rate_tier_1_table", get(paste0(class_name, "_early_retire_rate_tier_1_table"), envir=benefit_model_data_env))
-  assign("early_retire_rate_tier_2_table", get(paste0(class_name, "_early_retire_rate_tier_2_table"), envir=benefit_model_data_env))
+  # assign("early_retire_rate_tier_1_table", get(paste0(class_name, "_early_retire_rate_tier_1_table"), envir=benefit_model_data_env))
+  # assign("early_retire_rate_tier_2_table", get(paste0(class_name, "_early_retire_rate_tier_2_table"), envir=benefit_model_data_env))
   
   element_name <- paste0(class_name, "_entrant_profile_table")
   entrant_profile_table <- entrant_profile_table_list[[element_name]]
@@ -364,6 +368,14 @@ get_separation_table <- function(class_name,
   
   element_name <- paste0(class_name, "_term_rate_female_table_")
   term_rate_female_table <- term_rate_female_table_list[[element_name]]  
+  
+  normal_retire_rate_tier_1_table <- normal_retire_rate_tier_1_table_list[[paste0(class_name, "_normal_retire_rate_tier_1_table")]]
+  normal_retire_rate_tier_2_table <- normal_retire_rate_tier_2_table_list[[paste0(class_name, "_normal_retire_rate_tier_2_table")]]
+  
+  early_retire_rate_tier_1_table <- early_retire_rate_tier_1_table_list[[paste0(class_name, "_early_retire_rate_tier_1_table")]]
+  early_retire_rate_tier_2_table <- early_retire_rate_tier_2_table_list[[paste0(class_name, "_early_retire_rate_tier_2_table")]]
+  
+  # end of initialization ---
     
   term_rate_table <- ((term_rate_male_table + term_rate_female_table) / 2) %>% 
     add_row(yos = (max(term_rate_male_table$yos) + 1):max(params$yos_range_)) %>% 

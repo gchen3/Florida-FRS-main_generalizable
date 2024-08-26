@@ -18,7 +18,6 @@ system.time(baseline_funding <- get_funding_data(funding_list = funding_list,
                                                  mort_table_list = mort_table_list, 
                                                  mort_retire_table_list = mort_retire_table_list, 
                                                  separation_rate_table_list = separation_rate_table_list,
-                                                 
                                                  params=params)) # about 60 secs tot, ~ 10 seconds for a single class
 
 system.time(baseline_liability <- get_liability_data(class = "regular", 

@@ -140,11 +140,11 @@ mort_table_list <- mget(paste0(params$underscored_class_names, "_mort_table"), e
 mort_retire_table_list <- mget(paste0(params$underscored_class_names, "_mort_retire_table"), envir = .GlobalEnv)
 separation_rate_table_list <- mget(paste0(params$underscored_class_names, "_separation_rate_table"), envir = .GlobalEnv)
 
-normal_retire_rate_tier_1_table_list <- mget(paste0(params$underscored_class_names, "_normal_retire_rate_tier_1_table"), envir = benefit_model_data_env)
-normal_retire_rate_tier_2_table_list <- mget(paste0(params$underscored_class_names, "_normal_retire_rate_tier_2_table"), envir = benefit_model_data_env)
+normal_retire_rate_tier_1_table_list <- mget(paste0(params$underscored_class_names, "_normal_retire_rate_tier_1_table"), envir = benefit_model_data_env) # defined in benefit model actions
+normal_retire_rate_tier_2_table_list <- mget(paste0(params$underscored_class_names, "_normal_retire_rate_tier_2_table"), envir = benefit_model_data_env) # defined in benefit model actions
 
-early_retire_rate_tier_1_table_list <- mget(paste0(params$underscored_class_names, "_early_retire_rate_tier_1_table"), envir = benefit_model_data_env) 
-early_retire_rate_tier_2_table_list <- mget(paste0(params$underscored_class_names, "_early_retire_rate_tier_2_table"), envir = benefit_model_data_env)
+early_retire_rate_tier_1_table_list <- mget(paste0(params$underscored_class_names, "_early_retire_rate_tier_1_table"), envir = benefit_model_data_env) # defined in benefit model actions
+early_retire_rate_tier_2_table_list <- mget(paste0(params$underscored_class_names, "_early_retire_rate_tier_2_table"), envir = benefit_model_data_env) # defined in benefit model actions
 
 # ns(.GlobalEnv) |> str_subset("separation_rate_table")
 # ns(benefit_model_data_env)

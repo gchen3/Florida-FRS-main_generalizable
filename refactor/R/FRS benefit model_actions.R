@@ -290,46 +290,80 @@ print(".. separation rate tables by class")
 term_rate_male_table_list <- params$term_rate_male_table_list
 term_rate_female_table_list <- params$term_rate_female_table_list
 
+normal_retire_rate_tier_1_table_list <- mget(paste0(params$underscored_class_names, "_normal_retire_rate_tier_1_table")) # defined in benefit model actions
+normal_retire_rate_tier_2_table_list <- mget(paste0(params$underscored_class_names, "_normal_retire_rate_tier_2_table")) # defined in benefit model actions
+
+early_retire_rate_tier_1_table_list <- mget(paste0(params$underscored_class_names, "_early_retire_rate_tier_1_table")) # defined in benefit model actions
+early_retire_rate_tier_2_table_list <- mget(paste0(params$underscored_class_names, "_early_retire_rate_tier_2_table")) # defined in benefit model actions
+
 regular_separation_rate_table <- get_separation_table("regular", 
                                                       entrant_profile_table_list,
-                                                      term_rate_male_table_list,
-                                                      term_rate_female_table_list,
+                                                      params$term_rate_male_table_list , # we don't have this and next in the global environment next
+                                                      params$term_rate_female_table_list,
+                                                      normal_retire_rate_tier_1_table_list,
+                                                      normal_retire_rate_tier_2_table_list,
+                                                      early_retire_rate_tier_1_table_list,
+                                                      early_retire_rate_tier_2_table_list,
                                                       params)
 
 special_separation_rate_table <- get_separation_table("special", 
                                                       entrant_profile_table_list, 
                                                       term_rate_male_table_list,
                                                       term_rate_female_table_list,
+                                                      normal_retire_rate_tier_1_table_list,
+                                                      normal_retire_rate_tier_2_table_list,
+                                                      early_retire_rate_tier_1_table_list,
+                                                      early_retire_rate_tier_2_table_list,
                                                       params)
 
 admin_separation_rate_table <- get_separation_table("admin", 
                                                     entrant_profile_table_list, 
                                                     term_rate_male_table_list,
                                                     term_rate_female_table_list,
+                                                    normal_retire_rate_tier_1_table_list,
+                                                    normal_retire_rate_tier_2_table_list,
+                                                    early_retire_rate_tier_1_table_list,
+                                                    early_retire_rate_tier_2_table_list,
                                                     params)
 
 eco_separation_rate_table <- get_separation_table("eco", 
                                                   entrant_profile_table_list, 
                                                   term_rate_male_table_list,
                                                   term_rate_female_table_list,
+                                                  normal_retire_rate_tier_1_table_list,
+                                                  normal_retire_rate_tier_2_table_list,
+                                                  early_retire_rate_tier_1_table_list,
+                                                  early_retire_rate_tier_2_table_list,
                                                   params)
 
-eso_separation_rate_table <- get_separation_table("regular", 
+eso_separation_rate_table <- get_separation_table("eso", 
                                                   entrant_profile_table_list, 
                                                   term_rate_male_table_list,
                                                   term_rate_female_table_list,
+                                                  normal_retire_rate_tier_1_table_list,
+                                                  normal_retire_rate_tier_2_table_list,
+                                                  early_retire_rate_tier_1_table_list,
+                                                  early_retire_rate_tier_2_table_list,
                                                   params)
 
 judges_separation_rate_table <- get_separation_table("judges", 
                                                      entrant_profile_table_list, 
                                                      term_rate_male_table_list,
                                                      term_rate_female_table_list,
+                                                     normal_retire_rate_tier_1_table_list,
+                                                     normal_retire_rate_tier_2_table_list,
+                                                     early_retire_rate_tier_1_table_list,
+                                                     early_retire_rate_tier_2_table_list,
                                                      params)
 
 senior_management_separation_rate_table <- get_separation_table("senior management", 
                                                                 entrant_profile_table_list, 
                                                                 term_rate_male_table_list,
                                                                 term_rate_female_table_list,
+                                                                normal_retire_rate_tier_1_table_list,
+                                                                normal_retire_rate_tier_2_table_list,
+                                                                early_retire_rate_tier_1_table_list,
+                                                                early_retire_rate_tier_2_table_list,
                                                                 params)
 
 print("All done with separation tables")
