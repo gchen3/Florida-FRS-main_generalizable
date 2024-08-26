@@ -7,6 +7,7 @@
 #   mutate(across(contains("salary"), ~ cumprod(1 + lag(.x, default = 0)), .names = "cumprod_{.col}"), .keep = "unused")
 
 
+
 #Joining headcount data, salary data, and salary growth data
 
 
@@ -44,8 +45,8 @@ senior_management_entrant_profile_table <- temp$entrant_profile
 rm(temp)
 
 #.. create a list with the entrant profile tables ----
-underscored_class_names <- str_replace(params$class_names_no_drop_frs_, " ", "_")
-entrant_profile_table_list <- mget(paste0(underscored_class_names, "_entrant_profile_table"))
+
+entrant_profile_table_list <- mget(paste0(params$underscored_class_names, "_entrant_profile_table"))
 
 
 # Retirement & Separation Conditions --------------------------------------
@@ -286,13 +287,50 @@ senior_management_early_retire_rate_tier_2_table <- get_early_retire_rate_table(
 
 print(".. separation rate tables by class")
 
-regular_separation_rate_table <- get_separation_table("regular", entrant_profile_table_list, params)
-special_separation_rate_table <- get_separation_table("special", entrant_profile_table_list, params)
-admin_separation_rate_table <- get_separation_table("admin", entrant_profile_table_list, params)
-eco_separation_rate_table <- get_separation_table("eco", entrant_profile_table_list, params)
-eso_separation_rate_table <- get_separation_table("regular", entrant_profile_table_list, params)
-judges_separation_rate_table <- get_separation_table("judges", entrant_profile_table_list, params)
-senior_management_separation_rate_table <- get_separation_table("senior management", entrant_profile_table_list, params)
+term_rate_male_table_list <- params$term_rate_male_table_list
+term_rate_female_table_list <- params$term_rate_female_table_list
+
+regular_separation_rate_table <- get_separation_table("regular", 
+                                                      entrant_profile_table_list,
+                                                      term_rate_male_table_list,
+                                                      term_rate_female_table_list,
+                                                      params)
+
+special_separation_rate_table <- get_separation_table("special", 
+                                                      entrant_profile_table_list, 
+                                                      term_rate_male_table_list,
+                                                      term_rate_female_table_list,
+                                                      params)
+
+admin_separation_rate_table <- get_separation_table("admin", 
+                                                    entrant_profile_table_list, 
+                                                    term_rate_male_table_list,
+                                                    term_rate_female_table_list,
+                                                    params)
+
+eco_separation_rate_table <- get_separation_table("eco", 
+                                                  entrant_profile_table_list, 
+                                                  term_rate_male_table_list,
+                                                  term_rate_female_table_list,
+                                                  params)
+
+eso_separation_rate_table <- get_separation_table("regular", 
+                                                  entrant_profile_table_list, 
+                                                  term_rate_male_table_list,
+                                                  term_rate_female_table_list,
+                                                  params)
+
+judges_separation_rate_table <- get_separation_table("judges", 
+                                                     entrant_profile_table_list, 
+                                                     term_rate_male_table_list,
+                                                     term_rate_female_table_list,
+                                                     params)
+
+senior_management_separation_rate_table <- get_separation_table("senior management", 
+                                                                entrant_profile_table_list, 
+                                                                term_rate_male_table_list,
+                                                                term_rate_female_table_list,
+                                                                params)
 
 print("All done with separation tables")
 
