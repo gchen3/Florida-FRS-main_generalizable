@@ -58,6 +58,7 @@ entrant_profile_table_list <- mget(paste0(underscored_class_names, "_entrant_pro
 print("get mortality tables")
 
 #.. base mortality table -----------------------------------------------
+print(".. base mortality")
 
 base_general_mort_table <- get_base_mort_table(params$base_general_mort_table_)
 base_teacher_mort_table <- get_base_mort_table(params$base_teacher_mort_table_)
@@ -68,6 +69,7 @@ base_regular_mort_table <- (base_general_mort_table + base_teacher_mort_table)/2
 
 
 # .. mortality improvement ------------------------------------------------
+print(".. mortality improvement")
 
 male_mp_table <- clean_mp_table(params$male_mp_table_, extend_2_yrs = TRUE)
 female_mp_table <- clean_mp_table(params$female_mp_table_, extend_2_yrs = TRUE)
@@ -76,6 +78,7 @@ male_mp_final_table <- get_mp_final_table(male_mp_table, "male", 2010, params$ag
 female_mp_final_table <- get_mp_final_table(female_mp_table, "female", 2010, params$age_range_, params$year_range_)
 
 #.. mortality tables by class -----------------------------------------------
+print(".. improved mortality tables by class")
 
 regular_mort_table <- get_mort_table("regular", base_regular_mort_table, male_mp_final_table, female_mp_final_table, regular_entrant_profile_table,
                                      params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
@@ -92,6 +95,7 @@ judges_mort_table <- get_mort_table("judges", base_general_mort_table, male_mp_f
 senior_management_mort_table <- get_mort_table("senior management", base_general_mort_table, male_mp_final_table, female_mp_final_table, senior_management_entrant_profile_table,
                                                params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 
+print(".. mortality retirement tables by class")
 
 regular_mort_retire_table <- get_mort_retire_table(base_regular_mort_table, male_mp_final_table, female_mp_final_table,
                                                    params$age_range_, params$year_range_, params$start_year_)
@@ -114,6 +118,8 @@ senior_management_mort_retire_table <- get_mort_retire_table(base_general_mort_t
 print("get separation tables")
 
 #.. Clean retirement and drop ----
+
+print(".. drop, normal, and early retire entry")
 
 drop_entry_table_col_names <- c("age", "regular_inst_female", "regular_inst_male",
                                 "regular_non_inst_female", "regular_non_inst_male",
@@ -167,6 +173,7 @@ special_risk_drop_entry_tier_2_table <- drop_entry_tier_2_table %>%
 
 #.. get retirement-rate tables ----------------------------------------------
 
+print(".. retirement rate tables")
 
 regular_normal_retire_rate_tier_1_table <- get_normal_retire_rate_table(class_name = "regular",
                                                                         drop_entry_table = drop_entry_tier_1_table,
@@ -227,6 +234,7 @@ senior_management_normal_retire_rate_tier_2_table <- get_normal_retire_rate_tabl
 
 #.. get early retirement rate tables ----------------------------------------
 
+print(".. early retirement rate tables")
 
 regular_early_retire_rate_tier_1_table <- get_early_retire_rate_table(class_name = "regular",
                                                                       init_early_retire_rate_table = early_retire_rate_tier_1_table)
@@ -275,6 +283,8 @@ senior_management_early_retire_rate_tier_2_table <- get_early_retire_rate_table(
 
 
 # ..get separation rate tables --------------------------------------------
+
+print(".. separation rate tables by class")
 
 regular_separation_rate_table <- get_separation_table("regular", entrant_profile_table_list, params)
 special_separation_rate_table <- get_separation_table("special", entrant_profile_table_list, params)
