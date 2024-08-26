@@ -387,7 +387,8 @@ get_separation_table <- function(class_name,
       ) %>% 
     filter(entry_age %in% entrant_profile_table$entry_age) %>% 
     arrange(entry_year, entry_age, term_age) %>% 
-    left_join(long_term_rate_table) %>% 
+    left_join(long_term_rate_table,
+              by = join_by(yos, age_group)) %>% 
     left_join(normal_retire_rate_tier_1_table %>% rename(normal_retire_rate_tier_1 = normal_retire_rate), by = c("term_age" = "age")) %>% 
     left_join(normal_retire_rate_tier_2_table %>% rename(normal_retire_rate_tier_2 = normal_retire_rate), by = c("term_age" = "age")) %>% 
     left_join(early_retire_rate_tier_1_table %>% rename(early_retire_rate_tier_1 = early_retire_rate), by = c("term_age" = "age")) %>% 
