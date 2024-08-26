@@ -403,7 +403,7 @@ get_liability_data <- function(
     retiree_pop_current,
     pvfb_term_current,
     entrant_profile_table,
-    # salary_headcount_table,
+    salary_headcount_table,
     # mort_table,
     # mort_retire_table,
     # sep_rate_table,        
@@ -415,7 +415,7 @@ get_liability_data <- function(
   benefit_data <- get_benefit_data(    
     class_name,
     entrant_profile_table,
-    # salary_headcount_table,
+    salary_headcount_table,
     # mort_table,
     # mort_retire_table,
     # sep_rate_table,    
