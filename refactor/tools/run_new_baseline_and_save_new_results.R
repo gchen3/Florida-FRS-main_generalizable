@@ -10,14 +10,14 @@ rm(list = ls())
 system.time(source(here::here("refactor", "R", "FRS master.R"))) # load and build the full FRS Florida model
 
 # generate baseline results
-system.time(baseline_funding <- get_funding_data(funding_list, 
-                                                 current_amort_layers_table, 
-                                                 wf_data_list,
-                                                 entrant_profile_table_list, 
-                                                 salary_headcount_table_list, 
-                                                 mort_table_list, 
-                                                 mort_retire_table_list, 
-                                                 separation_rate_table_list,
+system.time(baseline_funding <- get_funding_data(funding_list = funding_list, 
+                                                 current_amort_layers_table = current_amort_layers_table, 
+                                                 wf_data_list = wf_data_list,
+                                                 entrant_profile_table_list = entrant_profile_table_list, 
+                                                 salary_headcount_table_list = salary_headcount_table_list, 
+                                                 mort_table_list = mort_table_list, 
+                                                 mort_retire_table_list = mort_retire_table_list, 
+                                                 separation_rate_table_list = separation_rate_table_list,
                                                  params=params)) # about 60 secs tot, ~ 10 seconds for a single class
 
 system.time(baseline_liability <- get_liability_data(class = "regular", 

@@ -128,12 +128,12 @@ underscored_class_names <- str_replace(params$class_names_no_drop_frs_, " ", "_"
 # djb return here ----
 # wf_data_list: each class has 4 tables: entrant_profile_table, salary_headcount_table, mort_table, sep_rate_table
 wf_data_list <- mget(paste0(underscored_class_names, "_wf_data"), envir = .GlobalEnv) # does not waste memory because R is copy on modify
-entrant_profile_table_list <- mget(paste0(underscored_class_names, "_entrant_profile_table"), envir = .GlobalEnv)
+entrant_profile_table_list <- benefit_model_data_env$entrant_profile_table_list # previously created
+
 salary_headcount_table_list <- mget(paste0(underscored_class_names, "_salary_headcount_table"), envir = .GlobalEnv)
 mort_table_list <- mget(paste0(underscored_class_names, "_mort_table"), envir = .GlobalEnv)
 mort_retire_table_list <- mget(paste0(underscored_class_names, "_mort_retire_table"), envir = .GlobalEnv)
 separation_rate_table_list <- mget(paste0(underscored_class_names, "_separation_rate_table"), envir = .GlobalEnv)
-
 # entrant_profile_table_list, salary_headcount_table_list, mort_table_list, mort_retire_table_list, separation_rate_table_list
 
 # ns(.GlobalEnv) |> str_subset("separation_rate_table")

@@ -345,6 +345,7 @@ get_early_retire_rate_table <- function(class_name, init_early_retire_rate_table
 
 
 get_separation_table <- function(class_name,
+                                 entrant_profile_table_list,
                                  params){
   
   # class_name <- gsub(" ", "_", class_name)
@@ -359,7 +360,9 @@ get_separation_table <- function(class_name,
   assign("early_retire_rate_tier_1_table", get(paste0(class_name, "_early_retire_rate_tier_1_table"), envir=benefit_model_data_env))
   assign("early_retire_rate_tier_2_table", get(paste0(class_name, "_early_retire_rate_tier_2_table"), envir=benefit_model_data_env))
   
-  assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table"), envir=benefit_model_data_env))
+  # assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table"), envir=benefit_model_data_env))
+  element_name <- paste0(class_name, "_entrant_profile_table")
+  entrant_profile_table <- entrant_profile_table_list[[element_name]]
   
   term_rate_table <- ((term_rate_male_table + term_rate_female_table) / 2) %>% 
     add_row(yos = (max(term_rate_male_table$yos) + 1):max(params$yos_range_)) %>% 
