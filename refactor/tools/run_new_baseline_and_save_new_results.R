@@ -28,8 +28,8 @@ system.time(baseline_liability <- get_liability_data(class = "regular",
                                                      entrant_profile_table = regular_entrant_profile_table,
                                                      salary_headcount_table = regular_salary_headcount_table,
                                                      mort_table = regular_mort_table,
-                                                     # mort_retire_table,
-                                                     # sep_rate_table,
+                                                     mort_retire_table = regular_mort_retire_table,
+                                                     # separation_rate_table = regular_separation_rate_table,
                                                      params = params)
             ) # ~ 10 seconds for a single class
 

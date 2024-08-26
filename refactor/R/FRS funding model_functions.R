@@ -978,7 +978,10 @@ get_funding_data <- function(
     salary_headcount_table <- salary_headcount_table_list[[element_name]]    
     
     element_name <- paste0(underscored_name, "_mort_table")
-    mort_table <- mort_table_list[[element_name]]        
+    mort_table <- mort_table_list[[element_name]]     
+    
+    element_name <- paste0(underscored_name, "_mort_retire_table")
+    mort_retire_table <- mort_retire_table_list[[element_name]]         
     
     get_liability_data(class_name, 
                        wf_data, 
@@ -988,8 +991,8 @@ get_funding_data <- function(
                        entrant_profile_table,
                        salary_headcount_table,
                        mort_table,
-                       # mort_retire_table,
-                       # sep_rate_table,
+                       mort_retire_table,
+                       # separation_rate_table,
                        params)
   }
   
