@@ -118,6 +118,7 @@ print("sourcing FRS workforce model_get_and_save_wfdata.R...")
 system.time(source(fs::path(rdir, "FRS workforce model_get_and_save_wfdata.R"))) # 2 mins -- only saves objects - no functions
 # depends on assumptions in the model: 
 
+cat("\n")
 print("sourcing FRS workforce model_get_saved_data.R...")
 system.time(source(fs::path(rdir, "FRS workforce model_get_saved_data.R"))) # < 1 sec -- only gets saved data - no functions
 # simply loads wf data -- 4 table types per 7 classes
