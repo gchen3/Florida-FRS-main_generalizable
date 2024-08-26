@@ -977,6 +977,9 @@ get_funding_data <- function(
     element_name <- paste0(underscored_name, "_salary_headcount_table")
     salary_headcount_table <- salary_headcount_table_list[[element_name]]    
     
+    element_name <- paste0(underscored_name, "_mort_table")
+    mort_table <- mort_table_list[[element_name]]        
+    
     get_liability_data(class_name, 
                        wf_data, 
                        ben_payment_current, 
@@ -984,7 +987,7 @@ get_funding_data <- function(
                        pvfb_term_current,
                        entrant_profile_table,
                        salary_headcount_table,
-                       # mort_table,
+                       mort_table,
                        # mort_retire_table,
                        # sep_rate_table,
                        params)

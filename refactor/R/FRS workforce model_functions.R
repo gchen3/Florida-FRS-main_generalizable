@@ -261,7 +261,7 @@ get_wf_data <- function(
     class_name,
     entrant_profile_table,
     salary_headcount_table,
-    # mort_table,
+    mort_table,
     # mort_retire_table,
     # sep_rate_table,    
     params

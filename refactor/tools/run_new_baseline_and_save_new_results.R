@@ -27,13 +27,13 @@ system.time(baseline_liability <- get_liability_data(class = "regular",
                                                      pvfb_term_current = params$regular_pvfb_term_current_,
                                                      entrant_profile_table = regular_entrant_profile_table,
                                                      salary_headcount_table = regular_salary_headcount_table,
-                                                     # mort_table,
+                                                     mort_table = regular_mort_table,
                                                      # mort_retire_table,
                                                      # sep_rate_table,
                                                      params = params)
             ) # ~ 10 seconds for a single class
 
-system.time(save.image(here::here("refactor", "new_results", "new_workspace.RData"))) # save the entire workspace, ~ 10-15 secs
+system.time(save.image(here::here("refactor", "new_results", "new_workspace.RData"))) # save the entire workspace, ~ 15-20 secs
 
 # run one or the other of the following tests
 

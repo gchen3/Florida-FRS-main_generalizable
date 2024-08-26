@@ -360,7 +360,7 @@ get_benefit_data <- function(
     class_name,
     entrant_profile_table,
     salary_headcount_table,
-    # mort_table,
+    mort_table,
     # mort_retire_table,
     # sep_rate_table,
     params
@@ -370,7 +370,7 @@ get_benefit_data <- function(
   
   # assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table")))
   # assign("salary_headcount_table", get(paste0(class_name, "_salary_headcount_table")))
-  assign("mort_table", get(paste0(class_name, "_mort_table")))
+  # assign("mort_table", get(paste0(class_name, "_mort_table")))
   assign("mort_retire_table", get(paste0(class_name, "_mort_retire_table")))
   assign("sep_rate_table", get(paste0(class_name, "_separation_rate_table")))
 
