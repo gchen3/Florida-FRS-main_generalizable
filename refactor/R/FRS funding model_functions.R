@@ -24,11 +24,10 @@ get_current_amort_layers_summary_table <- function(current_amort_layers_table){
   current_amort_layers_table <- current_amort_layers_table %>% 
     mutate(amo_period = if_else(amo_period == "n/a", "20", amo_period),
            amo_period = as.numeric(amo_period)) %>% 
-    group_by(class, amo_period) %>%
-    summarise(amo_balance = sum(amo_balance)) %>% 
+    summarise(amo_balance = sum(amo_balance),
+              .by = c(class, amo_period)) %>% 
     #make sure that the amo periods are arranged in descending order
-    arrange(class, desc(amo_period)) %>% 
-    ungroup()
+    arrange(class, desc(amo_period))
   
   return(current_amort_layers_table)
 }
