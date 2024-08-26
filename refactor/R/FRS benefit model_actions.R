@@ -336,7 +336,7 @@ eco_separation_rate_table <- get_separation_table("eco",
                                                   early_retire_rate_tier_2_table_list,
                                                   params)
 
-eso_separation_rate_table <- get_separation_table("eso", 
+eso_separation_rate_table <- get_separation_table("regular", # djb caution should this really be regular?? yes, it was this way in the file we got from Reason!! ----
                                                   entrant_profile_table_list, 
                                                   term_rate_male_table_list,
                                                   term_rate_female_table_list,
