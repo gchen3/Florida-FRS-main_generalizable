@@ -40,14 +40,16 @@ get_salary_headcount_table <- function(class_name,
     select(-active_member_adjustment_ratio)
   
   salary_headcount_table <- salary_table_long %>% 
-    left_join(headcount_table_long) %>% 
+    left_join(headcount_table_long,
+              by = join_by(age, yos)) %>% 
     mutate(
       yos = as.numeric(yos),
       start_year = params$start_year_,
       entry_age = age - yos,
       entry_year = start_year - yos) %>% 
     filter(!is.na(salary), entry_age >= 18) %>% 
-    left_join(salary_growth_table) %>% 
+    left_join(salary_growth_table,
+              by = join_by(yos)) %>% 
     mutate(entry_salary = salary / cumprod_salary_increase) %>% 
     select(entry_year, entry_age, age, yos, count, entry_salary)
   
@@ -183,8 +185,10 @@ get_mp_final_table <- function(mp_table, gender, base_year, age_range, year_rang
     select(-year)
   
   mp_final_table <- expand_grid(age = age_range, year = min(mp_table$year):max(year_range)) %>% 
-    left_join(mp_table) %>% 
-    left_join(mp_ultimate_table, by = "age") %>% 
+    left_join(mp_table,
+              by = join_by(age, year)) %>% 
+    left_join(mp_ultimate_table,
+              by = join_by(age)) %>% 
     mutate(mp_final = if_else(year > max(mp_table$year), mp_ultimate, mp)) %>% 
     group_by(age) %>% 
     
