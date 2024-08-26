@@ -23,7 +23,7 @@ library(pentools) # use this instead of sourcing "FRS utility_functions.R"
 
 # set FULL_RUN boolean ----------------------------------------------------
 
-FULL_RUN <- TRUE
+FULL_RUN <- FALSE
 BENEFIT_RUN <- TRUE
 
 

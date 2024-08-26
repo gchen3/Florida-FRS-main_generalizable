@@ -228,7 +228,8 @@ get_benefit_val_table <- function(
   
   benefit_val_table <- salary_benefit_table %>% 
     left_join(final_benefit_table, by = c("entry_year", "entry_age", "term_age")) %>%
-    left_join(sep_rate_table) %>%
+    left_join(sep_rate_table,
+              by = join_by(entry_year, entry_age, yos, term_age)) %>%
     mutate(
       #note that the tier below applies at termination age only
       dr = if_else(str_detect(tier_at_term_age, "tier_3"), params$dr_new_, params$dr_current_),
@@ -299,7 +300,8 @@ get_final_benefit_table <- function(benefit_table, dist_age_table){
   
   #Retain only the final distribution ages in the final_benefit_table
   final_benefit_table <- benefit_table %>% 
-    semi_join(dist_age_table) %>% 
+    semi_join(dist_age_table,
+              by = join_by(entry_year, entry_age, dist_age, term_age)) %>% 
     select(entry_year, entry_age, term_age, dist_age, db_benefit, pvfb_db_at_term_age, ann_factor_term) %>% 
     mutate(
       #NA benefit values (because the member is not vested) are replaced with 0

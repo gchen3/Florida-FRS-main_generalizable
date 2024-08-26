@@ -37,11 +37,16 @@ get_funding_df <- function(wf_active_df_final,
   ##### Funding model - liability side
   {
   funding_df <- wf_active_df_final %>% 
-    left_join(wf_term_df_final) %>% 
-    left_join(wf_refund_df_final) %>% 
-    left_join(wf_retire_df_final) %>%
-    left_join(wf_retire_current_final) %>% 
-    left_join(wf_term_current) %>%
+    left_join(wf_term_df_final,
+              by = join_by(year)) %>% 
+    left_join(wf_refund_df_final,
+              by = join_by(year)) %>% 
+    left_join(wf_retire_df_final,
+              by = join_by(year)) %>%
+    left_join(wf_retire_current_final,
+              by = join_by(year)) %>% 
+    left_join(wf_term_current,
+              by = join_by(year)) %>%
     replace(is.na(.), 0) %>% 
     mutate(
       aal_legacy_est = aal_active_db_legacy_est + aal_term_db_legacy_est + aal_retire_db_legacy_est + aal_retire_current_est + aal_term_current_est,
