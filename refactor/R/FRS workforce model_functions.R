@@ -254,7 +254,8 @@ get_wf_data <- function(
     separation_rate_table,
     params
 ) {
-  print(paste0("preparing wf_data for class: ", class_name))
+  cat("\n\n")
+  print(paste0("..preparing wf_data for class: ", class_name))
     
   benefit_data <- get_benefit_data(
     class_name,
