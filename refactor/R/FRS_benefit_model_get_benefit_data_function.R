@@ -344,8 +344,8 @@ get_salary_benefit_table <- function(class_name,
     group_by(entry_year, entry_age) %>% 
     mutate(
       fas = baseR.rollmean(salary, fas_period),
-      db_ee_cont = db_ee_cont_rate_ * salary,
-      db_ee_balance = get_cum_fv(db_ee_interest_rate_, db_ee_cont),
+      db_ee_cont = params$db_ee_cont_rate_ * salary,
+      db_ee_balance = get_cum_fv(params$db_ee_interest_rate_, db_ee_cont),
     ) %>% 
     ungroup() %>% 
     filter(!is.na(salary))

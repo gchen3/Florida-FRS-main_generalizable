@@ -75,7 +75,7 @@ if(FULL_RUN){
   ls(envir = modparm_data_env)
 }
 load(fs::path(wddir, "modparm_data_env.RData"))
-list2env(as.list(modparm_data_env), envir = .GlobalEnv)
+# list2env(as.list(modparm_data_env), envir = .GlobalEnv)
 # rm(modparm_data_env)
 
 

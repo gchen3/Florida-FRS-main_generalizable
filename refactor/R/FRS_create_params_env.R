@@ -13,7 +13,7 @@ extend_params <- function(params){
   params$nc_cal_ <- tibble(class = classes, nc_cal_ = unlist(values))
   
   params$salary_growth_table_ <- params$salary_growth_table_ %>% 
-    bind_rows(tibble(yos = (max(params$salary_growth_table_$yos)+1):max(yos_range_))) %>% 
+    bind_rows(tibble(yos = (max(params$salary_growth_table_$yos)+1):max(params$yos_range_))) %>% 
     fill(everything(), .direction = "down") %>% 
     mutate(across(contains("salary"), ~ cumprod(1 + lag(.x, default = 0)), .names = "cumprod_{.col}"), .keep = "unused")
   
