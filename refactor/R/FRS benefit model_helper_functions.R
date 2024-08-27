@@ -6,12 +6,6 @@ get_salary_headcount_table <- function(class_name,
   
   class_name <- str_replace(class_name, " ", "_")
   
-  # if (!class_name %in% c("eco", "eso", "judges")) {
-  #   assign("total_active_member", get(paste0(class_name, "_total_active_member_")))
-  # } else {
-  #   assign("total_active_member", get("eco_eso_judges_total_active_member_"))
-  # }
-  
   # djb TEMPORARY until we have stacked data: get params values for the class
   salary_table <- params[[paste0(class_name, "_salary_table_")]]
   headcount_table <- params[[paste0(class_name, "_headcount_table_")]]
@@ -347,27 +341,36 @@ get_early_retire_rate_table <- function(class_name, init_early_retire_rate_table
 
 #.. separation tables ---------------------------------------------------------
 
-
 get_separation_table <- function(class_name,
                                  entrant_profile_table_list,
+                                 term_rate_male_table_list,
+                                 term_rate_female_table_list,
+                                 normal_retire_rate_tier_1_table_list,
+                                 normal_retire_rate_tier_2_table_list,
+                                 early_retire_rate_tier_1_table_list,
+                                 early_retire_rate_tier_2_table_list,
                                  params){
   
   # class_name <- gsub(" ", "_", class_name)
   class_name <- str_replace(class_name, " ", "_")
   
-  assign("term_rate_male_table", get(paste0(class_name, "_term_rate_male_table_"), envir=benefit_model_data_env))
-  assign("term_rate_female_table", get(paste0(class_name, "_term_rate_female_table_"), envir=benefit_model_data_env))
-  
-  assign("normal_retire_rate_tier_1_table", get(paste0(class_name, "_normal_retire_rate_tier_1_table"), envir=benefit_model_data_env))
-  assign("normal_retire_rate_tier_2_table", get(paste0(class_name, "_normal_retire_rate_tier_2_table"), envir=benefit_model_data_env))
-  
-  assign("early_retire_rate_tier_1_table", get(paste0(class_name, "_early_retire_rate_tier_1_table"), envir=benefit_model_data_env))
-  assign("early_retire_rate_tier_2_table", get(paste0(class_name, "_early_retire_rate_tier_2_table"), envir=benefit_model_data_env))
-  
-  # assign("entrant_profile_table", get(paste0(class_name, "_entrant_profile_table"), envir=benefit_model_data_env))
   element_name <- paste0(class_name, "_entrant_profile_table")
   entrant_profile_table <- entrant_profile_table_list[[element_name]]
   
+  element_name <- paste0(class_name, "_term_rate_male_table_")
+  term_rate_male_table <- term_rate_male_table_list[[element_name]]  
+  
+  element_name <- paste0(class_name, "_term_rate_female_table_")
+  term_rate_female_table <- term_rate_female_table_list[[element_name]]  
+  
+  normal_retire_rate_tier_1_table <- normal_retire_rate_tier_1_table_list[[paste0(class_name, "_normal_retire_rate_tier_1_table")]]
+  normal_retire_rate_tier_2_table <- normal_retire_rate_tier_2_table_list[[paste0(class_name, "_normal_retire_rate_tier_2_table")]]
+  
+  early_retire_rate_tier_1_table <- early_retire_rate_tier_1_table_list[[paste0(class_name, "_early_retire_rate_tier_1_table")]]
+  early_retire_rate_tier_2_table <- early_retire_rate_tier_2_table_list[[paste0(class_name, "_early_retire_rate_tier_2_table")]]
+  
+  # end of initialization ---
+    
   term_rate_table <- ((term_rate_male_table + term_rate_female_table) / 2) %>% 
     add_row(yos = (max(term_rate_male_table$yos) + 1):max(params$yos_range_)) %>% 
     fill(everything(), .direction="down")
@@ -377,7 +380,7 @@ get_separation_table <- function(class_name,
   
   long_term_rate_table <- pivot_longer(term_rate_table, cols = -yos, names_to = "age_group", values_to = "term_rate")
   
-  sep_rate_table <- expand_grid(entry_year = params$entry_year_range_,
+  separation_rate_table <- expand_grid(entry_year = params$entry_year_range_,
                                 term_age = params$age_range_, 
                                 yos = params$yos_range_) %>% 
     mutate(
@@ -414,6 +417,6 @@ get_separation_table <- function(class_name,
     ungroup() %>% 
     select(entry_year, entry_age, term_age, yos, term_year, separation_rate, remaining_prob, separation_prob)
   
-  return(sep_rate_table)
+  return(separation_rate_table)
 }
 

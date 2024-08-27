@@ -38,7 +38,7 @@ prefixes <- str_replace(params$class_names_no_drop_frs_, " ", "_")
 purrr::walk(objnames, f)
 
 
-
+objname <- "admin_separation_rate_table"
 
 old_object <- get(objname, envir = oldws)
 new_object <- get(objname, envir = .GlobalEnv)

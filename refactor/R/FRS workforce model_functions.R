@@ -251,6 +251,7 @@ get_wf_data <- function(
     entrant_profile_table,
     salary_headcount_table,
     mort_table,
+    mort_retire_table,
     separation_rate_table,
     params
 ) {
@@ -260,10 +261,10 @@ get_wf_data <- function(
   benefit_data <- get_benefit_data(
     class_name,
     entrant_profile_table,
-    # salary_headcount_table,
-    # mort_table,
-    # mort_retire_table,
-    # sep_rate_table,    
+    salary_headcount_table,
+    mort_table,
+    mort_retire_table,
+    separation_rate_table,    
     params
   )
   
@@ -291,7 +292,7 @@ get_wf_data <- function(
     benefit_val_table = benefit_data$benefit_val_table,
     retire_refund_ratio = params$retire_refund_ratio_
   )
-  list2env(init_list, envir = environment()) # djb: copy each element of list into the current environment
+  list2env(init_list, envir = environment()) # djb: put REFERENCES to list elements into the current environment
   b <- proc.time()
   cat("initialize_arrays user system elapsed: ", b - a)
   
@@ -343,20 +344,20 @@ get_wf_data <- function(
   wf_retire_list <- list()  # empty list to save retire workforce data in the for loop
   
   for (i in seq_along(entrant_profile_table$entry_age)) {
-    wf_retire_name <- paste0("wf_retire_", entrant_profile_table$entry_age[i])
+    wf_retire_name <- paste0("wf_retire_", entrant_profile_table$entry_age[i]) # NOT DANGEROUS create a unique name for the retire matrix [age x year] for this entry_age, term_year, retire_year
     
     assign(wf_retire_name, wf_retire[i,,,,])
     
-    wf_retire_i <- data.table(CJ(retire_year = retire_year_range, term_year = term_year_range, year = year_range, age = age_range), 
-                              n_retire = as.vector(get(wf_retire_name)))[n_retire > 0,] %>% 
+    wf_retire_i <- data.table(CJ(retire_year = retire_year_range, term_year = term_year_range, year = year_range, age = age_range), # CJ is cross join
+                              n_retire = as.vector(get(wf_retire_name)))[n_retire > 0,] %>%  # djb CAUTION: get(), but it is quite local 
       mutate(entry_age = entrant_profile_table$entry_age[i])
     
     assign(wf_retire_name, wf_retire_i)   #do this to save memory space
-    wf_retire_list <- append(wf_retire_list, list(get(wf_retire_name)))
+    wf_retire_list <- append(wf_retire_list, list(get(wf_retire_name))) # djb get corresponds to assign a few lines above, don't think it gives names
   }
   
   #.. Combine all retire data frames from the retire list into one retire data frame ----
-  wf_retire_df <- rbindlist(wf_retire_list) %>% 
+  wf_retire_df <- rbindlist(wf_retire_list) %>% # data.table function to a list of data.tables
     select(entry_age, age, year, term_year, retire_year, n_retire)
   
   

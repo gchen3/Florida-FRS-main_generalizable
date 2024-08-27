@@ -403,10 +403,10 @@ get_liability_data <- function(
     retiree_pop_current,
     pvfb_term_current,
     entrant_profile_table,
-    # salary_headcount_table,
-    # mort_table,
-    # mort_retire_table,
-    # sep_rate_table,        
+    salary_headcount_table,
+    mort_table,
+    mort_retire_table,
+    separation_rate_table,        
     params
     ) {
   
@@ -415,10 +415,10 @@ get_liability_data <- function(
   benefit_data <- get_benefit_data(    
     class_name,
     entrant_profile_table,
-    # salary_headcount_table,
-    # mort_table,
-    # mort_retire_table,
-    # sep_rate_table,    
+    salary_headcount_table,
+    mort_table,
+    mort_retire_table,
+    separation_rate_table,    
     params)
   
   # unpack the wf_data and benefit_data objects
