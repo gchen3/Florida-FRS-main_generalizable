@@ -349,7 +349,7 @@ get_wf_data <- function(
     assign(wf_retire_name, wf_retire[i,,,,])
     
     wf_retire_i <- data.table(CJ(retire_year = retire_year_range, term_year = term_year_range, year = year_range, age = age_range), # CJ is cross join
-                              n_retire = as.vector(get(wf_retire_name)))[n_retire > 0,] %>% 
+                              n_retire = as.vector(get(wf_retire_name)))[n_retire > 0,] %>%  # djb CAUTION: get(), but it is quite local 
       mutate(entry_age = entrant_profile_table$entry_age[i])
     
     assign(wf_retire_name, wf_retire_i)   #do this to save memory space
