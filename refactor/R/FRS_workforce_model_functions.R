@@ -367,7 +367,6 @@ get_wf_data <- function(
                   wf_refund_df = wf_refund_df,
                   wf_retire_df = wf_retire_df)
   
-  class_name <- str_replace(class_name, " ", "_")
   saveRDS(wf_data, fs::path(iddir, paste0(class_name, "_wf_data.rds")))
   
 }

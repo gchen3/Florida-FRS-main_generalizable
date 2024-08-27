@@ -4,8 +4,6 @@ get_salary_headcount_table <- function(class_name,
                                        params)
   {
   
-  class_name <- str_replace(class_name, " ", "_")
-  
   # djb TEMPORARY until we have stacked data: get params values for the class
   salary_table <- params[[paste0(class_name, "_salary_table_")]]
   headcount_table <- params[[paste0(class_name, "_headcount_table_")]]
@@ -16,7 +14,7 @@ get_salary_headcount_table <- function(class_name,
     total_active_member <- params[[paste0(class_name, "_total_active_member_")]]
   }
 
-  salary_growth_table <- params$salary_growth_table_ %>% # one talbe for all classes
+  salary_growth_table <- params$salary_growth_table_ %>% # one table for all classes
     select(yos, contains(class_name)) %>% 
     rename(cumprod_salary_increase = 2)
   
@@ -296,7 +294,7 @@ get_normal_retire_rate_table <- function(class_name, drop_entry_table, normal_re
   if (class_name %in% c("eco", "eso", "judge")) {
     search_text_in_drop_entry_table = "other"
     search_text_in_normal_retire_table = "eco_eso_jud"
-  } else if (class_name == "senior management") {
+  } else if (class_name == "senior_management") {
     search_text_in_drop_entry_table = "other"
     search_text_in_normal_retire_table = "senior_management"
   } else if (class_name == "admin"){
@@ -321,7 +319,7 @@ get_normal_retire_rate_table <- function(class_name, drop_entry_table, normal_re
 get_early_retire_rate_table <- function(class_name, init_early_retire_rate_table){
   if (class_name %in% c("eco", "eso", "judge")) {
     search_text = "eco_eso_jud"
-  } else if (class_name == "senior management") {
+  } else if (class_name == "senior_management") {
     search_text = "senior_management"
   } else if (class_name == "admin"){
     search_text = "special"
@@ -350,9 +348,6 @@ get_separation_table <- function(class_name,
                                  early_retire_rate_tier_1_table_list,
                                  early_retire_rate_tier_2_table_list,
                                  params){
-  
-  # class_name <- gsub(" ", "_", class_name)
-  class_name <- str_replace(class_name, " ", "_")
   
   element_name <- paste0(class_name, "_entrant_profile_table")
   entrant_profile_table <- entrant_profile_table_list[[element_name]]

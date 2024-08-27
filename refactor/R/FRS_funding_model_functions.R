@@ -959,28 +959,26 @@ get_funding_data <- function(
   call_get_liability_data <- function(class_name) {
     # create lists of data frames so that get_liablity_data does not have to (dangerously) pull data from the global environment with assign
     
-    underscored_name <- str_replace(class_name, " ", "_")
-    
-    element_name <- paste0(underscored_name, "_wf_data")
+    element_name <- paste0(class_name, "_wf_data")
     wf_data <- wf_data_list[[element_name]]
     
-    ben_payment_current <- params[[paste0(underscored_name, "_ben_payment_current_")]]
-    retiree_pop_current <- params[[paste0(underscored_name, "_retiree_pop_current_")]]
-    pvfb_term_current <- params[[paste0(underscored_name, "_pvfb_term_current_")]]
+    ben_payment_current <- params[[paste0(class_name, "_ben_payment_current_")]]
+    retiree_pop_current <- params[[paste0(class_name, "_retiree_pop_current_")]]
+    pvfb_term_current <- params[[paste0(class_name, "_pvfb_term_current_")]]
     
-    element_name <- paste0(underscored_name, "_entrant_profile_table")
+    element_name <- paste0(class_name, "_entrant_profile_table")
     entrant_profile_table <- entrant_profile_table_list[[element_name]]
     
-    element_name <- paste0(underscored_name, "_salary_headcount_table")
+    element_name <- paste0(class_name, "_salary_headcount_table")
     salary_headcount_table <- salary_headcount_table_list[[element_name]]    
     
-    element_name <- paste0(underscored_name, "_mort_table")
+    element_name <- paste0(class_name, "_mort_table")
     mort_table <- mort_table_list[[element_name]]     
     
-    element_name <- paste0(underscored_name, "_separation_rate_table")
+    element_name <- paste0(class_name, "_separation_rate_table")
     separation_rate_table <- separation_rate_table_list[[element_name]]         
     
-    element_name <- paste0(underscored_name, "_mort_retire_table")
+    element_name <- paste0(class_name, "_mort_retire_table")
     mort_retire_table <- mort_retire_table_list[[element_name]]         
     
     get_liability_data(class_name, 
@@ -1055,7 +1053,6 @@ get_funding_data <- function(
   # does the same thing as classes_stacked above does
   a <- proc.time()
   for (class in params$class_names_no_drop_frs_) {
-    underscored_class_name <- str_replace(class, " ", "_")
     
     fund_data <- funding_list[[class]]
     liab_data <- liability_list[[class]]
@@ -1067,8 +1064,7 @@ get_funding_data <- function(
     fund_data$payroll_dc_new_ratio <- lag(liab_data$payroll_dc_new_est / liab_data$total_payroll_est)
     
     #normal cost calibration/projection
-    # nc_cal <- get(str_replace(paste0(class, "_nc_cal_"), " ", "_")) #djb - wow, this gets a global variable
-    nc_cal <- params[[paste0(underscored_class_name, "_nc_cal_")]]
+    nc_cal <- params[[paste0(class, "_nc_cal_")]]
     fund_data$nc_rate_db_legacy <- lag(liab_data$nc_rate_db_legacy_est * nc_cal)
     fund_data$nc_rate_db_new <- lag(liab_data$nc_rate_db_new_est * nc_cal)
     

@@ -12,7 +12,6 @@ extend_params <- function(params){
   values <- mget(var_names, envir = params)
   params$nc_cal_ <- tibble(class = classes, nc_cal_ = unlist(values))
   
-  # revise salary growth_table_ instead of using salary_growth_table (NO UNDERSCORE!) global that original used
   params$salary_growth_table_ <- params$salary_growth_table_ %>% 
     bind_rows(tibble(yos = (max(params$salary_growth_table_$yos)+1):max(yos_range_))) %>% 
     fill(everything(), .direction = "down") %>% 

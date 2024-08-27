@@ -366,8 +366,6 @@ get_benefit_data <- function(
     params
 ) {
   
-  class_name <- str_replace(class_name, " ", "_")
-
   class_salary_growth_table <- get_class_salary_growth_table(class_name, params$salary_growth_table_)
   
   salary_benefit_table <- get_salary_benefit_table(class_name,
