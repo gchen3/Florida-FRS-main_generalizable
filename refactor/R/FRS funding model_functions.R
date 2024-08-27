@@ -955,13 +955,10 @@ get_funding_data <- function(
   # mclapply will be about twice as fast as lapply.
   a <- proc.time()
   
-  # create lists of data frames so that get_liablity_data does not have to (dangerously) pull data from the global environment with assign
-  # djb CAUTION -- getting data from the global environment should instead be passed to this function!!! ----
-  # underscored_class_names <- str_replace(params$class_names_no_drop_frs_, " ", "_")
-  # wf_data_list <- mget(paste0(underscored_class_names, "_wf_data"), envir = .GlobalEnv) # does not waste memory because R is copy on modify
-  
   # get values of arguments to get_liability_data for this class and then call it
   call_get_liability_data <- function(class_name) {
+    # create lists of data frames so that get_liablity_data does not have to (dangerously) pull data from the global environment with assign
+    
     underscored_name <- str_replace(class_name, " ", "_")
     
     element_name <- paste0(underscored_name, "_wf_data")
