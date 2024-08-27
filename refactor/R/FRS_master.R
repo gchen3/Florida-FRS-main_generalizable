@@ -119,12 +119,15 @@ load(fs::path(wddir, "benefit_model_data_env.RData"))
 # Prepare data for modeling -----------------------------------------------
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
 print("sourcing FRS_workforce_model_get_and_save_wfdata.R...")
-system.time(source(fs::path(rdir, "FRS_workforce_model_get_and_save_wfdata.R"))) # 2 mins -- only saves objects - no functions
+system.time(source(fs::path(rdir, "FRS_workforce_model_get_and_save_wfdata.R")))
 # depends on assumptions in the model: 
 
 cat("\n")
 print("sourcing FRS_workforce_model_get_saved_data.R...")
-system.time(source(fs::path(rdir, "FRS_workforce_model_get_saved_data.R"))) # < 1 sec -- only gets saved data - no functions
+wf_data_env <- new.env()
+system.time(source(fs::path(rdir, "FRS_workforce_model_get_saved_data.R"), local = wf_data_env)) # < 1 sec -- only gets saved data - no functions
+save(wf_data_env, file = fs::path(wddir, "wf_data_env.RData")) # only saves objects - no functions
+load(fs::path(wddir, "wf_data_env.RData"))
 # simply loads wf data -- 4 table types per 7 classes
 
 # prepare global lists to pass as needed - eventually replace with stacked data frames
@@ -132,7 +135,7 @@ system.time(source(fs::path(rdir, "FRS_workforce_model_get_saved_data.R"))) # < 
 # update params with new lists --------------------------------------------
 
 # wf_data_list: each class has 4 tables: entrant_profile_table, salary_headcount_table, mort_table, separation_rate_table
-params$wf_data_list <- mget(paste0(params$class_names_no_drop_frs_, "_wf_data"), envir = .GlobalEnv) # does not waste memory because R is copy on modify
+params$wf_data_list <- mget(paste0(params$class_names_no_drop_frs_, "_wf_data"), envir = wf_data_env) # does not waste memory because R is copy on modify
 params$entrant_profile_table_list <- benefit_model_data_env$entrant_profile_table_list # previously created
 
 params$salary_headcount_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_salary_headcount_table"), envir = benefit_model_data_env)
