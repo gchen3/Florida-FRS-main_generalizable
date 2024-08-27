@@ -1,4 +1,11 @@
 extend_params <- function(params){
+  # update return scenarios
+  params$return_scenarios <- params$return_scenarios |> 
+    mutate(across(-year, \(x) ifelse(year==2023, params$return_2023_, x)),
+           model=ifelse(year > 2023, params$model_return_, model),
+           assumption=ifelse(year > 2023, params$dr_current_, assumption))  
+  
+  params$return_scen_index <- which(colnames(params$return_scenarios) == params$return_scen_)
   
   # class groupings
   params$class_names_ <- params$init_funding_data$class

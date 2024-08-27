@@ -385,6 +385,7 @@ inner_loop2_funding <- function(i,
                                 frs_fund,
                                 current_hire_amo_payment_list,
                                 future_hire_amo_payment_list,
+                                return_scenarios,
                                 return_scen_index,
                                 params){
   
@@ -790,7 +791,6 @@ inner_loop6_amortization <- function(i,
 
 main_loop <- function(funding_list,
                       liability_list,
-                      return_scen_index,
                       current_hire_amo_payment_list,
                       future_hire_amo_payment_list,
                       current_hire_amo_period_list,
@@ -852,7 +852,8 @@ main_loop <- function(funding_list,
                                   frs_fund,
                                   current_hire_amo_payment_list,
                                   future_hire_amo_payment_list,
-                                  return_scen_index,
+                                  params$return_scenarios,
+                                  params$return_scen_index,
                                   params) # NC, EEC, ERC-DB, admin expense
     funding_list <- result$funding_list
     frs_fund <- result$frs_fund    
@@ -1171,19 +1172,18 @@ get_funding_data <- function(
   #Set return values for "model" and "assumption" scenarios
   #Set 2023 returns and update "model" and "assumption" scenarios
   # djb CAUTION does this need to be in funding model?? ----
-  return_scenarios <- params$return_scenarios |> 
-    mutate(across(-year, \(x) ifelse(year==2023, params$return_2023_, x)),
-           model=ifelse(year > 2023, params$model_return_, model),
-           assumption=ifelse(year > 2023, params$dr_current_, assumption))    
+  # return_scenarios <- params$return_scenarios |> 
+  #   mutate(across(-year, \(x) ifelse(year==2023, params$return_2023_, x)),
+  #          model=ifelse(year > 2023, params$model_return_, model),
+  #          assumption=ifelse(year > 2023, params$dr_current_, assumption))    
   
   #Return scenario
   # return_scen <- "recur_recession"
-  return_scen_index <- which(colnames(return_scenarios) == params$return_scen_)
+  # return_scen_index <- which(colnames(params$return_scenarios) == params$return_scen_)
   
 
   funding_list <- main_loop(funding_list = funding_list,
                             liability_list = liability_list,
-                            return_scen_index = return_scen_index,
                             current_hire_amo_payment_list = current_hire_amo_payment_list,
                             future_hire_amo_payment_list = future_hire_amo_payment_list,
                             current_hire_amo_period_list = current_hire_amo_period_list,
