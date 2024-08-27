@@ -960,6 +960,7 @@ get_funding_data <- function(
     # create lists of data frames so that get_liablity_data does not have to (dangerously) pull data from the global environment with assign
     
     underscored_name <- str_replace(class_name, " ", "_")
+    underscored_name <- params$class_names_no_drop_frs_
     
     element_name <- paste0(underscored_name, "_wf_data")
     wf_data <- wf_data_list[[element_name]]

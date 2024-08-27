@@ -356,7 +356,7 @@ judges_separation_rate_table <- get_separation_table("judges",
                                                      early_retire_rate_tier_2_table_list,
                                                      params)
 
-senior_management_separation_rate_table <- get_separation_table("senior management", 
+senior_management_separation_rate_table <- get_separation_table("senior_management", 
                                                                 entrant_profile_table_list, 
                                                                 term_rate_male_table_list,
                                                                 term_rate_female_table_list,
