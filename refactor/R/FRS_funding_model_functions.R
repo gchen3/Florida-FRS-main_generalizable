@@ -959,29 +959,26 @@ get_funding_data <- function(
   call_get_liability_data <- function(class_name) {
     # create lists of data frames so that get_liablity_data does not have to (dangerously) pull data from the global environment with assign
     
-    underscored_name <- str_replace(class_name, " ", "_")
-    underscored_name <- params$class_names_no_drop_frs_
-    
-    element_name <- paste0(underscored_name, "_wf_data")
+    element_name <- paste0(params$class_names_no_drop_frs_, "_wf_data")
     wf_data <- wf_data_list[[element_name]]
     
-    ben_payment_current <- params[[paste0(underscored_name, "_ben_payment_current_")]]
-    retiree_pop_current <- params[[paste0(underscored_name, "_retiree_pop_current_")]]
-    pvfb_term_current <- params[[paste0(underscored_name, "_pvfb_term_current_")]]
+    ben_payment_current <- params[[paste0(params$class_names_no_drop_frs_, "_ben_payment_current_")]]
+    retiree_pop_current <- params[[paste0(params$class_names_no_drop_frs_, "_retiree_pop_current_")]]
+    pvfb_term_current <- params[[paste0(params$class_names_no_drop_frs_, "_pvfb_term_current_")]]
     
-    element_name <- paste0(underscored_name, "_entrant_profile_table")
+    element_name <- paste0(params$class_names_no_drop_frs_, "_entrant_profile_table")
     entrant_profile_table <- entrant_profile_table_list[[element_name]]
     
-    element_name <- paste0(underscored_name, "_salary_headcount_table")
+    element_name <- paste0(params$class_names_no_drop_frs_, "_salary_headcount_table")
     salary_headcount_table <- salary_headcount_table_list[[element_name]]    
     
-    element_name <- paste0(underscored_name, "_mort_table")
+    element_name <- paste0(params$class_names_no_drop_frs_, "_mort_table")
     mort_table <- mort_table_list[[element_name]]     
     
-    element_name <- paste0(underscored_name, "_separation_rate_table")
+    element_name <- paste0(params$class_names_no_drop_frs_, "_separation_rate_table")
     separation_rate_table <- separation_rate_table_list[[element_name]]         
     
-    element_name <- paste0(underscored_name, "_mort_retire_table")
+    element_name <- paste0(params$class_names_no_drop_frs_, "_mort_retire_table")
     mort_retire_table <- mort_retire_table_list[[element_name]]         
     
     get_liability_data(class_name, 

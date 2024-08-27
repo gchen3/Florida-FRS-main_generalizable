@@ -150,7 +150,6 @@ early_retire_rate_tier_2_table_list <- mget(paste0(params$class_names_no_drop_fr
 # ns(.GlobalEnv) |> str_subset("separation_rate_table")
 # ns(benefit_model_data_env)
 
-
 # Get funding data
 print("sourcing FRS_funding_model_actions.R...")
 # gets current_amort_layers_table and funding_list with all classes
