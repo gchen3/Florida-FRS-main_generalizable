@@ -58,7 +58,8 @@ source(fs::path(rdir, "FRS_workforce_model_functions.R"), local = wfm_env) # onl
 
 #Get liability model
 print("sourcing FRS_liability_model.R...")
-source(fs::path(rdir, "FRS_liability_model.R")) # only creates function - no live code
+lm_env <- new.env()
+source(fs::path(rdir, "FRS_liability_model_functions.R"), local = lm_env) # only creates function - no live code
 
 #Get funding model
 print("sourcing FRS_funding_model_functions.R...")
