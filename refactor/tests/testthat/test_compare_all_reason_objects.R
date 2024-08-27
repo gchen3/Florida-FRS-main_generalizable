@@ -3,6 +3,7 @@
 # library(testthat)
 library(purrr)
 library(stringr)
+library(tidyverse)
 
 cat("\n\n")
 print("running test on ALL Reason objects, except functions and selected other objects")
@@ -18,6 +19,36 @@ reason_names_in_newws <- intersect(non_function_reason_names, newws_object_names
 
 # look at globals to see if there are any we want to exclude
 # reason_globals <- stringr::str_subset(reason_names_in_newws, "_$")
+
+# Pre-process old data
+cat("\n")
+print("Preprocessing Reason results to change 'senior management' to 'senior_management'")
+print("..changing class column of init_funding_data in Reason results")
+oldws$init_funding_data <- oldws$init_funding_data |>
+  mutate(class = ifelse(class == "senior management",
+                        "senior_management",
+                        class))
+
+print("..changing element name of baseline_funding in Reason results")
+names(oldws$baseline_funding)[names(oldws$baseline_funding) == "senior management"] <- "senior_management"
+
+print("..changing class column of current_amort_layers_table in Reason results")
+oldws$current_amort_layers_table <- oldws$current_amort_layers_table |>
+  mutate(class = ifelse(class == "senior management",
+                        "senior_management",
+                        class))
+
+print("..changing class column of current_amort_layers_table_ in Reason results")
+oldws$current_amort_layers_table_ <- oldws$current_amort_layers_table_ |>
+  mutate(class = ifelse(class == "senior management",
+                        "senior_management",
+                        class))
+
+print("..changing element name of funding_list in Reason results")
+names(oldws$funding_list)[names(oldws$funding_list) == "senior management"] <- "senior_management"
+
+
+# done modifying Reason results
 
 excludes <- c("FileName")
 
@@ -37,7 +68,7 @@ print("New-results objects that are not in Reason workspace and thus not compare
 print(setdiff(newws_object_names, reason_object_names))
 
 cat("\n")
-print("New results compared to Reason counterparts")
+print("New results being compared to Reason counterparts")
 print(names_to_compare)
 
 cat("\n\n")

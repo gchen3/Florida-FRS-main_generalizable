@@ -18,6 +18,8 @@ digest(newws[[oname]])
 digest(newws$funding_list)
 digest(funding_list)
 
+oldws$init_funding_data
+newws$init_funding_data
 
 
 
