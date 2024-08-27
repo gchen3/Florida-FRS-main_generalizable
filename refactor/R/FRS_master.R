@@ -75,7 +75,7 @@ if(FULL_RUN){
   ls(envir = modparm_data_env)
 }
 load(fs::path(wddir, "modparm_data_env.RData"))
-list2env(as.list(modparm_data_env), envir = .GlobalEnv)
+# list2env(as.list(modparm_data_env), envir = .GlobalEnv)
 # rm(modparm_data_env)
 
 
@@ -87,7 +87,7 @@ if(FULL_RUN){
   save(frs_data_env, file = fs::path(wddir, "frs_data_env.RData"))
 }
 load(fs::path(wddir, "frs_data_env.RData"))
-list2env(as.list(frs_data_env), envir = .GlobalEnv)
+# list2env(as.list(frs_data_env), envir = .GlobalEnv)
 # rm(frs_data_env)
 
 
@@ -111,7 +111,7 @@ if(BENEFIT_RUN){
   save(benefit_model_data_env, file = fs::path(wddir, "benefit_model_data_env.RData"))
 }
 load(fs::path(wddir, "benefit_model_data_env.RData"))
-list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
+# list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
 # rm(benefit_model_data_env)
 # creates for each class: salary_headcount, entrant_profile, mort, retire_mort, drop entry, retire, early retire, sep rates
 
@@ -135,12 +135,12 @@ system.time(source(fs::path(rdir, "FRS_workforce_model_get_saved_data.R"))) # < 
 params$wf_data_list <- mget(paste0(params$class_names_no_drop_frs_, "_wf_data"), envir = .GlobalEnv) # does not waste memory because R is copy on modify
 params$entrant_profile_table_list <- benefit_model_data_env$entrant_profile_table_list # previously created
 
-params$salary_headcount_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_salary_headcount_table"), envir = .GlobalEnv)
+params$salary_headcount_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_salary_headcount_table"), envir = benefit_model_data_env)
 
-params$mort_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_mort_table"), envir = .GlobalEnv)
-params$mort_retire_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_mort_retire_table"), envir = .GlobalEnv)
+params$mort_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_mort_table"), envir = benefit_model_data_env)
+params$mort_retire_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_mort_retire_table"), envir = benefit_model_data_env)
 
-params$separation_rate_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_separation_rate_table"), envir = .GlobalEnv)
+params$separation_rate_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_separation_rate_table"), envir = benefit_model_data_env)
 
 params$normal_retire_rate_tier_1_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_normal_retire_rate_tier_1_table"), envir = benefit_model_data_env) # defined in benefit model actions
 params$normal_retire_rate_tier_2_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_normal_retire_rate_tier_2_table"), envir = benefit_model_data_env) # defined in benefit model actions

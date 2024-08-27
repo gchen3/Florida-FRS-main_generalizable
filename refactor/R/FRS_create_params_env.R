@@ -1,4 +1,11 @@
 extend_params <- function(params){
+  # update return scenarios
+  params$return_scenarios <- params$return_scenarios |> 
+    mutate(across(-year, \(x) ifelse(year==2023, params$return_2023_, x)),
+           model=ifelse(year > 2023, params$model_return_, model),
+           assumption=ifelse(year > 2023, params$dr_current_, assumption))  
+  
+  params$return_scen_index <- which(colnames(params$return_scenarios) == params$return_scen_)
   
   # class groupings
   params$class_names_ <- params$init_funding_data$class
@@ -13,7 +20,7 @@ extend_params <- function(params){
   params$nc_cal_ <- tibble(class = classes, nc_cal_ = unlist(values))
   
   params$salary_growth_table_ <- params$salary_growth_table_ %>% 
-    bind_rows(tibble(yos = (max(params$salary_growth_table_$yos)+1):max(yos_range_))) %>% 
+    bind_rows(tibble(yos = (max(params$salary_growth_table_$yos)+1):max(params$yos_range_))) %>% 
     fill(everything(), .direction = "down") %>% 
     mutate(across(contains("salary"), ~ cumprod(1 + lag(.x, default = 0)), .names = "cumprod_{.col}"), .keep = "unused")
   
