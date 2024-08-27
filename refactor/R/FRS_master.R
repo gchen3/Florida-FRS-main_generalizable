@@ -92,12 +92,11 @@ list2env(as.list(frs_data_env), envir = .GlobalEnv)
 
 
 # create params environment -----------------------------------------------
+# create params environment BEFORE FRS_benefit_model_actions.R, as it is needed
+# for that
+
 source(fs::path(rdir, "FRS_create_params_env.R")) 
 params <- get_params(frs_data_env, modparm_data_env)
-
-# djb temporary ----
-params$term_rate_male_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_term_rate_male_table_"), envir = params)
-params$term_rate_female_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_term_rate_female_table_"), envir = params)
 
 ns(params)
 
@@ -130,27 +129,29 @@ system.time(source(fs::path(rdir, "FRS_workforce_model_get_saved_data.R"))) # < 
 
 # prepare global lists to pass as needed - eventually replace with stacked data frames
 
+# update params with new lists --------------------------------------------
+
 # wf_data_list: each class has 4 tables: entrant_profile_table, salary_headcount_table, mort_table, separation_rate_table
-wf_data_list <- mget(paste0(params$class_names_no_drop_frs_, "_wf_data"), envir = .GlobalEnv) # does not waste memory because R is copy on modify
-entrant_profile_table_list <- benefit_model_data_env$entrant_profile_table_list # previously created
+params$wf_data_list <- mget(paste0(params$class_names_no_drop_frs_, "_wf_data"), envir = .GlobalEnv) # does not waste memory because R is copy on modify
+params$entrant_profile_table_list <- benefit_model_data_env$entrant_profile_table_list # previously created
 
-salary_headcount_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_salary_headcount_table"), envir = .GlobalEnv)
+params$salary_headcount_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_salary_headcount_table"), envir = .GlobalEnv)
 
-mort_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_mort_table"), envir = .GlobalEnv)
-mort_retire_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_mort_retire_table"), envir = .GlobalEnv)
+params$mort_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_mort_table"), envir = .GlobalEnv)
+params$mort_retire_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_mort_retire_table"), envir = .GlobalEnv)
 
-separation_rate_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_separation_rate_table"), envir = .GlobalEnv)
+params$separation_rate_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_separation_rate_table"), envir = .GlobalEnv)
 
-normal_retire_rate_tier_1_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_normal_retire_rate_tier_1_table"), envir = benefit_model_data_env) # defined in benefit model actions
-normal_retire_rate_tier_2_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_normal_retire_rate_tier_2_table"), envir = benefit_model_data_env) # defined in benefit model actions
+params$normal_retire_rate_tier_1_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_normal_retire_rate_tier_1_table"), envir = benefit_model_data_env) # defined in benefit model actions
+params$normal_retire_rate_tier_2_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_normal_retire_rate_tier_2_table"), envir = benefit_model_data_env) # defined in benefit model actions
 
-early_retire_rate_tier_1_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_early_retire_rate_tier_1_table"), envir = benefit_model_data_env) # defined in benefit model actions
-early_retire_rate_tier_2_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_early_retire_rate_tier_2_table"), envir = benefit_model_data_env) # defined in benefit model actions
+params$early_retire_rate_tier_1_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_early_retire_rate_tier_1_table"), envir = benefit_model_data_env) # defined in benefit model actions
+params$early_retire_rate_tier_2_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_early_retire_rate_tier_2_table"), envir = benefit_model_data_env) # defined in benefit model actions
 
 # ns(.GlobalEnv) |> str_subset("separation_rate_table")
 # ns(benefit_model_data_env)
 
-# Get funding data
+# Get funding data ----
 print("sourcing FRS_funding_model_actions.R...")
 # gets current_amort_layers_table and funding_list with all classes
 system.time(source(fs::path(rdir, "FRS_funding_model_actions.R"))) # < 1 sec only creates objects - no functions

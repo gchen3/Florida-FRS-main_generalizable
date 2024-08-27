@@ -17,6 +17,9 @@ extend_params <- function(params){
     fill(everything(), .direction = "down") %>% 
     mutate(across(contains("salary"), ~ cumprod(1 + lag(.x, default = 0)), .names = "cumprod_{.col}"), .keep = "unused")
   
+  params$term_rate_male_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_term_rate_male_table_"), envir = params)
+  params$term_rate_female_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_term_rate_female_table_"), envir = params)
+  
   return(params)
 }
 
