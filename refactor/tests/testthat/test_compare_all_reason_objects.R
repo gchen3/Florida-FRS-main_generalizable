@@ -8,17 +8,9 @@ library(tidyverse)
 cat("\n\n")
 print("running test on ALL Reason objects, except functions and selected other objects")
 
-reason_object_names <- ls(envir = oldws)
-newws_object_names <- ls(envir = newws)
+# reason_object_names <- ls(envir = oldws)
+# newws_object_names <- ls(envir = newws)
 
-# Filter out functions
-reason_functions <- sapply(reason_object_names, function(x) is.function(get(x, envir = oldws)))
-non_function_reason_names <- setdiff(reason_object_names, names(which(reason_functions)))
-
-reason_names_in_newws <- intersect(non_function_reason_names, newws_object_names)
-
-# look at globals to see if there are any we want to exclude
-# reason_globals <- stringr::str_subset(reason_names_in_newws, "_$")
 
 # Pre-process old data
 cat("\n")
@@ -46,6 +38,26 @@ oldws$current_amort_layers_table_ <- oldws$current_amort_layers_table_ |>
 
 print("..changing element name of funding_list in Reason results")
 names(oldws$funding_list)[names(oldws$funding_list) == "senior management"] <- "senior_management"
+
+
+cat("\n")
+print("Preprocessing new results: pull selected objects from params into new workspace...")
+newws$funding_list <- newws$params$funding_list
+newws$current_amort_layers_table <- newws$params$current_amort_layers_table
+print("TODO: salary_growth_table")
+
+# select names ----
+reason_object_names <- ls(envir = oldws)
+newws_object_names <- ls(envir = newws)
+
+# Filter out functions
+reason_functions <- sapply(reason_object_names, function(x) is.function(get(x, envir = oldws)))
+non_function_reason_names <- setdiff(reason_object_names, names(which(reason_functions)))
+
+reason_names_in_newws <- intersect(non_function_reason_names, newws_object_names)
+
+# look at globals to see if there are any we want to exclude
+# reason_globals <- stringr::str_subset(reason_names_in_newws, "_$")
 
 
 # done modifying Reason results
@@ -81,7 +93,6 @@ walk(names_to_compare, function(objname) {
   test_that(" new result-object matches Reason counterpart",{
       expect_equal(new_object, old_object, info = paste("Mismatch in", objname))
     })
-  #cat("\n")
 })
 
 
