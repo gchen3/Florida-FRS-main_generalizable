@@ -1055,6 +1055,7 @@ get_funding_data <- function(
   # does the same thing as classes_stacked above does
   a <- proc.time()
   for (class in params$class_names_no_drop_frs_) {
+    underscored_class_name <- str_replace(class, " ", "_")
     
     fund_data <- funding_list[[class]]
     liab_data <- liability_list[[class]]
@@ -1066,7 +1067,8 @@ get_funding_data <- function(
     fund_data$payroll_dc_new_ratio <- lag(liab_data$payroll_dc_new_est / liab_data$total_payroll_est)
     
     #normal cost calibration/projection
-    nc_cal <- get(str_replace(paste0(class, "_nc_cal_"), " ", "_")) #djb - wow, this gets a global variable
+    # nc_cal <- get(str_replace(paste0(class, "_nc_cal_"), " ", "_")) #djb - wow, this gets a global variable
+    nc_cal <- params[[paste0(underscored_class_name, "_nc_cal_")]]
     fund_data$nc_rate_db_legacy <- lag(liab_data$nc_rate_db_legacy_est * nc_cal)
     fund_data$nc_rate_db_new <- lag(liab_data$nc_rate_db_new_est * nc_cal)
     
