@@ -1,5 +1,4 @@
 
-
 # Get FRS data ------------------------------------------------------------
 
 #.. Import key data tables ----
@@ -80,9 +79,16 @@ senior_management_term_rate_female_table_ <- read_excel(FileName, sheet = "Withd
 retiree_distribution <- read_excel(FileName, sheet = "Retiree Distribution") 
 
 init_funding_data <- read_excel(FileName, sheet = "Funding Input")
+# count(init_funding_data, class)
+init_funding_data <- init_funding_data |> 
+  mutate(class = str_replace(class, " ", "_"))
+
 return_scenarios <- read_excel(FileName, sheet = "Return Scenarios")
 
 current_amort_layers_table_ <- read_excel(FileName, sheet = "Amort Input")
+# count(current_amort_layers_table_, class)
+current_amort_layers_table_ <- current_amort_layers_table_ |> 
+  mutate(class = str_replace(class, " ", "_"))
 
 
 # FRS constants -----------------------------------------------------------
@@ -175,5 +181,3 @@ senior_management_total_active_member_ <- 7610
 #We account for the Investment Plan (DC plan) head count by inflating the DB head count by the ratio of total system head count to DB head count
 #ECO, ESO, and Judges head counts are processed separately as the ACFR does not provide detailed head counts for these classes 
 eco_eso_judges_active_member_adjustment_ratio <- eco_eso_judges_total_active_member_ / sum(eco_headcount_table_[-1] + eso_headcount_table_[-1] + judges_headcount_table_[-1])
-
-
