@@ -258,7 +258,7 @@ get_wf_data <- function(
   cat("\n\n")
   print(paste0("..preparing wf_data for class: ", class_name))
     
-  benefit_data <- get_benefit_data(
+  benefit_data <- bm_env$get_benefit_data(
     class_name,
     entrant_profile_table,
     salary_headcount_table,

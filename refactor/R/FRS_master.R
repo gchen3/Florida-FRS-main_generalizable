@@ -46,11 +46,10 @@ print("Loading model functions...")
 # source(fs::path(rdir, "FRS_utility_functions.R")) # only creates functions - no live code
 
 #Get benefit model
-print("sourcing FRS_benefit_model_helper_functions.R...")
-source(fs::path(rdir, "FRS_benefit_model_helper_functions.R")) # only creates functions - no live code
-
-print("sourcing FRS_benefit_model_get_benefit_data_function.R...")
-source(fs::path(rdir, "FRS_benefit_model_get_benefit_data_function.R")) # only creates functions - no live code
+print("sourcing FRS_benefit_model_helper_functions.R and FRS_benefit_model_get_benefit_data_function.R...")
+bm_env <- new.env()
+source(fs::path(rdir, "FRS_benefit_model_helper_functions.R"), local = bm_env) # only creates functions - no live code
+source(fs::path(rdir, "FRS_benefit_model_get_benefit_data_function.R"), local = bm_env) # only creates functions - no live code
 
 # Get workforce model
 print("sourcing FRS_workforce_model_functions....")
