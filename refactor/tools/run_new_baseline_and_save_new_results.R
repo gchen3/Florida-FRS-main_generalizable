@@ -38,7 +38,7 @@ system.time(save.image(here::here("refactor", "new_results", "new_workspace.RDat
 # run one or the other of the following tests
 
 # system.time(source(fs::path(tooldir, "run_tests.R"))) # run selected tests
-
+# tooldir <- here::here("refactor", "tools") # run if needed
 system.time(source(fs::path(tooldir, "run_allobjects_tests.R"))) # run tests on all objects appropriate to compare ~ 15 secs
 
 
