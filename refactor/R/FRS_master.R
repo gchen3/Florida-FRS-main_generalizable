@@ -87,7 +87,7 @@ if(FULL_RUN){
   save(frs_data_env, file = fs::path(wddir, "frs_data_env.RData"))
 }
 load(fs::path(wddir, "frs_data_env.RData"))
-list2env(as.list(frs_data_env), envir = .GlobalEnv)
+# list2env(as.list(frs_data_env), envir = .GlobalEnv)
 # rm(frs_data_env)
 
 
