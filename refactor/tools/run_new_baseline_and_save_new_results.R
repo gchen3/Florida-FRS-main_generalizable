@@ -10,7 +10,7 @@ rm(list = ls())
 system.time(source(here::here("refactor", "R", "FRS_master.R"))) # load and build the full FRS Florida model
 
 # generate baseline results
-system.time(baseline_funding <- get_funding_data(funding_list = params$funding_list, 
+system.time(baseline_funding <- fm_env$get_funding_data(funding_list = params$funding_list, 
                                                  current_amort_layers_table = params$current_amort_layers_table, 
                                                  wf_data_list = params$wf_data_list,
                                                  entrant_profile_table_list = params$entrant_profile_table_list, 

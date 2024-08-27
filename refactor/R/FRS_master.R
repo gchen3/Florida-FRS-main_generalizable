@@ -62,7 +62,8 @@ source(fs::path(rdir, "FRS_liability_model.R")) # only creates function - no liv
 
 #Get funding model
 print("sourcing FRS_funding_model_functions.R...")
-source(fs::path(rdir, "FRS_funding_model_functions.R")) # only creates function - no live code
+fm_env <- new.env()
+source(fs::path(rdir, "FRS_funding_model_functions.R"), local = fm_env) # only creates function - no live code
 
 
 # Get FRS model parameters, constants, raw initial data, and derived initial data --------------------------
@@ -151,13 +152,13 @@ params$normal_retire_rate_tier_2_table_list <- mget(paste0(params$class_names_no
 params$early_retire_rate_tier_1_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_early_retire_rate_tier_1_table"), envir = benefit_model_data_env) # defined in benefit model actions
 params$early_retire_rate_tier_2_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_early_retire_rate_tier_2_table"), envir = benefit_model_data_env) # defined in benefit model actions
 
+# get funding and amortization data --------------------------------------------
+
+params$funding_list <- fm_env$get_all_classes_funding_list(params$init_funding_data, params)
+params$current_amort_layers_table <- fm_env$get_current_amort_layers_summary_table(params$current_amort_layers_table_)
+
 # ns(.GlobalEnv) |> str_subset("separation_rate_table")
 # ns(benefit_model_data_env)
-
-# Get funding data ----
-print("sourcing FRS_funding_model_actions.R...")
-# gets current_amort_layers_table and funding_list with all classes
-system.time(source(fs::path(rdir, "FRS_funding_model_actions.R"))) # < 1 sec only creates objects - no functions
 
 print("Done building model...")
 
