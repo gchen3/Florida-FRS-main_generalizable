@@ -982,7 +982,7 @@ get_funding_data <- function(
     element_name <- paste0(class_name, "_mort_retire_table")
     mort_retire_table <- mort_retire_table_list[[element_name]]         
     
-    get_liability_data(class_name, 
+    lm_env$get_liability_data(class_name, 
                        wf_data, 
                        ben_payment_current, 
                        retiree_pop_current,
