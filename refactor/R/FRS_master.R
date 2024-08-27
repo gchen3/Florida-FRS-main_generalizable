@@ -111,7 +111,7 @@ if(BENEFIT_RUN){
   save(benefit_model_data_env, file = fs::path(wddir, "benefit_model_data_env.RData"))
 }
 load(fs::path(wddir, "benefit_model_data_env.RData"))
-list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
+# list2env(as.list(benefit_model_data_env), envir = .GlobalEnv)
 # rm(benefit_model_data_env)
 # creates for each class: salary_headcount, entrant_profile, mort, retire_mort, drop entry, retire, early retire, sep rates
 
