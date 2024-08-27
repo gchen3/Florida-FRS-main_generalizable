@@ -23,7 +23,7 @@ library(pentools) # use this instead of sourcing "FRS_utility_functions.R"
 
 # set FULL_RUN boolean ----------------------------------------------------
 
-FULL_RUN <- FALSE
+FULL_RUN <- TRUE
 BENEFIT_RUN <- TRUE
 
 
@@ -96,9 +96,8 @@ source(fs::path(rdir, "FRS_create_params_env.R"))
 params <- get_params(frs_data_env, modparm_data_env)
 
 # djb temporary ----
-params$underscored_class_names <- str_replace(params$class_names_no_drop_frs_, " ", "_")
-params$term_rate_male_table_list <- mget(paste0(params$underscored_class_names, "_term_rate_male_table_"), envir = params)
-params$term_rate_female_table_list <- mget(paste0(params$underscored_class_names, "_term_rate_female_table_"), envir = params)
+params$term_rate_male_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_term_rate_male_table_"), envir = params)
+params$term_rate_female_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_term_rate_female_table_"), envir = params)
 
 ns(params)
 

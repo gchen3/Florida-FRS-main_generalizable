@@ -38,7 +38,7 @@ temp <- get_salary_headcount_table("judges", params)
 judges_salary_headcount_table <- temp$salary_headcount_table
 judges_entrant_profile_table <- temp$entrant_profile
 
-temp <- get_salary_headcount_table("senior management", params)
+temp <- get_salary_headcount_table("senior_management", params)
 senior_management_salary_headcount_table <- temp$salary_headcount_table
 senior_management_entrant_profile_table <- temp$entrant_profile
 
@@ -46,7 +46,7 @@ rm(temp)
 
 #.. create a list with the entrant profile tables ----
 
-entrant_profile_table_list <- mget(paste0(params$underscored_class_names, "_entrant_profile_table"))
+entrant_profile_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_entrant_profile_table"))
 
 
 # Retirement & Separation Conditions --------------------------------------
@@ -290,11 +290,11 @@ print(".. separation rate tables by class")
 term_rate_male_table_list <- params$term_rate_male_table_list
 term_rate_female_table_list <- params$term_rate_female_table_list
 
-normal_retire_rate_tier_1_table_list <- mget(paste0(params$underscored_class_names, "_normal_retire_rate_tier_1_table")) # defined in benefit model actions
-normal_retire_rate_tier_2_table_list <- mget(paste0(params$underscored_class_names, "_normal_retire_rate_tier_2_table")) # defined in benefit model actions
+normal_retire_rate_tier_1_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_normal_retire_rate_tier_1_table")) # defined in benefit model actions
+normal_retire_rate_tier_2_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_normal_retire_rate_tier_2_table")) # defined in benefit model actions
 
-early_retire_rate_tier_1_table_list <- mget(paste0(params$underscored_class_names, "_early_retire_rate_tier_1_table")) # defined in benefit model actions
-early_retire_rate_tier_2_table_list <- mget(paste0(params$underscored_class_names, "_early_retire_rate_tier_2_table")) # defined in benefit model actions
+early_retire_rate_tier_1_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_early_retire_rate_tier_1_table")) # defined in benefit model actions
+early_retire_rate_tier_2_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_early_retire_rate_tier_2_table")) # defined in benefit model actions
 
 regular_separation_rate_table <- get_separation_table("regular", 
                                                       entrant_profile_table_list,

@@ -410,7 +410,6 @@ get_liability_data <- function(
     params
     ) {
   
-  class_name <- str_replace(class_name, " ", "_")
   print(paste0("processing get_benefit_data in liability model for: ", class_name))
   benefit_data <- get_benefit_data(    
     class_name,
