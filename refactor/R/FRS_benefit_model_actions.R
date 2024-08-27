@@ -93,7 +93,7 @@ eso_mort_table <- get_mort_table("eso", base_general_mort_table, male_mp_final_t
                                  params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 judges_mort_table <- get_mort_table("judges", base_general_mort_table, male_mp_final_table, female_mp_final_table, judges_entrant_profile_table,
                                     params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
-senior_management_mort_table <- get_mort_table("senior management", base_general_mort_table, male_mp_final_table, female_mp_final_table, senior_management_entrant_profile_table,
+senior_management_mort_table <- get_mort_table("senior_management", base_general_mort_table, male_mp_final_table, female_mp_final_table, senior_management_entrant_profile_table,
                                                params$entry_year_range_, params$age_range_, params$yos_range_, params$new_year_)
 
 print(".. mortality retirement tables by class")
@@ -225,11 +225,11 @@ judges_normal_retire_rate_tier_2_table <- get_normal_retire_rate_table(class_nam
                                                                        normal_retire_rate_table = normal_retire_rate_tier_2_table)
 
 
-senior_management_normal_retire_rate_tier_1_table <- get_normal_retire_rate_table(class_name = "senior management",
+senior_management_normal_retire_rate_tier_1_table <- get_normal_retire_rate_table(class_name = "senior_management",
                                                                                   drop_entry_table = drop_entry_tier_1_table,
                                                                                   normal_retire_rate_table = normal_retire_rate_tier_1_table)
 
-senior_management_normal_retire_rate_tier_2_table <- get_normal_retire_rate_table(class_name = "senior management",
+senior_management_normal_retire_rate_tier_2_table <- get_normal_retire_rate_table(class_name = "senior_management",
                                                                                   drop_entry_table = drop_entry_tier_2_table,
                                                                                   normal_retire_rate_table = normal_retire_rate_tier_2_table)
 
@@ -276,10 +276,10 @@ judges_early_retire_rate_tier_2_table <- get_early_retire_rate_table(class_name 
                                                                      init_early_retire_rate_table = early_retire_rate_tier_2_table)
 
 
-senior_management_early_retire_rate_tier_1_table <- get_early_retire_rate_table(class_name = "senior management",
+senior_management_early_retire_rate_tier_1_table <- get_early_retire_rate_table(class_name = "senior_management",
                                                                                 init_early_retire_rate_table = early_retire_rate_tier_1_table)
 
-senior_management_early_retire_rate_tier_2_table <- get_early_retire_rate_table(class_name = "senior management",
+senior_management_early_retire_rate_tier_2_table <- get_early_retire_rate_table(class_name = "senior_management",
                                                                                 init_early_retire_rate_table = early_retire_rate_tier_2_table)
 
 

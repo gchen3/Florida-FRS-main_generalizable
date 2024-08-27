@@ -47,7 +47,7 @@ get_wf_data(class_name = "judges",
             separation_rate_table = judges_separation_rate_table,
             params = params)
 
-get_wf_data(class_name = "senior management", 
+get_wf_data(class_name = "senior_management", 
             entrant_profile_table = senior_management_entrant_profile_table,
             salary_headcount_table = senior_management_salary_headcount_table,
             mort_table = senior_management_mort_table,

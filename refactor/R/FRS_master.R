@@ -131,19 +131,21 @@ system.time(source(fs::path(rdir, "FRS_workforce_model_get_saved_data.R"))) # < 
 # prepare global lists to pass as needed - eventually replace with stacked data frames
 
 # wf_data_list: each class has 4 tables: entrant_profile_table, salary_headcount_table, mort_table, separation_rate_table
-wf_data_list <- mget(paste0(params$underscored_class_names, "_wf_data"), envir = .GlobalEnv) # does not waste memory because R is copy on modify
+wf_data_list <- mget(paste0(params$class_names_no_drop_frs_, "_wf_data"), envir = .GlobalEnv) # does not waste memory because R is copy on modify
 entrant_profile_table_list <- benefit_model_data_env$entrant_profile_table_list # previously created
 
-salary_headcount_table_list <- mget(paste0(params$underscored_class_names, "_salary_headcount_table"), envir = .GlobalEnv)
-mort_table_list <- mget(paste0(params$underscored_class_names, "_mort_table"), envir = .GlobalEnv)
-mort_retire_table_list <- mget(paste0(params$underscored_class_names, "_mort_retire_table"), envir = .GlobalEnv)
-separation_rate_table_list <- mget(paste0(params$underscored_class_names, "_separation_rate_table"), envir = .GlobalEnv)
+salary_headcount_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_salary_headcount_table"), envir = .GlobalEnv)
 
-normal_retire_rate_tier_1_table_list <- mget(paste0(params$underscored_class_names, "_normal_retire_rate_tier_1_table"), envir = benefit_model_data_env) # defined in benefit model actions
-normal_retire_rate_tier_2_table_list <- mget(paste0(params$underscored_class_names, "_normal_retire_rate_tier_2_table"), envir = benefit_model_data_env) # defined in benefit model actions
+mort_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_mort_table"), envir = .GlobalEnv)
+mort_retire_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_mort_retire_table"), envir = .GlobalEnv)
 
-early_retire_rate_tier_1_table_list <- mget(paste0(params$underscored_class_names, "_early_retire_rate_tier_1_table"), envir = benefit_model_data_env) # defined in benefit model actions
-early_retire_rate_tier_2_table_list <- mget(paste0(params$underscored_class_names, "_early_retire_rate_tier_2_table"), envir = benefit_model_data_env) # defined in benefit model actions
+separation_rate_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_separation_rate_table"), envir = .GlobalEnv)
+
+normal_retire_rate_tier_1_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_normal_retire_rate_tier_1_table"), envir = benefit_model_data_env) # defined in benefit model actions
+normal_retire_rate_tier_2_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_normal_retire_rate_tier_2_table"), envir = benefit_model_data_env) # defined in benefit model actions
+
+early_retire_rate_tier_1_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_early_retire_rate_tier_1_table"), envir = benefit_model_data_env) # defined in benefit model actions
+early_retire_rate_tier_2_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_early_retire_rate_tier_2_table"), envir = benefit_model_data_env) # defined in benefit model actions
 
 # ns(.GlobalEnv) |> str_subset("separation_rate_table")
 # ns(benefit_model_data_env)

@@ -294,7 +294,7 @@ get_normal_retire_rate_table <- function(class_name, drop_entry_table, normal_re
   if (class_name %in% c("eco", "eso", "judge")) {
     search_text_in_drop_entry_table = "other"
     search_text_in_normal_retire_table = "eco_eso_jud"
-  } else if (class_name == "senior management") {
+  } else if (class_name == "senior_management") {
     search_text_in_drop_entry_table = "other"
     search_text_in_normal_retire_table = "senior_management"
   } else if (class_name == "admin"){
@@ -319,7 +319,7 @@ get_normal_retire_rate_table <- function(class_name, drop_entry_table, normal_re
 get_early_retire_rate_table <- function(class_name, init_early_retire_rate_table){
   if (class_name %in% c("eco", "eso", "judge")) {
     search_text = "eco_eso_jud"
-  } else if (class_name == "senior management") {
+  } else if (class_name == "senior_management") {
     search_text = "senior_management"
   } else if (class_name == "admin"){
     search_text = "special"
