@@ -22,14 +22,14 @@ run_tests()
 
 
 # Cleanup code
-cat("\n")
-print("done with tests, removing objects and environments created during setup...")
-# Remove objects or environments created during setup
-rm(list = ls(envir = oldws), envir = oldws)
-rm(oldws)
-
-rm(list = ls(envir = newws), envir = newws)
-rm(newws)
+# cat("\n")
+# print("done with tests, removing objects and environments created during setup...")
+# # Remove objects or environments created during setup
+# rm(list = ls(envir = oldws), envir = oldws)
+# rm(oldws)
+# 
+# rm(list = ls(envir = newws), envir = newws)
+# rm(newws)
 
 
 

@@ -18,7 +18,8 @@ system.time(baseline_funding <- fm_env$get_funding_data(funding_list = params$fu
                                                  mort_table_list = params$mort_table_list, 
                                                  mort_retire_table_list = params$mort_retire_table_list, 
                                                  separation_rate_table_list = params$separation_rate_table_list,
-                                                 params=params)) # about 60 secs tot, ~ 10 seconds for a single class
+                                                 params = params,
+                                                 return = "stacked")) # about 60 secs tot, ~ 10 seconds for a single class
 
 system.time(baseline_liability <- lm_env$get_liability_data(class = "regular", 
                                                      wf_data = params$wf_data_list$regular_wf_data, 

@@ -61,7 +61,28 @@ newws$salary_growth_table_ <- newws$params$salary_growth_table_original_
 list2env(as.list(newws$modparm_data_env), envir = newws)
 list2env(as.list(newws$wf_data_env), envir = newws)
 
+get_baseline_funding_list <- function(baseline_funding_stacked_tibble, old_baseline_funding_list) {
+  baseline_funding_list <- split(baseline_funding_stacked_tibble, 
+                                 factor(baseline_funding_stacked_tibble$class, 
+                                        levels = names(old_baseline_funding_list))) # keep the original order of names
+  
+  # Reason's baseline_funding list doesn't have a class column
+  baseline_funding_list <- lapply(baseline_funding_list, function(x) select(x, -class)) 
+  
+  # the drop and frs tibbles don't have all variables in the other tibbles
+  lose_names <- setdiff(names(old_baseline_funding_list$regular), names(old_baseline_funding_list$drop))
+  baseline_funding_list$drop <- baseline_funding_list$drop |> select(-all_of(lose_names))
+  baseline_funding_list$frs <- baseline_funding_list$frs |> select(-all_of(lose_names))
+  
+  return(baseline_funding_list)
+}
 
+# if baseline_funding is a (stacked) tibble, convert it to a list in form equivalent to Reason
+if (is_tibble(newws$baseline_funding)) {
+  print("baseline_funding in new results is a stacked tibble. Creating a list of tibbles for comparison with Reason...")
+  newws$baseline_funding_stacked <- newws$baseline_funding # keep a copy
+  newws$baseline_funding <- get_baseline_funding_list(newws$baseline_funding, oldws$baseline_funding)
+}
 
 # select names ----
 reason_object_names <- ls(envir = oldws)

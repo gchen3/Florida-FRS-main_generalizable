@@ -920,7 +920,8 @@ get_funding_data <- function(
     mort_table_list, 
     mort_retire_table_list, 
     separation_rate_table_list,
-    params 
+    params,
+    return = "unstacked" # or "stacked"
 ) {
   
   # unpack parameters
@@ -1193,9 +1194,12 @@ get_funding_data <- function(
                             amo_pay_growth,
                             params)
   
-  output <- funding_list
-  # browser()
-  
+  if (return == "stacked") {
+    output <- bind_rows(funding_list, .id = "class")
+  } else {
+    output <- funding_list
+  }
+
   return(output)
   
 }
