@@ -15,20 +15,6 @@ system.time(baseline_funding <- fm_env$get_funding_data(
   return = "stacked"
 )) # about 60 secs tot, ~ 10 seconds for a single class
 
-system.time(baseline_liability <- lm_env$get_liability_data(
-  class = "regular",
-  wf_data = params$wf_data_list$regular_wf_data,
-  ben_payment_current = params$regular_ben_payment_current_,
-  retiree_pop_current = params$regular_retiree_pop_current_,
-  pvfb_term_current = params$regular_pvfb_term_current_,
-  entrant_profile_table = params$entrant_profile_table_list$regular_entrant_profile_table,
-  salary_headcount_table = params$salary_headcount_table_list$regular_salary_headcount_table,
-  mort_table = params$mort_table_list$regular_mort_table,
-  mort_retire_table = params$mort_retire_table_list$regular_mort_retire_table,
-  separation_rate_table = params$separation_rate_table_list$regular_separation_rate_table,
-  params = params
-)) # ~ 10 seconds for a single class
-
 system.time(save.image(here::here("refactor", "new_results", "new_workspace.RData"))) # save the entire workspace, ~ 15-20 secs
 
 # run one or the other of the following tests
