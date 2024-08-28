@@ -12,7 +12,8 @@ print("running test on ALL Reason objects, except functions and selected other o
 # newws_object_names <- ls(envir = newws)
 
 
-# Pre-process old data
+# Pre-process old data ----------------------------------------------------
+
 cat("\n")
 print("Preprocessing Reason results to change 'senior management' to 'senior_management'")
 print("..changing class column of init_funding_data in Reason results")
@@ -45,6 +46,22 @@ print("Preprocessing new results: pull selected objects from params into new wor
 newws$funding_list <- newws$params$funding_list
 newws$current_amort_layers_table <- newws$params$current_amort_layers_table
 print("TODO: salary_growth_table")
+
+
+# prepare new environment -------------------------------------------------
+
+print("dumping new results sub-environments into the main new results environment")
+list2env(as.list(newws$params), envir = newws)
+# overwrite an item that Reason changed from its initial value so we compare apples
+newws$return_scenarios <- newws$params$return_scenarios_original_
+
+# overwrite an item that I changed from initial
+newws$salary_growth_table_ <- newws$params$salary_growth_table_original_
+
+list2env(as.list(newws$modparm_data_env), envir = newws)
+list2env(as.list(newws$wf_data_env), envir = newws)
+
+
 
 # select names ----
 reason_object_names <- ls(envir = oldws)

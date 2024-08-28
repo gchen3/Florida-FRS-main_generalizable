@@ -1,6 +1,9 @@
 extend_params <- function(params){
+  # extend the params environment with additional objects ----
+  
   # update return scenarios
-  params$return_scenarios <- params$return_scenarios |> 
+  # this is done much later in the Reason model but we have all the info we need to do it now
+  params$return_scenarios <- params$return_scenarios_original_ |> 
     mutate(across(-year, \(x) ifelse(year==2023, params$return_2023_, x)),
            model=ifelse(year > 2023, params$model_return_, model),
            assumption=ifelse(year > 2023, params$dr_current_, assumption))  
@@ -19,8 +22,9 @@ extend_params <- function(params){
   values <- mget(var_names, envir = params)
   params$nc_cal_ <- tibble(class = classes, nc_cal_ = unlist(values))
   
-  params$salary_growth_table_ <- params$salary_growth_table_ %>% 
-    bind_rows(tibble(yos = (max(params$salary_growth_table_$yos)+1):max(params$yos_range_))) %>% 
+  params$salary_growth_table_ <- params$salary_growth_table_original_ %>% 
+    # add rows to the tibble for additional yos
+    bind_rows(tibble(yos = (max(params$salary_growth_table_original_$yos) + 1):max(params$yos_range_))) %>% 
     fill(everything(), .direction = "down") %>% 
     mutate(across(contains("salary"), ~ cumprod(1 + lag(.x, default = 0)), .names = "cumprod_{.col}"), .keep = "unused")
   
@@ -33,16 +37,23 @@ extend_params <- function(params){
 
 get_params <- function(frs_data_env, modparm_data_env){
   
+  # decide what variables to keep in the params environment ----
+  
+  #.. first, look at frs_data_env ----
   frs_names <- ls(envir = frs_data_env) |> sort()
-  frs_underscore <- frs_names[grepl("_$", frs_names)]
+  frs_underscore <- frs_names[grepl("_$", frs_names)] # we'll keep all the underscore-ending names
+  
+  # what other variables do we want to keep?
   # setdiff(frs_names, frs_underscore)
-  frs_extras <- c("eco_eso_judges_active_member_adjustment_ratio", "retiree_distribution", "init_funding_data", "return_scenarios")
+  frs_extras <- c("eco_eso_judges_active_member_adjustment_ratio", "retiree_distribution", "init_funding_data")
   frs_keep <- c(frs_underscore, frs_extras)
   frs_objects <- mget(frs_keep, envir = frs_data_env)
   
+  #.. now, look at modparm_data_env ----
   modparm_names <- ls(envir = modparm_data_env) |> sort()
-  modparm_underscore <- modparm_names[grepl("_$", modparm_names)]
-  # setdiff(modparm_names, modparm_underscore) # no names that don't end in non-underscore
+  modparm_underscore <- modparm_names[grepl("_$", modparm_names)] # keep all of the underscore-ending names
+  # setdiff(modparm_names, modparm_underscore) # they're all underscored - no names that don't end in non-underscore
+  
   modparm_keep <- modparm_underscore
   modparm_objects <- mget(modparm_keep, envir = modparm_data_env)
   
