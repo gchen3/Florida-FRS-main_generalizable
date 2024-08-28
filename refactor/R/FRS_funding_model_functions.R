@@ -912,18 +912,20 @@ main_loop <- function(funding_list,
 ################### Model function starts here ####################
 
 get_funding_data <- function(
-    funding_list,
-    current_amort_layers_table,
-    wf_data_list,
-    entrant_profile_table_list, 
-    salary_headcount_table_list, 
-    mort_table_list, 
-    mort_retire_table_list, 
-    separation_rate_table_list,
-    params 
+    params,
+    return = "unstacked" # or "stacked"
 ) {
   
   # unpack parameters
+  funding_list <- params$funding_list
+  current_amort_layers_table <- params$current_amort_layers_table
+  wf_data_list <- params$wf_data_list
+  entrant_profile_table_list <- params$entrant_profile_table_list
+  salary_headcount_table_list <- params$salary_headcount_table_list
+  mort_table_list <- params$mort_table_list
+  mort_retire_table_list <- params$mort_retire_table_list
+  separation_rate_table_list <- params$separation_rate_table_list  
+  
   funding_lag <- params$funding_lag_
   model_period <- params$model_period_
   
@@ -1193,9 +1195,12 @@ get_funding_data <- function(
                             amo_pay_growth,
                             params)
   
-  output <- funding_list
-  # browser()
-  
+  if (return == "stacked") {
+    output <- bind_rows(funding_list, .id = "class")
+  } else {
+    output <- funding_list
+  }
+
   return(output)
   
 }
