@@ -14,6 +14,7 @@ library(devtools)
 library(testthat)
 
 library(lintr)
+library(styler)
 
 library(checkmate)
 library(codetools)
