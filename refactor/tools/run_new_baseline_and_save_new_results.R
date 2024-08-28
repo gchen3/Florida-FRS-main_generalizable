@@ -11,14 +11,6 @@ system.time(source(here::here("refactor", "R", "FRS_master.R"))) # load and buil
 
 # generate baseline results
 system.time(baseline_funding <- fm_env$get_funding_data(
-  funding_list = params$funding_list,
-  current_amort_layers_table = params$current_amort_layers_table,
-  wf_data_list = params$wf_data_list,
-  entrant_profile_table_list = params$entrant_profile_table_list,
-  salary_headcount_table_list = params$salary_headcount_table_list,
-  mort_table_list = params$mort_table_list,
-  mort_retire_table_list = params$mort_retire_table_list,
-  separation_rate_table_list = params$separation_rate_table_list,
   params = params,
   return = "stacked"
 )) # about 60 secs tot, ~ 10 seconds for a single class
