@@ -127,6 +127,7 @@ system.time(source(fs::path(rdir, "FRS_workforce_model_get_and_save_wfdata.R")))
 cat("\n")
 print("sourcing FRS_workforce_model_get_saved_data.R...")
 wf_data_env <- new.env()
+# djb NEXT: stack the workforce data ----
 system.time(source(fs::path(rdir, "FRS_workforce_model_get_saved_data.R"), local = wf_data_env)) # < 1 sec -- only gets saved data - no functions
 save(wf_data_env, file = fs::path(wddir, "wf_data_env.RData")) # only saves objects - no functions
 load(fs::path(wddir, "wf_data_env.RData"))
