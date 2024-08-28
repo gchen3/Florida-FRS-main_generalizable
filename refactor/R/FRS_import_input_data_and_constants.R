@@ -11,7 +11,7 @@ base_general_mort_table_ <- read_excel(fs::path(sddir, "pub-2010-headcount-mort-
 male_mp_table_ <- read_excel(fs::path(sddir, "mortality-improvement-scale-mp-2018-rates.xlsx"), sheet = "Male")
 female_mp_table_ <- read_excel(fs::path(sddir, "mortality-improvement-scale-mp-2018-rates.xlsx"), sheet = "Female")
 
-salary_growth_table_ <- read_excel(FileName, sheet = "Salary Growth")
+salary_growth_table_original_ <- read_excel(FileName, sheet = "Salary Growth") # compares to Reason's salary_growth_table_
 
 regular_salary_table_ <- read_excel(FileName, sheet="Salary Distribution Regular")
 regular_headcount_table_ <- read_excel(FileName, sheet="HeadCount Distribution Regular") %>% 
@@ -83,7 +83,8 @@ init_funding_data <- read_excel(FileName, sheet = "Funding Input")
 init_funding_data <- init_funding_data |> 
   mutate(class = str_replace(class, " ", "_"))
 
-return_scenarios <- read_excel(FileName, sheet = "Return Scenarios")
+# djb: I put the suffix on this
+return_scenarios_original_ <- read_excel(FileName, sheet = "Return Scenarios")
 
 current_amort_layers_table_ <- read_excel(FileName, sheet = "Amort Input")
 # count(current_amort_layers_table_, class)

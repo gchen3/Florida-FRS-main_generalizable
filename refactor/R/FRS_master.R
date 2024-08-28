@@ -74,7 +74,7 @@ if(FULL_RUN){
   modparm_data_env <- new.env()
   source(fs::path(rdir, "FRS_model_parameters.R"), local = modparm_data_env)
   save(modparm_data_env, file = fs::path(wddir, "modparm_data_env.RData"))
-  ls(envir = modparm_data_env)
+  # ls(envir = modparm_data_env)
 }
 load(fs::path(wddir, "modparm_data_env.RData"))
 # list2env(as.list(modparm_data_env), envir = .GlobalEnv)
