@@ -49,21 +49,23 @@ po/*~
 rsconnect/
 
 # Boyd additions below here ------------------
+# NOTE: put separate .gitignore files in
+# selected folders to ensure that folders are tracked but files are not
 
-*/.quarto/
-*/_freeze/
-*/_webpage/
-# data-raw/web/_webpage/
+# use ** to ignore ALL folders with a given name
+**/.quarto/ 
+
+**/_book/
+**/_freeze/
+**/_webpage/
 
 # new_results/
 # reason_results/
 
+*.css
 *.html
+*.js
+*.json
+*.map
 *.rds
 
-
-
-
-refactor/working_data/benefit_model_data_env.RData
-
-refactor/working_data/
