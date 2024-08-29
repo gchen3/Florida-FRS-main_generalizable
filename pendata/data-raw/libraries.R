@@ -1,19 +1,23 @@
-
-
 library(rlang)
 library(tidyverse)
-tprint <- 75  # default tibble print
+tprint <- 75 # default tibble print
 options(tibble.print_max = tprint, tibble.print_min = tprint)
 library(quarto)
 
-# load packages needed for development process ---- library(devtools)
-# library(usethis) library(pkgload) library(lintr) library(styler)
+
+# # load packages needed for development process  -------------------------
+
+library(devtools)
+library(usethis)
+library(testthat)
+library(lintr)
+library(styler)
 
 # tools ----
 library(fs)
 library(vroom)
 library(readxl)
-library(openxlsx)  # for writing xlsx files
+library(openxlsx) # for writing xlsx files
 library(lubridate)
 # library(RcppRoll) library(fredr) library(tidycensus)
 library(zoo)
