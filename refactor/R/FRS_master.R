@@ -50,6 +50,8 @@ print("sourcing FRS_benefit_model_helper_functions.R and FRS_benefit_model_get_b
 bm_env <- new.env()
 source(fs::path(rdir, "FRS_benefit_model_helper_functions.R"), local = bm_env) # only creates functions - no live code
 source(fs::path(rdir, "FRS_benefit_model_get_benefit_data_function.R"), local = bm_env) # only creates functions - no live code
+save(bm_env, file = fs::path(wddir, "bm_env.RData"))
+load(fs::path(wddir, "modparm_data_env.RData"))
 
 # Get workforce model
 print("sourcing FRS_workforce_model_functions....")
