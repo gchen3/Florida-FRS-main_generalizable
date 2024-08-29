@@ -1,0 +1,143 @@
+---
+params:
+  download: false
+---
+# SOA Mortality improvement rates
+
+`pendata` includes SOA Mortality Improvement Scale MP-2018.
+
+-   SOA Mortality Improvement Scale MP-2018 [landing page](https://www.soa.org/resources/experience-studies/2018/mortality-improvement-scale-mp-2018/)
+
+-   [SOA Mortality Improvement Scale MP-2018 report](https://www.soa.org/49964f/globalassets/assets/files/resources/experience-studies/2018/mortality-improvement-scale-mp-2018.pdf)
+
+-   SOA Scale MP-2018 Rates ([mortality-improvement-scale-mp-2018-rates.xlsx](https://www.soa.org/493456/globalassets/assets/files/resources/experience-studies/2018/mortality-improvement-scale-mp-2018-rates.xlsx))
+
+
+## Setup
+
+```{r}
+#| label: setup
+#| output: false
+
+source("_common_soa.R")
+
+# url for mortality improvement rates
+
+urates <- "https://www.soa.org/493456/globalassets/assets/files/resources/experience-studies/2018/mortality-improvement-scale-mp-2018-rates.xlsx"
+
+udoc <- "https://www.soa.org/49964f/globalassets/assets/files/resources/experience-studies/2018/mortality-improvement-scale-mp-2018.pdf"
+
+```
+
+## Download SOA mortality improvement tables and associated documentation
+
+Download the MP-2018 documentation and tables from the SOA site.
+MP-2018 was released in 2018 -- see SOA documentation. SOA took data for calendar years 1950 through 2014 directly from SSA-published smoothed mortality rates from 2018 SSA Trustees report,
+
+```{r}
+#| label: download
+#| eval: !expr params$download
+
+# https://www.soa.org/49964f/globalassets/assets/files/resources/experience-studies/2018/mortality-improvement-scale-mp-2018.pdf
+
+download.file(udoc,
+              fs::path(dsoa, "documentation", fs::path_file(udoc)),
+              mode = "wb")
+
+download.file(urates,
+              fs::path(dsoa, fs::path_file(urates)),
+              mode = "wb")
+
+```
+
+
+## Read the male and female tables
+
+```{r}
+#| label: read-male-female
+
+# commented out code did a speed test on whether it is faster to specify a
+# specific excel file range for reading or whether reading the whole sheet is
+# faster
+
+# system.time(df1 <- read_excel(fpath, sheet = "Male"))
+# system.time(df1 <- read_excel(fpath, sheet = "Male", range="A2:CG103")) # much faster
+
+fpath <- path(dsoa, path_file(urates))
+dfm <- read_excel(fpath, sheet = "Male", range = "A2:CG103")
+dff <- read_excel(fpath, sheet = "Female", range = "A2:CG103")
+
+```
+
+
+## Create a single long data frame
+
+```{r}
+#| label: make-long
+
+mp2018 <- bind_rows(dfm |>
+                      mutate(gender = "male"),
+                    dff |>
+                      mutate(gender = "female")) |>
+  rename_with(.fn = ~ str_replace(.x, "\\+", ""),
+              .col = ends_with("+")) |>
+  rename(age = 1) |>
+  mutate(age = str_remove(age, "≤ ") |> as.integer()) |>
+  pivot_longer(-c(gender, age), names_to = "year", values_to = "mp") |>
+  mutate(year = as.integer(year)) |>
+  select(gender, year, age, mp) |>
+  arrange(gender, year, age)
+
+
+```
+
+## Save the dataframe in the package data folder
+
+Save the unadjusted mortality improvement table as an .rda file in the data folder. This allows any system to use mp-2018, exactly as provided by SOA.
+
+
+```{r}
+#| label: save-mortality-improvement
+#| eval: true
+
+usethis::use_data(mp2018, overwrite = TRUE)
+
+```
+
+
+## Show SOA mortality-improvement rates
+
+
+```{r}
+#| label: show-mortality rates
+
+# avoid the need to install to get the latest data under a short name
+
+devtools::load_all()
+
+DT::datatable(mp2018,
+          options = list(scrollX = TRUE, scrollY = TRUE, paging = TRUE, pageLength = 20),
+          filter="top") |>
+  formatPercentage(columns = c("mp"), digits=3) 
+
+
+# datatable(ptargets, options = list(scrollX = TRUE, scrollY = '400px', paging = TRUE))
+# formatRound(columns = c("cumprod_increase"), digits=4)
+# formatCurrency(columns = c("ptarget"), currency="", digits=0)
+
+```
+
+
+
+## Explore results
+
+```{r}
+#| label: explore
+
+devtools::load_all()
+glimpse(mp2018)
+
+
+```
+
+
