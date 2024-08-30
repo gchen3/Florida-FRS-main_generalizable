@@ -1,27 +1,19 @@
-#' Florida Retirement System Data
+#' Florida Retirement System Environment
 #'
-#' @docType data
+#' An environment containing data elements and functions related to the Florida Retirement System.
 #'
-#' @format A saved environment containing data elements and functions related to the Florida Retirement System.
+#' @export
+frs <- new.env(parent = emptyenv())
+
+#' Initialize the FRS environment
 #'
-#' @source Data collected from various sources, including official reports and databases.
-#'
-#' @section Data Elements:
-#'   \describe{
-#'   \item{base_mort_table}{A tibble containing base (unimproved) mortality
-#'   rates for employees and beneficiaries of the Florida Retirement System,
-#'   based on SOA's Pub.H-2010 Headcount-Weighted Mortality Rates, with
-#'   modifications to adapt it to FRS.} }
-#'
-#  #' @section Functions:
-#  #'   \describe{
-#  #'     \item{calculate_benefits}{A function to calculate benefits based on the provided data.}
-#  #'   }
-#  #'
-#' @examples
-#' data(frs, package = "pendata")
-#' # Accessing a specific data element within the environment
-#' frs$base_mort_table
-# #' # Using a function within the environment
-# #' frs$calculate_benefits()
-"frs"
+#' @keywords internal
+.init_frs_env <- function() {
+  # Load the data into the frs environment
+  utils::data("base_mort_table", envir = frs, package = "pendata")
+
+  # Assign the function to the frs environment
+  frs$reformat_base_mortality <- function(etype) {
+    reformat_base_mortality(etype, frs$base_mort_table)
+  }
+}

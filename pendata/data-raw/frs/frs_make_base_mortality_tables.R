@@ -44,42 +44,42 @@ saveRDS(base_mort_table, here::here("data-raw", "frs", "rds", "base_mort_table.r
 
 # test the mortality tables against Reason tables -------------------------
 
-reformat_base_mortality <- function(etype, frs_mort_table, dfold) {
-  dfnew <- frs_mort_table |>
-    filter(employee_type == etype) |>
-    pivot_wider(names_from = c(beneficiary_type, gender), values_from = rate) |>
-    select(all_of(names(dfold)))
-
-  class_dfold <- class(dfold)
-
-  # Force the class of dfnew to be the same as dfold
-  if (any(class_dfold == "tbl_df")) {
-    # Convert dfnew to a tibble (tbl_df)
-    dfnew <- as_tibble(dfnew)
-  } else if (any(class_dfold == "data.frame")) {
-    # Convert dfnew to a data.frame (if it's not already)
-    dfnew <- as.data.frame(dfnew)
-  } else {
-    # Handle other classes if necessary
-    stop("Unsupported class for dfold")
-  }
-  return(dfnew)
-}
-
-# the following test passes
-for (etype in c("general", "regular", "teacher")) {
-  print(etype)
-  dfold <- reason[[paste0("base_", etype, "_mort_table")]]
-  dfnew <- reformat_base_mortality(etype, frs_mort_table, dfold)
-  expect_equal(dfnew, dfold)
-}
-
-class(dfold); class(dfnew)
-str(dfold); str(dfnew)
-
-# TODO: fix reformatting function to hard code the class of dfnew
-class(reason$base_general_mort_table) # "tbl_df"     "tbl"        "data.frame"
-class(reason$base_regular_mort_table) # "data.frame"
-class(reason$base_teacher_mort_table) # "tbl_df"     "tbl"        "data.frame"
+# reformat_base_mortality <- function(etype, frs_mort_table, dfold) {
+#   dfnew <- frs_mort_table |>
+#     filter(employee_type == etype) |>
+#     pivot_wider(names_from = c(beneficiary_type, gender), values_from = rate) |>
+#     select(all_of(names(dfold)))
+#
+#   class_dfold <- class(dfold)
+#
+#   # Force the class of dfnew to be the same as dfold
+#   if (any(class_dfold == "tbl_df")) {
+#     # Convert dfnew to a tibble (tbl_df)
+#     dfnew <- as_tibble(dfnew)
+#   } else if (any(class_dfold == "data.frame")) {
+#     # Convert dfnew to a data.frame (if it's not already)
+#     dfnew <- as.data.frame(dfnew)
+#   } else {
+#     # Handle other classes if necessary
+#     stop("Unsupported class for dfold")
+#   }
+#   return(dfnew)
+# }
+#
+# # the following test passes
+# for (etype in c("general", "regular", "teacher")) {
+#   print(etype)
+#   dfold <- reason[[paste0("base_", etype, "_mort_table")]]
+#   dfnew <- reformat_base_mortality(etype, frs_mort_table, dfold)
+#   expect_equal(dfnew, dfold)
+# }
+#
+# class(dfold); class(dfnew)
+# str(dfold); str(dfnew)
+#
+# # TODO: fix reformatting function to hard code the class of dfnew
+# class(reason$base_general_mort_table) # "tbl_df"     "tbl"        "data.frame"
+# class(reason$base_regular_mort_table) # "data.frame"
+# class(reason$base_teacher_mort_table) # "tbl_df"     "tbl"        "data.frame"
 
 
