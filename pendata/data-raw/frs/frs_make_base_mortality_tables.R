@@ -34,10 +34,11 @@ mort_regular <- mort_fillin |>
   summarise(rate = mean(rate, na.rm = TRUE),
             .by=c(employee_type, beneficiary_type, gender, age))
 
-frs_mort_table <- bind_rows(mort_fillin, mort_regular) |>
+base_mort_table <- bind_rows(mort_fillin, mort_regular) |>
   arrange(employee_type, beneficiary_type, gender, age, age)
 
-usethis::use_data(frs_mort_table, overwrite = TRUE)
+# usethis::use_data(frs_mort_table, overwrite = TRUE)
+saveRDS(base_mort_table, here::here("data-raw", "frs", "rds", "base_mort_table.rds"))
 
 
 

@@ -119,6 +119,7 @@ mort <- sheets |>
 pub2010hc_mortality_rates <- mort
 
 usethis::use_data(pub2010hc_mortality_rates, overwrite = TRUE)
+# usethis::use_data(pub2010hc_mortality_rates, "external/data_file.rda", overwrite = TRUE)
 
 
 # test against Reason data after frs revisions ------------------------------------------------
