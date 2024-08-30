@@ -67,5 +67,6 @@ rsconnect/
 *.js
 *.json
 *.map
+*.Rd
 *.rds
 

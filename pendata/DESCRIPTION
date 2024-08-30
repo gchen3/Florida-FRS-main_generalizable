@@ -1,9 +1,14 @@
 Package: pendata
 Title: Data for Pension Modelling
 Version: 0.0.0.9000
-Authors@R: 
-    person("Don", "Boyd", , "donboyd5@gmail.com", role = c("aut", "cre"))
-Description: Provides data needed for the accompanying pension model, in the package penmod. Includes selected standard mortality and other tables provided by the Society of Actuaries. Provides an environment object for each pension system available for penmod
+Authors@R: c(
+    person("Don", "Boyd", , "donboyd5@gmail.com", role = c("aut", "cre")),
+    person("Gang", "Chen", , "gchen3@albany.edu", role = c("aut"))
+    )
+Description: Provides data needed for the accompanying pension model, in the 
+    package penmod. Includes selected standard mortality and other tables 
+    provided by the Society of Actuaries. Provides an environment object for 
+    each pension system available for penmod.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -11,3 +16,12 @@ RoxygenNote: 7.3.2
 Depends: 
     R (>= 2.10)
 LazyData: true
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Imports: 
+    dplyr,
+    fs,
+    rlang,
+    tidyr,
+    tidyverse
