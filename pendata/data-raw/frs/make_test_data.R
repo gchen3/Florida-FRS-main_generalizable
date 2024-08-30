@@ -2,6 +2,7 @@
 
 dir_reason <- r"(E:\R_projects\projects\Florida-FRS-main_generalizable\refactor\reason_results)"
 fpath <- fs::path(dir_reason, "reason_workspace.RData")
+test_data_path <- here::here("tests", "testthat", "testdata")
 
 load(fpath, oldws <- new.env())
 ns(oldws)
@@ -19,9 +20,9 @@ for (name in keep_object_names){
   reason[[name]] <- oldws[[name]]
 }
 names(reason)
-save(reason, file = fs::path(dir_reason, "reason.RData"))
+saveRDS(reason, file = fs::path(test_data_path, "reason.rds"))
 
-load(fs::path(dir_reason, "reason.RData"))
+reason <- readRDS(file = fs::path(test_data_path, "reason.rds"))
 ns(reason)
 reason$base_general_mort_table
 
