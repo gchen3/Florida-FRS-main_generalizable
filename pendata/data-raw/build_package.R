@@ -42,3 +42,10 @@ library(pendata)
 # data(package="pendata")
 data(frs)
 names(frs)
+
+devtools::clean_dll()
+devtools::clean_vignettes()
+devtools::document()
+devtools::build()
+
+
