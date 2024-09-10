@@ -1,4 +1,8 @@
 
+
+# folders -----------------------------------------------------------------
+
+
 dir_pd <- r"(E:\R_projects\projects\Florida-FRS-main_generalizable\pendata)"
 dir_draw <- fs::path(dir_pd, "data-raw")
 dir_r <- fs::path(dir_pd, "R")
@@ -34,11 +38,15 @@ mort_regular <- mort_fillin |>
   summarise(rate = mean(rate, na.rm = TRUE),
             .by=c(employee_type, beneficiary_type, gender, age))
 
-base_mort_table <- bind_rows(mort_fillin, mort_regular) |>
+frs_base_mort_table <- bind_rows(mort_fillin, mort_regular) |>
   arrange(employee_type, beneficiary_type, gender, age, age)
 
 # usethis::use_data(frs_mort_table, overwrite = TRUE)
-saveRDS(base_mort_table, here::here("data-raw", "frs", "rds", "base_mort_table.rds"))
+# use_data(frs_base_mort_table, overwrite = TRUE) # save as data/frs_base_mort_table.rda
+# Save the data manually in inst/extdata
+save(frs_base_mort_table, file = "inst/extdata/frs_base_mort_table.rda")
+
+use_data(frs_base_mort_table, overwrite = TRUE) # save as data/frs_base_mort_table.rda
 
 
 
