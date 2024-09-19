@@ -21,40 +21,42 @@ pv <- function(rate, g = 0, nper, pmt, t = 1) {
   return(PV)
 }
 
-
-gr_ann_fac <- function(rate, n, growth = 0) {
-  r <- (1 + rate)/(1 + growth) - 1
-  }
-
-
 # Reference: financial mathematics for actuaries 3rd
 # Link: https://actuarialscience.yolasite.com/resources/Ruckman.pdf
 
 # ann_fac calculate the annuity factor with rate and t
 # pv = fv * ann_fac
 # fv = pv * (1 + rate) ^ t
+# Reference: p.4
 ann_fac <- function (rate, t) {
-  vt <- 1 / ((1 + rate) ^ t)
+  vt <- (1 + rate) ^ (-t)
   return(vt)
 }
 
 # level_ann_fac calculates the annuity (same payment at equal intervals of time) for 1 unit (such as $1) with rate and t
+# Reference: p. 21
 level_ann_fac <- function (rate, t) {
-  vt <- 1 / ((1 + rate) ^ t)
-  a_ni <- (1 - vt ^ t) / rate
+  vt <- (1 + rate) ^ (-t)
+  a_nt <- (1 - vt) / rate
   return(a_ni)
   }
 
-# growth_ann_fac calculates the present value of a growth annuity for 1 unit (such as $1) with interest rate, growth rate and t
-growth_ann_fac <- function (rate, growth, t) {
-  j = (1 + rate) / (1 + growth) - 1
-  vt <- 1 / ((1 + j) ^ t)
-  a_nj <- (1 - vt ^ t) / j
-  ia_ni = (1 / (1 + rate)) * a_nj
-  return(ia_ni)
- }
+level_ann_fac(.08, 18)
 
-pv(.1, g=0, nper=2, pmt=100, t=2)
-100 * growth_ann_fac (0.1, 0, 2)
-pv(.1, g=0, nper=2, pmt=100, t=2)
-100 * growth_ann_fac (0.1, 0.05, 2)
+# growth_ann_fac calculates the present value of a growth annuity for 1 unit (such as $1) with interest rate, growth rate and t
+# Reference: p. 71 "Compound Increasing Annuity-Immediate Present Value Factor" with some adjustments
+growth_ann_fac <- function (rate, growth, t) {
+#    j <- ((1 + rate) / (1 + growth)) - 1
+#    ia_nt <- (1 / (1 + rate)) * level_ann_fac(j, t)
+#    ia_nt = (1 - ((1 + growth)/(1 + rate))^t) / (rate - growth)
+#    delta <- log(1 + j)
+#    vt <- (1 + j) ^ (-t)
+#    ia_nt <- (level_ann_fac(j, t) - t * vt) / delta
+  return(ia_nt)
+}
+
+pv(0.08, g=0.05, nper=18, pmt=100, t=1)
+100 * growth_ann_fac (0.08, 0.05, 18)
+pv(.08, g=0.05, nper=2, pmt=100, t=1)
+100 / growth_ann_fac (r = 0.1, g = 0.05, t = 2)
+
