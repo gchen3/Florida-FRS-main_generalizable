@@ -2,18 +2,18 @@
 % Please edit documentation in R/functions.R
 \name{pv}
 \alias{pv}
-\title{Present value of a future payment}
+\title{Present value of annuity (same amount or same growth in N periods)}
 \usage{
 pv(rate, g = 0, nper, pmt, t = 1)
 }
 \arguments{
 \item{rate}{Annual discount rate (scalar double).}
 
-\item{g}{Growth rate (details needed).}
+\item{g}{Annual growth rate of the annuity amount (scalar double).}
 
-\item{nper}{Number of periods per year (scalar).}
+\item{nper}{Number of periods/years (scalar).}
 
-\item{pmt}{Future payment, per period per year (scalar double).}
+\item{pmt}{Annuity amount in the beginning year (scalar double).}
 
 \item{t}{Number of years in the future (scalar).}
 }
@@ -21,10 +21,10 @@ pv(rate, g = 0, nper, pmt, t = 1)
 Numeric value.
 }
 \description{
-Present value of a future payment
+Present value of annuity (same amount or same growth in N periods)
 }
 \examples{
-pv(.1, g=0, nper=1, pmt=100, t=1) # 90.90909
+pv(0.08, g=0.05, nper=18, pmt=100, t=1) # 90.90909
 pv(.1, g=0, nper=1, pmt=100, t=2) # 82.644628
 pv(.1, g=0, nper=2, pmt=100, t=2) # 157.7761
 pv(.1, g=.05, nper=2, pmt=100, t=2) # 161.5327

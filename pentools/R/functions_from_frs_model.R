@@ -64,6 +64,7 @@ get_pmt <- function(r, g = 0, nper, pv, t = 1) {
   return(a)
 }
 
+get_pmt(0.05, 0.02, 5, 1, t=0)
 #Funding period function
 #' @export
 NPER <- function(r,g,pv,t,pmt){
