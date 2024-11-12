@@ -65,6 +65,8 @@ get_params <- function(frs_data_env, modparm_data_env){
   
   # it is possible to make the names in params sorted, but work, and it won't
   # be maintained if we modify params, so I don't do it
+  
+  # but here's how, just to show the method
   # create a temporary environment from which we will copy objects, sorted by name
   # temp_env <- new.env()
   # list2env(c(frs_objects, modparm_objects), envir = temp_env) 
