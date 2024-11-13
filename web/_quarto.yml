@@ -17,6 +17,7 @@ book:
     collapse-level: 1
   chapters:
     - index.qmd # index.qmd must be in the quarto project root folder
+    - TODO.qmd
     - plan.qmd
     # - part: "Data from SOA and Other External Sources"
     #   chapters:
