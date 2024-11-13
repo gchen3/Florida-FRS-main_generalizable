@@ -2,7 +2,7 @@
 
 # Ctrl-Shift-F10 to restart R
 
-#Loading required libraries ------------------
+#Load required libraries ------------------
 library(readxl)
 library(tidyverse)
 library(zoo)
@@ -27,9 +27,10 @@ library(pentools) # use this instead of sourcing "FRS_utility_functions.R"
 
 FULL_RUN <- TRUE
 BENEFIT_RUN <- TRUE
+CREATE_WORKFORCE_DATA <- TRUE
 
 
-# directories -------------------------------------------------------------
+# define directories -------------------------------------------------------------
 
 iddir <- here::here("refactor", "interim_data")
 rdir <- here::here("refactor", "R")
@@ -39,43 +40,43 @@ wddir <- here::here("refactor", "working_data")
 xidir <- here::here("refactor", "source_data", "Reports", "extracted inputs")
 
 
-# Get FRS model parameters, constants, raw initial data, and derived initial data --------------------------
-# We do this first because onetime data must be available for the rest of the model
+# if a full run, create model parameters and frs_data environments --------
 
-print("sourcing FRS_model_parameters.R...")
+# Get FRS model parameters, constants, raw initial data, and derived initial data
+
 if(FULL_RUN){
+  print("This is a full run, so creating model parameters and frs_data environments from scratch...")
+  
   modparm_data_env <- new.env()
   source(fs::path(rdir, "FRS_model_parameters.R"), local = modparm_data_env)
   save(modparm_data_env, file = fs::path(wddir, "modparm_data_env.RData"))
-  # ls(envir = modparm_data_env)
-}
-load(fs::path(wddir, "modparm_data_env.RData"))
-# list2env(as.list(modparm_data_env), envir = .GlobalEnv)
-# rm(modparm_data_env)
-
-
-print("sourcing FRS_import_input_data_and_constants.R or equivalent...") # this gets init_funding_data
-if(FULL_RUN){
+  
   frs_data_env <- new.env()
   # 13 secs only reads data and sets variable values - no functions
   source(fs::path(rdir, "FRS_import_input_data_and_constants.R"), local = frs_data_env) # put data, params into frs_data_env
   save(frs_data_env, file = fs::path(wddir, "frs_data_env.RData"))
+  # ls(envir = modparm_data_env)
 }
-load(fs::path(wddir, "frs_data_env.RData"))
+
+
+# how to dump an environment into the global environment: 
+# list2env(as.list(modparm_data_env), envir = .GlobalEnv)
 # list2env(as.list(frs_data_env), envir = .GlobalEnv)
-# rm(frs_data_env)
 
 
 # create params environment -----------------------------------------------
 # create params environment BEFORE FRS_benefit_model_actions.R, as it is needed
 # for that
 
+load(fs::path(wddir, "modparm_data_env.RData"))
+load(fs::path(wddir, "frs_data_env.RData")) # this gets init_funding_data
+
 source(fs::path(rdir, "FRS_create_params_env.R")) 
 params <- get_params(frs_data_env, modparm_data_env)
 ns(params)
 
 
-#Get benefit model
+# Get benefit model environment -----------------------------------------------
 print("sourcing FRS_benefit_model_helper_functions.R and FRS_benefit_model_get_benefit_data_function.R...")
 bm_env <- new.env()
 source(fs::path(rdir, "FRS_benefit_model_helper_functions.R"), local = bm_env) # only creates functions - no live code, puts them into the bm_env environment
@@ -87,6 +88,7 @@ save(bm_env, file = fs::path(wddir, "bm_env.RData"))
 
 # get initial data derived from raw model data - does NOT require modeling assumptions
 print("sourcing FRS_benefit_model_actions.R...") 
+
 if(BENEFIT_RUN){
   benefit_model_data_env <- new.env()
   # uses: bm_env and params
@@ -99,13 +101,11 @@ load(fs::path(wddir, "benefit_model_data_env.RData"))
 # creates for each class: salary_headcount, entrant_profile, mort, retire_mort, drop entry, retire, early retire, sep rates
 
 
-# Load functions ---------------------------------------------------------------
+# Load workforce, liability, and funding model functions into separate environments -------------------------------
 
 print("Loading model functions...")
 
-#Get actuarial and financial functions
-# print("NOT sourcing FRS_utility_functions.R but loading pentools...")
-# source(fs::path(rdir, "FRS_utility_functions.R")) # only creates functions - no live code
+# Note: do not load actuarial and financial functions as they are now in pentools
 
 # Get workforce model
 print("sourcing FRS_workforce_model_functions....")
@@ -123,12 +123,15 @@ fm_env <- new.env()
 source(fs::path(rdir, "FRS_funding_model_functions.R"), local = fm_env) # only creates function - no live code
 
 
-
-
 # Prepare data for modeling -----------------------------------------------
-#Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
-print("sourcing FRS_workforce_model_get_and_save_wfdata.R...")
-system.time(source(fs::path(rdir, "FRS_workforce_model_get_and_save_wfdata.R")))
+
+if(CREATE_WORKFORCE_DATA){
+  #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
+  print("sourcing FRS_workforce_model_get_and_save_wfdata.R...")
+  system.time(source(fs::path(rdir, "FRS_workforce_model_get_and_save_wfdata.R")))
+}
+
+
 # depends on assumptions in the model: 
 
 cat("\n")
