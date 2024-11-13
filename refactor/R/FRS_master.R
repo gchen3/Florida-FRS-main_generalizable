@@ -19,7 +19,8 @@ library(btools) # ns, ht
 
 # load pension-specific libraries
 # For first time installing package, or each time package is updated, install as follows
-# devtools::install(pkg = here::here("pentools"))
+# OLD: devtools::install(pkg = here::here("pentools"))
+# instead, install from separate package
 library(pentools) # use this instead of sourcing "FRS_utility_functions.R"
 
 
