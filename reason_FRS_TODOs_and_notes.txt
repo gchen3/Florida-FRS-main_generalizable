@@ -4,8 +4,8 @@ TODO:
 
 
 Tools:
-#   regex for finding global variables:   \w+_(?=\s|$|\)|,|\;)  -- use in RStudio search box
-
+# regex for finding global variables:   \w+_(?=\s|$|\)|,|\;)  -- use in RStudio search box
+# MANUALLY RESET AND CLEAR ENVIRONMENT WITH Ctrl-Shift-F10 
 
 Scratch:
 
