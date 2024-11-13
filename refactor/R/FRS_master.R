@@ -25,9 +25,9 @@ library(pentools) # use this instead of sourcing "FRS_utility_functions.R"
 
 # set FULL_RUN boolean ----------------------------------------------------
 
-FULL_RUN <- TRUE
-BENEFIT_RUN <- TRUE
-CREATE_WORKFORCE_DATA <- TRUE
+FULL_RUN <- FALSE
+BENEFIT_RUN <- FALSE
+CREATE_WORKFORCE_DATA <- FALSE
 
 
 # define directories -------------------------------------------------------------
