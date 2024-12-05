@@ -52,11 +52,13 @@ if(FULL_RUN){
   print("This is a full run, so creating model parameters and frs_data environments from scratch...")
   
   modparm_data_env <- new.env()
-  source(fs::path(rdir, "FRS_model_parameters.R"), local = modparm_data_env)
+  # 48 objects - scalars and vectors
+  source(fs::path(rdir, "FRS_model_parameters.R"), local = modparm_data_env) 
   save(modparm_data_env, file = fs::path(wddir, "modparm_data_env.RData"))
   
   frs_data_env <- new.env()
   # 13 secs only reads data and sets variable values - no functions
+  # 102 objects - mostly scalars and lists that are tables
   source(fs::path(rdir, "FRS_import_input_data_and_constants.R"), local = frs_data_env) # put data, params into frs_data_env
   save(frs_data_env, file = fs::path(wddir, "frs_data_env.RData"))
   # ls(envir = modparm_data_env)
