@@ -950,6 +950,8 @@ get_funding_data <- function(
 
   # unpack funding_list into a stacked tibble
   funding_list_stacked <- bind_rows(funding_list, .id = "class")
+  # djb save it to see if I can reproduce using stacked input data
+  saveRDS(funding_list_stacked, fs::path(wddir, "funding_list_stacked.rds"))
   
   #### Produce liability outputs for each class (except DROP and FRS system) ----
   
@@ -1010,6 +1012,8 @@ get_funding_data <- function(
   
   # FOR LATER USE (djb): unpack liability_list into a stacked tibble
   liability_list_stacked <- bind_rows(liability_list, .id = "class")
+  # save it to see if I can reproduce using stacked input data
+  saveRDS(liability_list_stacked, fs::path(wddir, "liability_list_stacked.rds"))
   
   # FOR LATER USE (djb) classes_stacked
   classes_stacked <- funding_list_stacked |> 
