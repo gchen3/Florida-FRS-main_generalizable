@@ -142,21 +142,11 @@ stack_env$entrant_profile_table_stacked
 
 
 #.... salary benefit table ----
-# salary_benefit_table_stacked
-# params$entry_year_range_ 1970:2052
-# params$yos_range_ 0:70
-# params$max_age_ 120
-earange <- entrant_profile_table_stacked
 
-count(entrant_profile_table_stacked, entry_age, class) |> 
-  pivot_wider(names_from = class, values_from = n)
 
-ns(stack_env$entrant_profile_table_stacked)
-ns(stack_env$salary_growth_table_stacked)
-
-stack_env$salary_headcount_table_stacked |> 
-  select(class, entry_year, entry_age, entry_salary) |> 
-  count(class)
+# stacked salary benefit table ----
+# this is fast and, based on testing, equivalent to the Reason approach
+library(RcppRoll)
 
 stubs <- crossing(stack_env$entrant_profile_table_stacked |> 
                     select(class, entry_age),
@@ -166,8 +156,11 @@ stubs <- crossing(stack_env$entrant_profile_table_stacked |>
   filter(term_age <= params$max_age_)
 count(stubs, class)
 
-#  |> mutate(max_entry_year = max(entry_year, na.rm=TRUE),       .by=class)
-# DJB RETURN TO THIS IT NOW HAS NO MISSING salary!!? ----
+# we need max_entry_year of JUST the records in the headcount table
+max_entry_year <- stack_env$salary_headcount_table_stacked |> 
+  summarise(max_entry_year = max(entry_year, na.rm = TRUE),
+         .by=class)
+
 salary_benefit_table_stacked <- stubs |> 
   left_join(stack_env$entrant_profile_table_stacked,
             by = join_by(class, entry_age)) |> 
@@ -178,125 +171,30 @@ salary_benefit_table_stacked <- stubs |>
   # Join salary_head_count_table_stacked by entry_year and entry_age only to get historical entry_salary
   left_join(stack_env$salary_headcount_table_stacked |> 
               select(class, entry_year, entry_age, entry_salary),
-            by = join_by(class, entry_age, entry_year)) |> 
-  mutate(calcsal = ifelse(is.na(entry_salary), start_sal, entry_salary)) |> 
-  group_by(class) |> 
-  mutate(max_entry_year = max(entry_year, na.rm = TRUE)) |> 
+            by = join_by(class, entry_age, entry_year)) |>
+  left_join(max_entry_year, by = join_by(class)) |> 
   # if_else respects grouping, ifelse does not
-  # mutate(salary = if_else(entry_year <= max_entry_year, # max(entry_year), # max_entry_year, max(entry_year)
-  #                         entry_salary * cumprod_salary_increase,
-  #                         start_sal * cumprod_salary_increase * (1 + params$payroll_growth_)^(entry_year - max_entry_year)), # max(entry_year)
+  # but we don't need grouping below because we merged in proper class max_entry_year above
   mutate(salary = if_else(entry_year <= max_entry_year, # max(entry_year), # max_entry_year, max(entry_year)
-                          calcsal * cumprod_salary_increase,
-                          calcsal * cumprod_salary_increase * (1 + params$payroll_growth_)^(entry_year - max_entry_year)), # max(entry_year)
+                          entry_salary * cumprod_salary_increase,
+                          start_sal * cumprod_salary_increase * (1 + params$payroll_growth_)^(entry_year - max_entry_year)), # max(entry_year)
          fas_period = if_else(str_detect(tier_at_term_age, "tier_1"), 5, 8)) |> 
-  ungroup() |> 
-  filter(!is.na(salary)) |>
   mutate(
-    fas = pentools::baseR.rollmean(salary, fas_period),
+    # this rolling mean is faster than the Reason approach but equivalent
+    fas = RcppRoll::roll_mean(c(NA, salary[-length(salary)]), # drop the current value
+                               n = max(fas_period), align="right", fill = NA),
     db_ee_cont = params$db_ee_cont_rate_ * salary,
     db_ee_balance = pentools::get_cum_fv(params$db_ee_interest_rate_, db_ee_cont),
-    .by=c(class, entry_year, entry_age))
+    .by=c(class, entry_year, entry_age)) |> 
+  filter(!is.na(salary))
+
 
 # explore
 skim(salary_benefit_table_stacked)
-# why do we have some missing fas?? because baseR.rollmean sets it to NA for the first 0-4 years!! is that what we want?
-salary_benefit_table_stacked |> filter(is.na(fas)) |> slice_head(n = 10)
-salary_benefit_table_stacked |> filter(!is.na(fas)) |> slice_head(n = 10)
 count(salary_benefit_table_stacked, class)
 count(salary_benefit_table_stacked, tier_at_term_age)
 count(salary_benefit_table_stacked, tier_at_term_age, class) |> 
   pivot_wider(names_from = class, values_from = n) # ?? why are eco and judges the same??
-
-
-salary_benefit_table_stacked |> filter(class=="admin")
-salary_benefit_table_stacked |> filter(class=="admin") |> skim()
-salary_benefit_table |> skim()
-
-salary_benefit_table |> 
-  filter(is.na(entry_salary))
-
-stack_env$salary_headcount_table_stacked |> 
-  select(class, entry_year, entry_age, entry_salary) |> 
-  mutate(max_entry_year = max(entry_year, na.rm=TRUE),
-         .by=class) |> filter(class=="admin")
-
-
-salary_benefit_table <- expand_grid(entry_year = params$entry_year_range_, 
-                                    entry_age = entrant_profile_table$entry_age, 
-                                    yos = params$yos_range_) %>% 
-  mutate(
-    term_age = entry_age + yos,
-    # term_year = entry_year + yos,
-    tier_at_term_age = bm_env$get_tier(class_name, entry_year, term_age, yos, params$new_year_)
-  ) %>% 
-  filter(term_age <= params$max_age_) %>% 
-  arrange(entry_year, entry_age, yos) %>% 
-  left_join(entrant_profile_table, by = "entry_age") %>% 
-  left_join(class_salary_growth_table, by = "yos") %>% 
-  #Join salary_head_count_table by entry_year and entry_age only to get historical entry_salary
-  left_join(salary_headcount_table %>% select(entry_year, entry_age, entry_salary), 
-            by = c("entry_year", "entry_age")) %>%
-  mutate(
-    mey=max(salary_headcount_table$entry_year),
-    salary = if_else(entry_year <= max(salary_headcount_table$entry_year), 
-                     entry_salary * cumprod_salary_increase,
-                     start_sal * cumprod_salary_increase * (1 + params$payroll_growth_)^(entry_year - max(salary_headcount_table$entry_year))),
-    fas_period = if_else(str_detect(tier_at_term_age, "tier_1"), 5, 8)
-  ) %>% 
-  group_by(entry_year, entry_age) %>% 
-  mutate(
-    fas = baseR.rollmean(salary, fas_period),
-    db_ee_cont = params$db_ee_cont_rate_ * salary,
-    db_ee_balance = get_cum_fv(params$db_ee_interest_rate_, db_ee_cont),
-  ) %>% 
-  ungroup() %>% 
-  filter(!is.na(salary))
-
-
-params$salary_headcount_table_list$admin_salary_headcount_table |> 
-  summary() # max entry year is 2015
-
-
-# salary_benefit_table <- get_salary_benefit_table(class_name,
-#                                                  entrant_profile_table,
-#                                                  class_salary_growth_table,
-#                                                  salary_headcount_table,
-#                                                  params)
-# per Reason: Create a long-form table of entry year, entry age, and yos and merge with salary data
-#             Note that "age" in the salary_table is active age
-
-# entrant_profile_table <- entrant_profile_table_list[[element_name]]
-
-salary_benefit_table <- expand_grid(entry_year = params$entry_year_range_, 
-                                    entry_age = entrant_profile_table$entry_age, 
-                                    yos = params$yos_range_) %>% 
-  mutate(
-    term_age = entry_age + yos,
-    # term_year = entry_year + yos,
-    tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, params$new_year_)
-  ) %>% 
-  filter(term_age <= params$max_age_) %>% 
-  arrange(entry_year, entry_age, yos) %>% 
-  left_join(entrant_profile_table, by = "entry_age") %>% 
-  left_join(class_salary_growth_table, by = "yos") %>% 
-  #Join salary_head_count_table by entry_year and entry_age only to get historical entry_salary
-  left_join(salary_headcount_table %>% select(entry_year, entry_age, entry_salary), 
-            by = c("entry_year", "entry_age")) %>%
-  mutate(
-    salary = if_else(entry_year <= max(salary_headcount_table$entry_year), 
-                     entry_salary * cumprod_salary_increase,
-                     start_sal * cumprod_salary_increase * (1 + params$payroll_growth_)^(entry_year - max(salary_headcount_table$entry_year))),
-    fas_period = if_else(str_detect(tier_at_term_age, "tier_1"), 5, 8)
-  ) %>% 
-  group_by(entry_year, entry_age) %>% 
-  mutate(
-    fas = baseR.rollmean(salary, fas_period),
-    db_ee_cont = params$db_ee_cont_rate_ * salary,
-    db_ee_balance = get_cum_fv(params$db_ee_interest_rate_, db_ee_cont),
-  ) %>% 
-  ungroup() %>% 
-  filter(!is.na(salary))
 
 
 #.. END get_benefit_data ----
@@ -308,7 +206,6 @@ names(params$wf_data_list)
 
 # outputs from the model (stacked)
 liability_list_stacked <- readRDS(fs::path(wddir, "liability_list_stacked.rds"))
-
 
 
 
