@@ -196,8 +196,90 @@ count(salary_benefit_table_stacked, tier_at_term_age)
 count(salary_benefit_table_stacked, tier_at_term_age, class) |> 
   pivot_wider(names_from = class, values_from = n) # ?? why are eco and judges the same??
 
+# stacked ann_factor_table ----
+stack_env$mort_table_stacked
+salary_benefit_table_stacked
+
+# semi_join() return all rows from x with a match in y.
+# here all rows from mort_table_stacked (16m recs) with a match in salary_benefit_table (158k rows)
+
+# create a tier lookup table
+tier_lookup <- tibble(
+  tier_at_dist_age = unique(mort_table_stacked$tier_at_dist_age)
+) |> 
+  mutate(dr = if_else(str_detect(tier_at_dist_age, "tier_3"), params$dr_new_, params$dr_current_))
+tier_lookup
+
+sbt2 <- salary_benefit_table_stacked |> 
+  mutate(y2 = pmin(pmax(2011 - entry_year, 0), yos))
+glimpse(sbt2)
+
+sbt2 <- salary_benefit_table_stacked |>
+  select(class, entry_year, entry_age) |> 
+  distinct()
+
+  
+
+a <- proc.time()
+ann_factor_table_stacked <- mort_table_stacked |> 
+  # semi_join simply filters -- gets all rows from mort_table_stacked that
+  # match salary_benefit_table_stacked on the join variables -- it does not
+  # bring in other variables
+  semi_join(salary_benefit_table_stacked,
+            by = join_by(class, entry_year, entry_age)) |> 
+  left_join(tier_lookup, by = join_by(tier_at_dist_age)) |> 
+  mutate(
+    # clamp yos_b4_2011 between 0 and yos
+    yos_b4_2011 = pmin(pmax(2011 - entry_year, 0), yos),
+    # djb come back here ----
+    cola = case_when(
+      #Tier 1 cola (current policy) = 3% * YOS before 2011 / Total YOS
+      str_detect(tier_at_dist_age, "tier_1") & params$cola_tier_1_active_constant_ == "no" ~
+        if_else(yos > 0, params$cola_tier_1_active_ * yos_b4_2011 / yos, 0),
+      str_detect(tier_at_dist_age, "tier_1") & params$cola_tier_1_active_constant_ == "yes" ~
+        params$cola_tier_1_active_,
+      str_detect(tier_at_dist_age, "tier_2") ~
+        params$cola_tier_2_active_,
+      str_detect(tier_at_dist_age, "tier_3") ~
+        params$cola_tier_3_active_
+    )
+  ) 
+b <- proc.time()
+b - a
+
+ann_factor_table <- mort_table %>% 
+  #Semi join the salary_benefit_able to reduce the size of the data that needs to be calculated
+  semi_join(salary_benefit_table, by = c("entry_year", "entry_age")) %>%
+  mutate(
+    dr = if_else(str_detect(tier_at_dist_age, "tier_3"), params$dr_new_, params$dr_current_),
+    yos_b4_2011 = pmin(pmax(2011 - entry_year, 0), yos),
+    cola = case_when(
+      #Tier 1 cola (current policy) = 3% * YOS before 2011 / Total YOS
+      str_detect(tier_at_dist_age, "tier_1") & params$cola_tier_1_active_constant_ == "no" ~ 
+        if_else(yos > 0, params$cola_tier_1_active_ * yos_b4_2011 / yos, 0),
+      str_detect(tier_at_dist_age, "tier_1") & params$cola_tier_1_active_constant_ == "yes" ~ 
+        params$cola_tier_1_active_,
+      str_detect(tier_at_dist_age, "tier_2") ~ 
+        params$cola_tier_2_active_,
+      str_detect(tier_at_dist_age, "tier_3") ~ 
+        params$cola_tier_3_active_
+    )
+  ) %>% 
+  group_by(entry_year, entry_age, yos) %>% 
+  mutate(
+    cum_dr = cumprod(1 + lag(dr, default = 0)),
+    cum_mort = cumprod(1 - lag(mort_final, default = 0)),
+    cum_cola = cumprod(1 + lag(cola, default = 0)),
+    cum_mort_dr = cum_mort / cum_dr,
+    cum_mort_dr_cola = cum_mort_dr * cum_cola,
+    # ann_factor below is the annuity factor at distribution (retirement) age
+    ann_factor = rev(cumsum(rev(cum_mort_dr_cola))) / cum_mort_dr_cola
+  ) %>% 
+  ungroup()
 
 #.. END get_benefit_data ----
+
+
 
 names(params$wf_data_list)
 
