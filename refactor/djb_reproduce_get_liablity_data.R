@@ -371,14 +371,15 @@ ann_factor_retire_table_stacked <- stack_env$mort_retire_table_stacked |>
     cola = if_else(cola_type == "one_time", 
                    if_else(year == params$new_year_, params$cola_current_retire_one_, 0),
                    params$cola_current_retire_)
-  ) %>% 
-  group_by(base_age) %>% 
+  )  |>  
+  group_by(class, base_age) %>% 
   mutate(
     cum_dr = cumprod(1 + lag(dr, default = 0)),
     cum_mort = cumprod(1 - lag(mort_final, default = 0)),
     cum_mort_dr = cum_mort / cum_dr,
     ann_factor_retire = annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = params$one_time_cola_)
-  )
+  ) |> 
+  ungroup()
 
 
 # Survival Probability and Annuity Factor for current retirees
@@ -396,9 +397,311 @@ ann_factor_retire_table <- mort_retire_table %>%
     cum_mort = cumprod(1 - lag(mort_final, default = 0)),
     cum_mort_dr = cum_mort / cum_dr,
     ann_factor_retire = annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = params$one_time_cola_)
-  )
+  ) |> 
+  ungroup() # djb addition
 
 # END ann_factor_retire_table_stacked ----
+
+
+# benefit_table_stacked ----
+# 816,713 × 36 for class admin
+# reason
+benefit_table <- bm_env$get_benefit_table(class_name, ann_factor_table, salary_benefit_table, params)
+
+# benmult_rules <- ann_factor_table_stacked |> 
+#   select(class, tier_at_dist_age, dist_age, yos) |> 
+#   distinct() |> 
+#   mutate(tier=str_sub(tier_at_dist_age, 6, 6))
+# 
+# read_csv(
+# "class, tier, rtype, dist_year_max, dist_age_min, dist_age_max, yos_min, yos_max, ben_mult
+# regular, 1, , , 65, Inf, 6, Inf, 0.0168
+# regular, 1, ,  , -Inf, Inf, 33, Inf, 0.0168
+# regular, 1, , , 64, Inf, 6, Inf, 0.0165
+# regular, 1, , , -Inf, Inf, 32, Inf, 0.0165
+# regular, 1, , , 63, Inf, 6, Inf, 0.0163
+# regular, 1, , , -Inf, Inf, 31, Inf, 0.0163
+# regular, 1, , , 62, Inf, 6, Inf, 0.0160
+# regular, 1, , , -Inf, Inf, 30, Inf, 0.0160
+# regular, 1, , early, -Inf, Inf, -Inf, Inf, 0.0160
+# 
+# special, 1, , , 65, Inf, 6, Inf, 0.0168
+# ")
+
+
+
+  
+
+# ben_mult = if_else(str_detect(tier_at_dist_age, "tier_1"),
+#                    if_else(class_name == "regular", 
+#                            case_when(
+#                              (dist_age >= 65 & yos >= 6) | (yos >= 33) ~ 0.0168,
+#                              (dist_age >= 64 & yos >= 6) | (yos >= 32) ~ 0.0165,
+#                              (dist_age >= 63 & yos >= 6) | (yos >= 31) ~ 0.0163,
+#                              (dist_age >= 62 & yos >= 6) | (yos >= 30) ~ 0.0160,
+#                              str_detect(tier_at_dist_age, "early") ~ 0.0160
+#                            ),
+#                            if_else(class_name == "special", if_else(dist_year <= 1974, 0.02, 0.03),
+#                                    if_else(class_name == "admin", 
+#                                            case_when(
+#                                              (dist_age >= 58 & yos >= 6) | (yos >= 28) ~ 0.0168,
+#                                              (dist_age >= 57 & yos >= 6) | (yos >= 27) ~ 0.0165,
+#                                              (dist_age >= 56 & yos >= 6) | (yos >= 26) ~ 0.0163,
+#                                              (dist_age >= 55 & yos >= 6) | (yos >= 25) ~ 0.0160,
+#                                              str_detect(tier_at_dist_age, "early") ~ 0.0160
+#                                            ),
+#                                            if_else(class_name %in% c("eco", "eso"), 0.03,
+#                                                    if_else(class_name == "judges", 0.0333, if_else(class_name == "senior_management", 0.02, NA)
+#                                                    )
+#                                            )
+#                                    )
+#                            )
+#                    ),
+#                    if_else(str_detect(tier_at_dist_age, "tier_2"),
+#                            if_else(class_name == "regular",
+#                                    case_when(
+#                                      (dist_age >= 68 & yos >= 8) | (yos >= 36) ~ 0.0168,
+#                                      (dist_age >= 67 & yos >= 8) | (yos >= 35) ~ 0.0165,
+#                                      (dist_age >= 66 & yos >= 8) | (yos >= 34) ~ 0.0163,
+#                                      (dist_age >= 65 & yos >= 8) | (yos >= 33) ~ 0.0160,
+#                                      str_detect(tier_at_dist_age, "early") ~ 0.0160
+#                                    ),
+#                                    if_else(class_name == "special", if_else(dist_year <= 1974, 0.02, 0.03),
+#                                            if_else(class_name == "admin",
+#                                                    case_when(
+#                                                      (dist_age >= 63 & yos >= 8) | (yos >= 33) ~ 0.0168,
+#                                                      (dist_age >= 62 & yos >= 8) | (yos >= 32) ~ 0.0165,
+#                                                      (dist_age >= 61 & yos >= 8) | (yos >= 31) ~ 0.0163,
+#                                                      (dist_age >= 60 & yos >= 8) | (yos >= 30) ~ 0.0160,
+#                                                      str_detect(tier_at_dist_age, "early") ~ 0.0160
+#                                                    ),
+#                                                    if_else(class_name %in% c("eco", "eso"), 0.03,
+#                                                            if_else(class_name == "judges", 0.0333, if_else(class_name == "senior_management", 0.02, NA)
+#                                                            )
+#                                                    )
+#                                            )
+#                                    )
+#                            ),
+#                            if_else(str_detect(tier_at_dist_age, "tier_3"),
+#                                    if_else(class_name == "regular",
+#                                            case_when(
+#                                              (dist_age >= 68 & yos >= 8) | (yos >= 36) ~ 0.0168,
+#                                              (dist_age >= 67 & yos >= 8) | (yos >= 35) ~ 0.0165,
+#                                              (dist_age >= 66 & yos >= 8) | (yos >= 34) ~ 0.0163,
+#                                              (dist_age >= 65 & yos >= 8) | (yos >= 33) ~ 0.0160,
+#                                              str_detect(tier_at_dist_age, "early") ~ 0.0160
+#                                            ),
+#                                            if_else(class_name == "special", if_else(dist_year <= 1974, 0.02, 0.03),
+#                                                    if_else(class_name == "admin",
+#                                                            case_when(
+#                                                              dist_age >= 63 & yos >= 8 ~ 0.0168,
+#                                                              dist_age >= 62 & yos >= 8 ~ 0.0165,
+#                                                              dist_age >= 61 & yos >= 8 ~ 0.0163,
+#                                                              dist_age >= 60 & yos >= 8 ~ 0.0160,
+#                                                              str_detect(tier_at_dist_age, "early") ~ 0.0160
+#                                                            ),
+#                                                            if_else(class_name %in% c("eco", "eso"), 0.03,
+#                                                                    if_else(class_name == "judges", 0.0333, if_else(class_name == "senior_management", 0.02, NA)
+#                                                                    )
+#                                                            )
+#                                                    )
+#                                            )
+#                                    ), NA)
+#                    )
+# ),
+
+tier1 <- function(class, dist_age, dist_year, yos, rtype){
+  regular <- function(class, dist_age, dist_year, yos, rtype){
+    case_when(
+      (dist_age >= 65 & yos >= 6) | (yos >= 33) ~ 0.0168,
+      (dist_age >= 64 & yos >= 6) | (yos >= 32) ~ 0.0165,
+      (dist_age >= 63 & yos >= 6) | (yos >= 31) ~ 0.0163,
+      (dist_age >= 62 & yos >= 6) | (yos >= 30) ~ 0.0160,
+      str_detect(rtype, "early") ~ 0.0160
+    )
+  }
+  
+  case_when(class=="regular" ~ regular(class, dist_age, dist_year, yos, rtype),
+            .default = NA_real_
+  )
+}
+
+benmult <- function(class, tier, dist_age, dist_year, yos, rtype){
+  case_when(tier=="1" ~ tier1(class, dist_age, dist_year, yos, rtype),
+            # tier=="2" ~ tier2(class, dist_age, dist_year, yos, rtype),
+            # tier=="3" ~ tier3(class, dist_age, dist_year, yos, rtype),
+            .default = NA_real_
+  )
+}
+
+benefit_table_stacked <- ann_factor_table_stacked |> 
+  filter(class=="regular") |>
+  mutate(
+    term_age = entry_age + yos, # .before = term_year,
+    is_norm_retire_elig = str_detect(tier_at_dist_age, "norm")
+  ) |> 
+  left_join(salary_benefit_table_stacked,
+            by = join_by(class, entry_year, entry_age, yos, term_age)) |> 
+  mutate(tier=str_sub(tier_at_dist_age, 6, 6),
+         rtype="normal",
+         ben_mult = benmult(class, tier, dist_age, dist_year, yos, rtype))
+  
+benefit_table_stacked |> 
+  filter(tier=="1", rtype=="normal") |> 
+  select(ben_mult) |>
+  skim_without_charts()
+
+check <- benefit_table_stacked |> 
+  filter(tier=="1", rtype=="normal") |>
+  filter(is.na(ben_mult)) |> 
+  select(class, tier_at_dist_age, tier, dist_age, dist_year, yos, rtype, ben_mult)
+
+#.. reason code ----
+benefit_table <- ann_factor_table %>%
+  mutate(
+    term_age = entry_age + yos, .before = term_year,
+    class_name = class_name,
+    is_norm_retire_elig = str_detect(tier_at_dist_age, "norm")
+  ) %>%
+  # dist_age is distribution age, and dist_year is distribution year.
+  # distribution age means the age when the member starts to accept benefits (either a refund or a pension)
+  left_join(salary_benefit_table,
+            by = c("entry_year", "entry_age", "yos", "term_age")) %>%
+  mutate(
+    ben_mult = if_else(str_detect(tier_at_dist_age, "tier_1"),
+                       if_else(class_name == "regular", 
+                               case_when(
+                                 (dist_age >= 65 & yos >= 6) | (yos >= 33) ~ 0.0168,
+                                 (dist_age >= 64 & yos >= 6) | (yos >= 32) ~ 0.0165,
+                                 (dist_age >= 63 & yos >= 6) | (yos >= 31) ~ 0.0163,
+                                 (dist_age >= 62 & yos >= 6) | (yos >= 30) ~ 0.0160,
+                                 str_detect(tier_at_dist_age, "early") ~ 0.0160
+                               ),
+                               if_else(class_name == "special", if_else(dist_year <= 1974, 0.02, 0.03),
+                                       if_else(class_name == "admin", 
+                                               case_when(
+                                                 (dist_age >= 58 & yos >= 6) | (yos >= 28) ~ 0.0168,
+                                                 (dist_age >= 57 & yos >= 6) | (yos >= 27) ~ 0.0165,
+                                                 (dist_age >= 56 & yos >= 6) | (yos >= 26) ~ 0.0163,
+                                                 (dist_age >= 55 & yos >= 6) | (yos >= 25) ~ 0.0160,
+                                                 str_detect(tier_at_dist_age, "early") ~ 0.0160
+                                               ),
+                                               if_else(class_name %in% c("eco", "eso"), 0.03,
+                                                       if_else(class_name == "judges", 0.0333, if_else(class_name == "senior_management", 0.02, NA)
+                                                       )
+                                               )
+                                       )
+                               )
+                       ),
+                       if_else(str_detect(tier_at_dist_age, "tier_2"),
+                               if_else(class_name == "regular",
+                                       case_when(
+                                         (dist_age >= 68 & yos >= 8) | (yos >= 36) ~ 0.0168,
+                                         (dist_age >= 67 & yos >= 8) | (yos >= 35) ~ 0.0165,
+                                         (dist_age >= 66 & yos >= 8) | (yos >= 34) ~ 0.0163,
+                                         (dist_age >= 65 & yos >= 8) | (yos >= 33) ~ 0.0160,
+                                         str_detect(tier_at_dist_age, "early") ~ 0.0160
+                                       ),
+                                       if_else(class_name == "special", if_else(dist_year <= 1974, 0.02, 0.03),
+                                               if_else(class_name == "admin",
+                                                       case_when(
+                                                         (dist_age >= 63 & yos >= 8) | (yos >= 33) ~ 0.0168,
+                                                         (dist_age >= 62 & yos >= 8) | (yos >= 32) ~ 0.0165,
+                                                         (dist_age >= 61 & yos >= 8) | (yos >= 31) ~ 0.0163,
+                                                         (dist_age >= 60 & yos >= 8) | (yos >= 30) ~ 0.0160,
+                                                         str_detect(tier_at_dist_age, "early") ~ 0.0160
+                                                       ),
+                                                       if_else(class_name %in% c("eco", "eso"), 0.03,
+                                                               if_else(class_name == "judges", 0.0333, if_else(class_name == "senior_management", 0.02, NA)
+                                                               )
+                                                       )
+                                               )
+                                       )
+                               ),
+                               if_else(str_detect(tier_at_dist_age, "tier_3"),
+                                       if_else(class_name == "regular",
+                                               case_when(
+                                                 (dist_age >= 68 & yos >= 8) | (yos >= 36) ~ 0.0168,
+                                                 (dist_age >= 67 & yos >= 8) | (yos >= 35) ~ 0.0165,
+                                                 (dist_age >= 66 & yos >= 8) | (yos >= 34) ~ 0.0163,
+                                                 (dist_age >= 65 & yos >= 8) | (yos >= 33) ~ 0.0160,
+                                                 str_detect(tier_at_dist_age, "early") ~ 0.0160
+                                               ),
+                                               if_else(class_name == "special", if_else(dist_year <= 1974, 0.02, 0.03),
+                                                       if_else(class_name == "admin",
+                                                               case_when(
+                                                                 dist_age >= 63 & yos >= 8 ~ 0.0168,
+                                                                 dist_age >= 62 & yos >= 8 ~ 0.0165,
+                                                                 dist_age >= 61 & yos >= 8 ~ 0.0163,
+                                                                 dist_age >= 60 & yos >= 8 ~ 0.0160,
+                                                                 str_detect(tier_at_dist_age, "early") ~ 0.0160
+                                                               ),
+                                                               if_else(class_name %in% c("eco", "eso"), 0.03,
+                                                                       if_else(class_name == "judges", 0.0333, if_else(class_name == "senior_management", 0.02, NA)
+                                                                       )
+                                                               )
+                                                       )
+                                               )
+                                       ), NA)
+                       )
+    ),
+    
+    reduce_factor = if_else(str_detect(tier_at_dist_age, "norm"), 1,
+                            if_else(str_detect(tier_at_dist_age, "early"),
+                                    if_else(class_name == "special",
+                                            case_when(
+                                              str_detect(tier_at_dist_age, "tier_1") ~ (1 - 0.05*(55 - dist_age)),
+                                              str_detect(tier_at_dist_age, "tier_2") ~ (1 - 0.05*(60 - dist_age)),
+                                              str_detect(tier_at_dist_age, "tier_3") ~ (1 - 0.05*(60 - dist_age))
+                                            ),
+                                            case_when(
+                                              str_detect(tier_at_dist_age, "tier_1") ~ (1 - 0.05*(62 - dist_age)),
+                                              str_detect(tier_at_dist_age, "tier_2") ~ (1 - 0.05*(65 - dist_age)),
+                                              str_detect(tier_at_dist_age, "tier_3") ~ (1 - 0.05*(65 - dist_age))
+                                            )
+                                    ), NA
+                            )
+    ),
+    
+    db_benefit = yos * ben_mult * fas * reduce_factor,
+    
+    #cal_factor is a calibration factor added to match the normal cost from the val report
+    db_benefit = db_benefit * params$cal_factor_,
+    
+    #calculate the annuity factor at termination day
+    ann_factor_term = ann_factor * cum_mort_dr,
+    
+    #calculate the actuarial present value of future DB benefits at termination day (discount the annual DB benefits back to termination day)
+    pvfb_db_at_term_age = db_benefit * ann_factor_term
+    
+  )
+# END benefit_table_stacked ----
+
+
+# dist_age_table_stacked ----
+
+# END dist_age_table_stacked ----
+
+
+# final_benefit_table_stacked ----
+
+# END final_benefit_table_stacked ----
+
+
+# benefit_val_table_stacked ----
+
+# END benefit_val_table_stacked ----
+
+
+# indv_norm_cost_table_stacked ----
+
+# END indv_norm_cost_table_stacked ----
+
+
+# agg_norm_cost_table_stacked ----
+
+# END agg_norm_cost_table_stacked ----
+
 
 
 
