@@ -11,6 +11,7 @@ run_tests <- function() {
 
   # Run tests
   # reporters: ListReporter, ProgressReporter, SummaryReporter, TapReporter, JunitReporter, CheckReporter
+  # default test_file reporter is default_compact_reporter()
   test_file(here::here(tdir, "test_compare_all_reason_objects.R")) # , reporter = SummaryReporter
 
   cat("\n")
