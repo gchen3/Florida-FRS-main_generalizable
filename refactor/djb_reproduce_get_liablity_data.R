@@ -362,6 +362,44 @@ ann_factor_table <- mort_table %>%
 
 #.. END get_benefit_data ----
 
+# ann_factor_retire_table_stacked ----
+
+ann_factor_retire_table_stacked <- stack_env$mort_retire_table_stacked |> 
+  mutate(
+    dr = params$dr_current_,
+    cola_type = if_else(params$one_time_cola_ == TRUE, "one_time", "normal"),
+    cola = if_else(cola_type == "one_time", 
+                   if_else(year == params$new_year_, params$cola_current_retire_one_, 0),
+                   params$cola_current_retire_)
+  ) %>% 
+  group_by(base_age) %>% 
+  mutate(
+    cum_dr = cumprod(1 + lag(dr, default = 0)),
+    cum_mort = cumprod(1 - lag(mort_final, default = 0)),
+    cum_mort_dr = cum_mort / cum_dr,
+    ann_factor_retire = annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = params$one_time_cola_)
+  )
+
+
+# Survival Probability and Annuity Factor for current retirees
+ann_factor_retire_table <- mort_retire_table %>% 
+  mutate(
+    dr = params$dr_current_,
+    cola_type = if_else(params$one_time_cola_ == TRUE, "one_time", "normal"),
+    cola = if_else(cola_type == "one_time", 
+                   if_else(year == params$new_year_, params$cola_current_retire_one_, 0),
+                   params$cola_current_retire_)
+  ) %>% 
+  group_by(base_age) %>% 
+  mutate(
+    cum_dr = cumprod(1 + lag(dr, default = 0)),
+    cum_mort = cumprod(1 - lag(mort_final, default = 0)),
+    cum_mort_dr = cum_mort / cum_dr,
+    ann_factor_retire = annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = params$one_time_cola_)
+  )
+
+# END ann_factor_retire_table_stacked ----
+
 
 
 names(params$wf_data_list)
