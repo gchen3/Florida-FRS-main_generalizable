@@ -203,49 +203,116 @@ salary_benefit_table_stacked
 # semi_join() return all rows from x with a match in y.
 # here all rows from mort_table_stacked (16m recs) with a match in salary_benefit_table (158k rows)
 
-# create a tier lookup table
-tier_lookup <- tibble(
+# create tier lookup tables
+dr_lookup <- tibble(
   tier_at_dist_age = unique(mort_table_stacked$tier_at_dist_age)
 ) |> 
   mutate(dr = if_else(str_detect(tier_at_dist_age, "tier_3"), params$dr_new_, params$dr_current_))
-tier_lookup
+dr_lookup
 
-sbt2 <- salary_benefit_table_stacked |> 
-  mutate(y2 = pmin(pmax(2011 - entry_year, 0), yos))
-glimpse(sbt2)
+cola_lookup <- tibble(
+  tier_at_dist_age = unique(mort_table_stacked$tier_at_dist_age)
+) |> 
+  mutate(tier = str_sub(tier_at_dist_age, 6, 6),
+         basecola=case_when(
+           tier == "1" ~ params$cola_tier_1_active_,
+           tier == "2" ~ params$cola_tier_2_active_,
+           tier == "3" ~ params$cola_tier_3_active_,
+           .default = 0
+         ),
+         tier1mult = if_else(tier == "1" & params$cola_tier_1_active_constant_ == "no",
+                             TRUE, FALSE))
+cola_lookup
 
-sbt2 <- salary_benefit_table_stacked |>
-  select(class, entry_year, entry_age) |> 
-  distinct()
+library(dtplyr)
+setDTthreads(0L) # use all available threads
 
-  
+# chatgpt ----
+library(data.table)
 
-a <- proc.time()
-ann_factor_table_stacked <- mort_table_stacked |> 
-  # semi_join simply filters -- gets all rows from mort_table_stacked that
-  # match salary_benefit_table_stacked on the join variables -- it does not
-  # bring in other variables
-  semi_join(salary_benefit_table_stacked,
-            by = join_by(class, entry_year, entry_age)) |> 
-  left_join(tier_lookup, by = join_by(tier_at_dist_age)) |> 
-  mutate(
-    # clamp yos_b4_2011 between 0 and yos
-    yos_b4_2011 = pmin(pmax(2011 - entry_year, 0), yos),
-    # djb come back here ----
-    cola = case_when(
-      #Tier 1 cola (current policy) = 3% * YOS before 2011 / Total YOS
-      str_detect(tier_at_dist_age, "tier_1") & params$cola_tier_1_active_constant_ == "no" ~
-        if_else(yos > 0, params$cola_tier_1_active_ * yos_b4_2011 / yos, 0),
-      str_detect(tier_at_dist_age, "tier_1") & params$cola_tier_1_active_constant_ == "yes" ~
-        params$cola_tier_1_active_,
-      str_detect(tier_at_dist_age, "tier_2") ~
-        params$cola_tier_2_active_,
-      str_detect(tier_at_dist_age, "tier_3") ~
-        params$cola_tier_3_active_
-    )
-  ) 
-b <- proc.time()
-b - a
+aa <- proc.time()
+
+# Convert to data.table if not already
+setDT(mort_table_stacked)
+setDT(salary_benefit_table_stacked)
+setDT(dr_lookup)
+setDT(cola_lookup)
+
+# Extract distinct keys from salary_benefit_table_stacked
+salary_benefit_keys <- unique(
+  salary_benefit_table_stacked[, .(class, entry_year, entry_age)]
+)
+
+# Now set keys on all tables
+setkey(mort_table_stacked, class, entry_year, entry_age)
+setkey(salary_benefit_keys, class, entry_year, entry_age) 
+setkey(dr_lookup, tier_at_dist_age)
+setkey(cola_lookup, tier_at_dist_age)
+
+# Set index if you often filter/join on these columns
+setindex(mort_table_stacked, dist_year, dist_age)
+
+# semi_join equivalent: keep only rows in mort_table_stacked that match the keys
+ann_factor_table_stacked <- mort_table_stacked[
+  salary_benefit_keys, 
+  on = .(class, entry_year, entry_age), 
+  nomatch=0L
+]
+
+# Left joins
+ann_factor_table_stacked <- ann_factor_table_stacked[
+  dr_lookup,
+  on = .(tier_at_dist_age), 
+  nomatch = NA
+]
+
+ann_factor_table_stacked <- ann_factor_table_stacked[
+  cola_lookup,
+  on = .(tier_at_dist_age), 
+  nomatch = NA
+]
+
+# Compute yos_b4_2011 and cola
+ann_factor_table_stacked[, yos_b4_2011 := pmin(pmax(2011 - entry_year, 0), yos)]
+ann_factor_table_stacked[, cola := fifelse(
+  tier1mult & yos > 0, 
+  basecola * (yos_b4_2011 / yos), 
+  0
+)]
+
+# Order data for cumulative operations
+setorder(ann_factor_table_stacked, class, entry_year, entry_age, yos, dist_year, dist_age)
+
+# Perform grouped calculations by (class, entry_year, entry_age, yos)
+ann_factor_table_stacked[, cum_dr := cumprod(1 + shift(dr, fill=0)), 
+                         by = .(class, entry_year, entry_age, yos)]
+ann_factor_table_stacked[, cum_mort := cumprod(1 - shift(mort_final, fill=0)), 
+                         by = .(class, entry_year, entry_age, yos)]
+ann_factor_table_stacked[, cum_cola := cumprod(1 + shift(cola, fill=0)), 
+                         by = .(class, entry_year, entry_age, yos)]
+
+# Derived columns
+ann_factor_table_stacked[, cum_mort_dr := cum_mort / cum_dr]
+ann_factor_table_stacked[, cum_mort_dr_cola := cum_mort_dr * cum_cola]
+
+# ann_factor calculation
+ann_factor_table_stacked[, ann_factor := {
+  x <- cum_mort_dr_cola
+  rev(cumsum(rev(x))) / x
+}, by = .(class, entry_year, entry_age, yos)]
+
+# Final select
+ann_factor_table_stacked <- ann_factor_table_stacked[, .(
+  class, entry_year, entry_age, dist_year, dist_age, yos, term_year,
+  mort_final, tier_at_dist_age, dr, yos_b4_2011, cola,
+  cum_dr, cum_mort, cum_cola, cum_mort_dr, cum_mort_dr_cola, ann_factor
+)]
+
+ann_factor_table_stacked <- as_tibble(ann_factor_table_stacked)
+
+bb <- proc.time()
+bb - aa
+
 
 ann_factor_table <- mort_table %>% 
   #Semi join the salary_benefit_able to reduce the size of the data that needs to be calculated
