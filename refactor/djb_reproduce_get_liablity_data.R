@@ -133,12 +133,28 @@ stack_env$entrant_profile_table_stacked
 
 #.. get_benefit_data ----
 
-# overview
+# overview of tables to stack
 # fm_env$get funding data(...)
 #   lm_env$get_liability_data(...)
 #     bm_env$get_benefit_data(...)
-#        get_class_salary_growth_table(class_name, params$salary_growth_table_) [within bm_env]
-#        get_salary_benefit_table(class_name, entrant_profile_table, class_salary_growth_table, salary_headcount_table, params)
+#        y get_class_salary_growth_table(class_name, params$salary_growth_table_) [within bm_env]
+#        y get_salary_benefit_table(class_name, entrant_profile_table, class_salary_growth_table, salary_headcount_table, params)
+#        y ann_factor_table
+#        benefit_table
+#        dist_age_table
+#        final_benefit_table
+#        benefit_val_table
+#        indv_norm_cost_table
+#        agg_norm_cost_table
+
+#  return:
+    # ann_factor_table       
+    # ann_factor_retire_table
+    # benefit_table          
+    # final_benefit_table    
+    # benefit_val_table      
+    # indv_norm_cost_table   
+    # agg_norm_cost_table    
 
 
 #.... salary benefit table ----
