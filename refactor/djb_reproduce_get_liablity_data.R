@@ -653,7 +653,7 @@ get_final_benefit_table_stacked <- function(benefit_table_stacked, dist_age_tabl
 }
 
 system.time(final_benefit_table_stacked <- get_final_benefit_table_stacked(benefit_table_stacked, dist_age_table_stacked))
-
+final_benefit_table <- bm_env$get_final_benefit_table(benefit_table, dist_age_table)
 
 # END final_benefit_table_stacked ----
 
