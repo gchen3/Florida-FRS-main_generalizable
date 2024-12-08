@@ -636,6 +636,25 @@ dist_age_table <- bm_env$get_dist_age_table(benefit_table)
 
 # final_benefit_table_stacked ----
 
+get_final_benefit_table_stacked <- function(benefit_table_stacked, dist_age_table_stacked){
+  
+  # Retain only the final distribution ages in the final_benefit_table
+  final_benefit_table_stacked <- benefit_table_stacked |> 
+    semi_join(dist_age_table_stacked,
+              by = join_by(class, entry_year, entry_age, dist_age, term_age)) %>% 
+    select(class, entry_year, entry_age, term_age, dist_age, db_benefit, pvfb_db_at_term_age, ann_factor_term) %>% 
+    mutate(
+      # NA benefit values (because the member is not vested) are replaced with 0
+      db_benefit = if_else(is.na(db_benefit), 0, db_benefit),
+      pvfb_db_at_term_age = if_else(is.na(pvfb_db_at_term_age), 0, pvfb_db_at_term_age)
+    )
+  
+  return(final_benefit_table_stacked)
+}
+
+system.time(final_benefit_table_stacked <- get_final_benefit_table_stacked(benefit_table_stacked, dist_age_table_stacked))
+
+
 # END final_benefit_table_stacked ----
 
 
