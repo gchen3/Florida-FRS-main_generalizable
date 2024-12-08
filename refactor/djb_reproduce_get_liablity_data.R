@@ -659,6 +659,66 @@ final_benefit_table <- bm_env$get_final_benefit_table(benefit_table, dist_age_ta
 
 
 # benefit_val_table_stacked ----
+benefit_val_table <- bm_env$get_benefit_val_table(
+  salary_benefit_table,
+  final_benefit_table,
+  separation_rate_table,
+  params)
+
+tierterm_lookup <- salary_benefit_table_stacked |> 
+  select(tier_at_term_age) |> 
+  distinct() |> 
+  as_tibble() |> 
+  mutate(tier = str_sub(tier_at_term_age, 6, 6),
+         term_status=str_sub(tier_at_term_age, 8, -1))
+tierterm_lookup
+
+get_benefit_val_table_stacked <- function(
+    salary_benefit_table_stacked,
+    final_benefit_table_stacked,
+    separation_rate_table_stacked,
+    params){
+  
+  benefit_val_table_stacked <- salary_benefit_table_stacked |> 
+    left_join(final_benefit_table_stacked,
+              by = join_by(class, entry_age, entry_year, term_age)) |> 
+    left_join(separation_rate_table_stacked,
+              by = join_by(class, entry_year, entry_age, yos, term_age))  |> 
+    left_join(tierterm_lookup,
+              by = join_by(tier_at_term_age)) |>
+    mutate(
+      # note that the tier below applies at termination age only
+      dr = if_else(tier=="3", params$dr_new_, params$dr_current_),
+      sep_type = get_sep_type(tier_at_term_age),
+      ben_decision = if_else(yos == 0, 
+                             NA, 
+                             if_else(sep_type == "retire", "retire",
+                                     if_else(sep_type == "vested", "mix", "refund"))),
+      pvfb_db_wealth_at_term_age = case_when(
+        sep_type == "retire" ~ pvfb_db_at_term_age,
+        sep_type == "vested" ~ (params$retire_refund_ratio_ * pvfb_db_at_term_age + (1 - params$retire_refund_ratio_) * db_ee_balance),
+        sep_type == "non_vested" ~ db_ee_balance
+      )
+    ) %>% 
+    group_by(entry_year, entry_age) %>%
+    mutate(
+      #calculate the present value of future DB benefits at current age (discount the annual DB benefits back to current age)
+      pvfb_db_wealth_at_current_age = get_pvfb(sep_rate_vec = separation_rate, interest_vec = dr, value_vec = pvfb_db_wealth_at_term_age),
+      
+      #calculate the present value of future salary at current age (discount the annual salary back to current age)
+      pvfs_at_current_age = get_pvfs(remaining_prob_vec = remaining_prob, interest_vec = dr, sal_vec = salary),
+      
+      #calculate the individual normal cost rate at current age
+      indv_norm_cost = pvfb_db_wealth_at_current_age[yos == 0] / pvfs_at_current_age[yos == 0],
+      
+      #calculate the present value of future normal cost at current age (discount the annual normal cost back to current age)
+      pvfnc_db = indv_norm_cost * pvfs_at_current_age
+    ) %>% 
+    ungroup()
+  
+  return(benefit_val_table_stacked)
+}
+
 
 # END benefit_val_table_stacked ----
 
