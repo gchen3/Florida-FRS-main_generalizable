@@ -614,23 +614,21 @@ get_dist_age_table_stacked <- function(benefit_table_stacked){
   dist_age_table_stacked <- benefit_table_stacked |> 
     summarise(
       earliest_norm_retire_age = n() - sum(is_norm_retire_elig) + min(dist_age),
-      term_status = tier_at_term_age[1],
+      term_status = first(term_status),
       .by=c(class, entry_year, entry_age, term_age)
     ) |> 
     mutate(
       dist_age = if_else(
-        str_detect(term_status, "vested") & !str_detect(term_status, "non_vested"),
+        term_status == "vested",
         earliest_norm_retire_age, 
-        term_age
-      )
-    ) %>% 
-    select(entry_year, entry_age, term_age, dist_age)
+        term_age)
+    ) |> 
+    select(class, entry_year, entry_age, term_age, dist_age)
   
-  return(dist_age_table)
+  return(dist_age_table_stacked)
 }
 
-dist_age_table # these are distinct combination
-
+system.time(dist_age_table_stacked <- get_dist_age_table_stacked(benefit_table_stacked)) # 2.3 secs
 dist_age_table <- bm_env$get_dist_age_table(benefit_table)
 
 # END dist_age_table_stacked ----
