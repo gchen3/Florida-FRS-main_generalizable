@@ -646,6 +646,10 @@ dist_age_table <- bm_env$get_dist_age_table(benefit_table)
 
 # indv_norm_cost_table_stacked ----
 
+indv_norm_cost_table_stacked <- benefit_val_table_stacked
+  filter(yos == 0) |> 
+  select(class, entry_year, entry_age, indv_norm_cost)
+
 # END indv_norm_cost_table_stacked ----
 
 
