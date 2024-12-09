@@ -33,6 +33,8 @@ scalars_stacked <- enframe(selected_elements, name = "name", value = "value") |>
 
 scalars_stacked
 
+rm(scalar_groups, scalar_names, selected_elements)
+
 
 #.. workforce data, return list of 4 stacked data frames ----
 # wf_active, wf_term, wf_refund, wf_retire
@@ -43,15 +45,21 @@ scalars_stacked
 wf_data_stacked_list <- ups_wfdata(params$wf_data_list)
 # names(wf_data_stacked_list)
 # wf_data_stacked_list$wf_active_stacked
+list2env(wf_data_stacked_list, envir = .GlobalEnv)
 
 
 #.. entrant_profile_table ----
 # ns(params$entrant_profile_table_list) |> str_subset("entrant_profile_table")
 entrant_profile_table_stacked <- stack_list(params$entrant_profile_table_list, "_entrant_profile_table")
 
-#.. salary_growth_table GET RID OF RELIANCE ON frs$salary growth ----
-salary_growth_table_stacked <- pendata::frs$salary_growth |> 
-  select(class, yos, cumprod_salary_increase = cumprod_increase)
+#.. salary_growth_table ----
+salary_growth_table_stacked <- params$salary_growth_table_  |> 
+  pivot_longer(cols = -yos, 
+               names_to = "name", 
+               values_to = "cumprod_salary_increase") |>
+  mutate(class=str_remove(name, "cumprod_salary_increase_")) |> 
+  select(class, yos, cumprod_salary_increase) |> 
+  arrange(class, yos)
 
 #.. salary_headcount_table ----
 # ns(params$salary_headcount_table_list) |> str_subset("_salary_headcount_table")
@@ -73,17 +81,6 @@ separation_rate_table_stacked <- stack_list(params$separation_rate_table_list, "
 
 
 # create and save a stacked environment ----
-#   ann_factor_table_stacked
-#   ann_factor_retire_table_stacked
-#   benefit_table_stacked
-#   final_benefit_table_stacked   
-#   benefit_val_table_stacked
-#   indv_norm_cost_table_stacked
-#   agg_norm_cost_table_stacked
-
-inputs_stack_env <- new.env()
-
-list2env(wf_data_stacked_list, envir = .GlobalEnv)
 
 data_list <- named_list(
   mort_retire_table_stacked,
@@ -99,13 +96,16 @@ data_list <- named_list(
   wf_term_stacked
   )
 
-list2env(data_list, envir = inputs_stack_env)
-ns(inputs_stack_env)
-system.time(save(inputs_stack_env, file = fs::path(stackdir, "inputs_stack_env.RData")))
+inputs_stacked_env <- new.env()
+list2env(data_list, envir = inputs_stacked_env)
+ns(inputs_stacked_env)
+system.time(save(inputs_stacked_env, file = fs::path(stackdir, "inputs_stacked_env.RData")))
 
-rm(wf_data_stacked_list)
-ns(wf_data_stacked_list)
 
 # delete intermediate objects ----
+rm(list=names(data_list))
+rm(data_list, wf_data_stacked_list)
+
+gc()
 
 

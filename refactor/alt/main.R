@@ -17,6 +17,7 @@ library(parallel)
 library(Rcpp)
 library(RcppRoll)
 library(dtplyr)
+setDTthreads(0L) # use all available threads
 
 # boyd additions to libraries
 library(purrr)
@@ -67,9 +68,9 @@ liability_list_stacked <- readRDS(fs::path(stackdir, "liability_list_stacked.rds
 
 # create additional stacked environments ----
 # ns(oldws)
-source(fs::path(rdir, "inputs_stack.R")) 
+source(fs::path(altdir, "inputs_stack.R")) 
 
-benmod_stack_env <- new.env()
-source(fs::path(rdir, "benmod_stack.R"), local = benmod_stack_env) 
+load(fs::path(stackdir, "inputs_stacked_env.RData")) 
+source(fs::altdir(rdir, "benefit_data_stack.R")) 
 
 
