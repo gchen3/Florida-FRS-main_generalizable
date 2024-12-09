@@ -61,6 +61,7 @@ rsconnect/
 
 # new_results/
 # reason_results/
+refactor/stacked_data/
 
 *.css
 *.html
