@@ -56,7 +56,7 @@ salary_benefit_table_stacked <- stubs |>
     .by=c(class, entry_year, entry_age)) |> 
   filter(!is.na(salary))
 
-rm(max_entry_year)
+rm(max_entry_year, stubs)
 
 # ann_factor_table_stacked ----
 # Survival Probability and Annuity Factor for current retirees
@@ -155,14 +155,15 @@ agg_norm_cost_table_stacked <- indv_norm_cost_table_stacked |>
 # create and save a stacked environment ----
 
 data_list <- named_list(
-  salary_benefit_table_stacked,
+  agg_norm_cost_table_stacked,
   ann_factor_table_stacked,
   ann_factor_retire_table_stacked,
   benefit_table_stacked,
+  benefit_val_table_stacked,
+  dist_age_table_stacked,
   final_benefit_table_stacked,
-  benefit_table_stacked,
   indv_norm_cost_table_stacked,
-  agg_norm_cost_table_stacked
+  salary_benefit_table_stacked
 )
 
 benefit_data_stacked_env <- new.env()
