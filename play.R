@@ -1,75 +1,113 @@
+pentools::get_pvfb
+pentools::npv
+pentools::get_pvfs
 
-# library(pendata) # not needed as it is loaded by FRS_master.R
-data(package="pendata")
-frs # accesses the data
+# pvfs_at_current_age = pentools::get_pvfs(remaining_prob_vec = remaining_prob,
+#                                          interest_vec = dr,
+#                                          sal_vec = salary),
 
-names(frs_data_env)
-frs_data_env$eco_salary_table_
+remaining_prob_vec <- play$remaining_prob
+interest_vec <- play$dr
+sal_vec <- play$salary
+calc <-pentools::get_pvfs(remaining_prob_vec, interest_vec, sal_vec) 
+truth <- play$pvfs_at_current_age
+test <- get_pvfs(remaining_prob_vec, interest_vec, sal_vec)
+get_pvfs2(remaining_prob_vec, interest_vec, sal_vec) 
 
+i <- 1
+end <- length(remaining_prob_vec)
+rp2 <- remaining_prob_vec[i:end] /  remaining_prob_vec[i]
+saladj <- sal_vec[i:end] * rp2
+npv(saladj, interest_vec[i], immediate = FALSE)
 
-# Load the old workspace environment
-oldpath <- here::here("refactor", "reason_results", "reason_workspace.RData")
-load(oldpath, oldws <- new.env())
+get_pvfs <- function(remaining_prob_vec, interest_vec, sal_vec){ 
+  # this isn't any faster than the built-in function
+  pv <- function(i){
+    saladj <- sal_vec[i:end] * remaining_prob_vec[i:end] /  remaining_prob_vec[i]
+    npv(saladj, interest_vec[i], immediate = FALSE)
+  }
+  end <- length(sal_vec)
+  pvfs<- purrr::map_dbl(1:end, pv)
+  pvfs
+}
 
-
-tmp <- stack_env$salary_headcount_table_stacked |> 
-  select(class, entry_year, entry_age, entry_salary) |> 
-  mutate(max_entry_year = max(entry_year),
-         .by=class)
-
-tmp <- salary_benefit_table_stacked |> 
-  filter(is.na(entry_salary)) |> 
-  select(class, entry_year, entry_age, yos, term_age)
-count(tmp, class)
-
-tmp2 <- count(tmp, entry_year)
-tmp2a <- count(tmp |> filter(class=="admin"), entry_year)
-tmp2a2 <- tmp |> filter(class=="admin", entry_year==1990)
-
-tmp3 <- tmp |> 
-  filter(entry_year == 1975)
-
-check <-     lm_env$get_liability_data(class_name, 
-                                       wf_data, 
-                                       ben_payment_current, 
-                                       retiree_pop_current,
-                                       pvfb_term_current,
-                                       entrant_profile_table,
-                                       salary_headcount_table,
-                                       mort_table,
-                                       mort_retire_table,
-                                       separation_rate_table,
-                                       params)
-names(check)
-check
-
-
-class_salary_growth_table <- bm_env$get_class_salary_growth_table(class_name, params$salary_growth_table_)
-check <-  bm_env$get_salary_benefit_table(class_name,
-                                                            entrant_profile_table,
-                                                            class_salary_growth_table,
-                                                            salary_headcount_table,
-                                                            params)
-skim(check)
-
-check2 <- salary_benefit_table_stacked |> filter(class=="admin")
-skim(check2)
-
-comp <- check |> 
-  left_join(check2 |> select(entry_year, entry_age, yos, term_age, tier_at_term_age, salary2=salary),
-            by = join_by(entry_year, entry_age, yos, term_age, tier_at_term_age))
+get_pvfs2 <- function(remaining_prob_vec, interest_vec, sal_vec){ 
+  pv <- function(i){
+    saladj <- sal_vec[i:end] * remaining_prob_vec[i:end] /  remaining_prob_vec[i]
+    npv(saladj, interest_vec[i], immediate = FALSE)
+  }
+  end <- length(sal_vec)
+  pvfs <- double(length = end)
+  for (i in 1:end) {
+    pvfs[i] <- pv(i)
+  }
+  pvfs
+}
 
 
 
-stack_env$salary_headcount_table_stacked |> 
-  select(class, entry_year, entry_age, entry_salary) |> skim()
 
-salary_headcount_table # 26 rows
-stack_env$salary_headcount_table_stacked |> filter(class=="admin") # 26 rows
+ptpvfs <- function(remaining_prob_vec, interest_vec, sal_vec) 
+{
+  PVFS <- double(length = length(sal_vec))
+  for (i in 1:length(sal_vec)) {
+    remaining_prob_og <- remaining_prob_vec[i:length(remaining_prob_vec)]
+    remaining_prob <- remaining_prob_og/remaining_prob_og[1]
+    interest <- interest_vec[i]
+    sal <- sal_vec[i:length(sal_vec)]
+    sal_adjusted <- sal * remaining_prob
+    PVFS[i] <- npv(interest, sal_adjusted)
+  }
+  return(PVFS)
+}
 
-entrant_profile_table # 5 rows
-stack_env$entrant_profile_table_stacked |> filter(class=="admin") # 5 rows
+play <- 
+  benefit_val_table_stacked |> 
+  filter(class=="admin",
+         entry_age==20,
+         entry_year==1990) |> 
+  select(class, entry_year, entry_age,
+         remaining_prob,
+         dr, 
+         salary,
+         pvfs_at_current_age)
 
-class_salary_growth_table # 71 rows
-stack_env$salary_growth_table_stacked |> filter(class=="admin") # 71 rows
+sep_rate_vec <- play$separation_rate
+interest_vec <- play$dr
+value_vec <- play$pvfb_db_wealth_at_term_age
+calc <- get_pvfb(sep_rate_vec, interest_vec, value_vec) 
+truth <- play$pvfb_db_wealth_at_current_age
+
+
+library(microbenchmark)
+
+get_pvfb2(sep_rate_vec, interest_vec, value_vec)
+pentools::get_pvfb(sep_rate_vec, interest_vec, value_vec)
+
+pentools::get_pvfs(remaining_prob_vec, interest_vec, sal_vec) 
+
+res <- microbenchmark(
+  pentools::get_pvfs(remaining_prob_vec, interest_vec, sal_vec),
+  get_pvfs(remaining_prob_vec, interest_vec, sal_vec),
+  get_pvfs2(remaining_prob_vec, interest_vec, sal_vec),
+  times = 10000
+)
+print(res)
+str(res)
+
+# where are the nas? ----
+findnas <- benefit_val_table_stacked |> 
+  filter(is.na(pvfb_db_wealth_at_current_age)) |> 
+  select(class, entry_year, entry_age, separation_rate, dr, pvfb_db_wealth_at_term_age, pvfb_db_wealth_at_current_age)
+
+basenas <- findnas |>
+  filter(row_number() == 1) |> 
+  select(class, entry_year, entry_age) |> 
+  left_join(benefit_val_table_stacked, by=join_by(class, entry_year, entry_age)) |> 
+  select(class, entry_year, entry_age, separation_rate, dr, pvfb_db_wealth_at_term_age, pvfb_db_wealth_at_current_age)
+
+
+pentools::get_pvfb(sep_rate_vec=c(.2, .1, .05, 1),
+                   interest_vec=c(.1, .1, .1, .1),
+                   value_vec=c(0, 100, 200, 300))
 
