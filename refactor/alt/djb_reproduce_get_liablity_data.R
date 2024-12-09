@@ -788,13 +788,49 @@ indv_norm_cost_table_stacked <- benefit_val_table_stacked
 
 
 # agg_norm_cost_table_stacked ----
+# agg_norm_cost_table <- get_agg_norm_cost_table(
+#   indv_norm_cost_table,
+#   salary_headcount_table,
+#   salary_benefit_table) # for checking
+
+indv_norm_cost_table <- indv_norm_cost_table_stacked |> 
+    filter(class=="admin") |>
+    select(entry_year, entry_age, indv_norm_cost) |> 
+    as_tibble()
+salary_headcount_table <- params$salary_headcount_table_list$admin_salary_headcount_table   
+salary_benefit_table <- salary_benefit_table_stacked |> 
+  filter(class=="admin") |>
+  select(-class) |> 
+  as_tibble()
+agg_norm_cost_table <- bm_env$get_agg_norm_cost_table(indv_norm_cost_table, salary_headcount_table, salary_benefit_table)
+  
+agg_norm_cost_table_stacked <- indv_norm_cost_table_stacked |> 
+  select(class, entry_year, entry_age, indv_norm_cost) |> 
+  left_join(salary_headcount_table_stacked, 
+            by = join_by(class, entry_year, entry_age)) |>
+  left_join(salary_benefit_table_stacked  |> 
+              select(class, entry_year, entry_age, yos, salary),
+            by = join_by(class, entry_year, entry_age, yos)) |>
+  filter(!is.na(count)) %>% 
+  summarise(agg_normal_cost = sum(indv_norm_cost * salary * count) / sum(salary * count),
+            .by=class)  
+  
 
 # END agg_norm_cost_table_stacked ----
 
 
+# return list of tables ----
+# output <- list(
+#   ann_factor_table         = ann_factor_table,
+#   ann_factor_retire_table  = ann_factor_retire_table,
+#   benefit_table            = benefit_table,
+#   final_benefit_table      = final_benefit_table,
+#   benefit_val_table        = benefit_val_table,
+#   indv_norm_cost_table     = indv_norm_cost_table,
+#   agg_norm_cost_table      = agg_norm_cost_table
+# )
 
-
-names(params$wf_data_list)
+# names(params$wf_data_list)
 
 
 
