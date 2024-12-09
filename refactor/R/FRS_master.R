@@ -43,6 +43,8 @@ tooldir <- here::here("refactor", "tools")
 wddir <- here::here("refactor", "working_data")
 xidir <- here::here("refactor", "source_data", "Reports", "extracted inputs")
 
+stackdir <- here::here("refactor", "stacked_data")
+
 
 # if a full run, create model parameters and frs_data environments --------
 
@@ -127,7 +129,8 @@ source(fs::path(rdir, "FRS_liability_model_functions.R"), local = lm_env) # only
 print("sourcing FRS_funding_model_functions.R...")
 fm_env <- new.env()
 source(fs::path(rdir, "FRS_funding_model_functions.R"), local = fm_env) # only creates function - no live code
-
+save(fm_env, file = fs::path(wddir, "fm_env.RData"))
+load(fs::path(wddir, "fm_env.RData")) # funding model functions
 
 # Prepare data for modeling -----------------------------------------------
 
@@ -174,6 +177,9 @@ params$early_retire_rate_tier_2_table_list <- mget(paste0(params$class_names_no_
 
 params$funding_list <- fm_env$get_all_classes_funding_list(params$init_funding_data, params)
 params$current_amort_layers_table <- fm_env$get_current_amort_layers_summary_table(params$current_amort_layers_table_)
+save(params, file = fs::path(wddir, "params.RData"))
+
+load(fs::path(wddir, "params.RData"))
 
 # ns(.GlobalEnv) |> str_subset("separation_rate_table")
 # ns(benefit_model_data_env)

@@ -836,7 +836,7 @@ agg_norm_cost_table_stacked <- indv_norm_cost_table_stacked |>
 
 
 # outputs from the model (stacked)
-liability_list_stacked <- readRDS(fs::path(wddir, "liability_list_stacked.rds"))
+liability_list_stacked <- readRDS(fs::path(stackdir, "liability_list_stacked.rds"))
 
 
 
