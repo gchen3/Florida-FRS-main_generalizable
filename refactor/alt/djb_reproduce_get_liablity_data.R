@@ -152,7 +152,7 @@ stack_env$entrant_profile_table_stacked
 
 # stacked salary benefit table ----
 # this is fast and, based on testing, equivalent to the Reason approach
-library(RcppRoll)
+
 
 stubs <- crossing(stack_env$entrant_profile_table_stacked |> 
                     select(class, entry_age),
@@ -234,7 +234,6 @@ library(dtplyr)
 setDTthreads(0L) # use all available threads
 
 # chatgpt ----
-library(data.table)
 
 aa <- proc.time()
 
@@ -711,7 +710,6 @@ get_pvfs <- function(remaining_prob_vec, interest_vec, sal_vec){
   }
   pvfs
 }
-
 
 get_benefit_val_table_stacked <- function(
     salary_benefit_table_stacked,

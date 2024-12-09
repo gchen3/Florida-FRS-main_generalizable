@@ -36,7 +36,8 @@ ups_wfdata <- function(wf_data_list){
         mutate(class = stringr::str_remove(category, "_wf_data"))
     }) |> 
       list_rbind() |> 
-      relocate(class)
+      relocate(class) |> 
+      as_tibble()
   }
   
   # Create a named list with stacked tibbles

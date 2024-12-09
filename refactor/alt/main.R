@@ -16,6 +16,7 @@ library(parallel)
 # boyd additions
 library(Rcpp)
 library(RcppRoll)
+library(dtplyr)
 
 # boyd additions to libraries
 library(purrr)
@@ -30,14 +31,21 @@ library(pendata)
 
 # define directories -------------------------------------------------------------
 
+altdir <- here::here("refactor", "alt")
 iddir <- here::here("refactor", "interim_data")
 rdir <- here::here("refactor", "R")
+reasondir <- here::here("refactor", "reason_results")
 sddir <- here::here("refactor", "source_data")
 tooldir <- here::here("refactor", "tools")
 wddir <- here::here("refactor", "working_data")
 xidir <- here::here("refactor", "source_data", "Reports", "extracted inputs")
 
 stackdir <- here::here("refactor", "stacked_data")
+
+# get functions -----------------------------------------------------------
+
+source(fs::path(altdir, "functions_unpack_stack.R"))
+
 
 # load environments created by FRS_master.R ---------------------------------------
 
@@ -49,12 +57,19 @@ load(fs::path(wddir, "modparm_data_env.RData"))
 load(fs::path(wddir, "params.RData"))
 load(fs::path(wddir, "wf_data_env.RData")) 
 
+# load environment with reason results ---------------------------------------
+oldpath <- fs::path(reasondir, "reason_workspace.RData")
+load(oldpath, oldws <- new.env())
+
 # load stacked data created by fm_env$get_funding_data() ---------------------------------------
 funding_list_stacked <- readRDS(fs::path(stackdir, "funding_list_stacked.rds"))
 liability_list_stacked <- readRDS(fs::path(stackdir, "liability_list_stacked.rds"))
 
-# load stacked environments ----
+# create additional stacked environments ----
+# ns(oldws)
+source(fs::path(rdir, "inputs_stack.R")) 
 
-
+benmod_stack_env <- new.env()
+source(fs::path(rdir, "benmod_stack.R"), local = benmod_stack_env) 
 
 
