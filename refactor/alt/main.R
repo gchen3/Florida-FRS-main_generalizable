@@ -71,6 +71,6 @@ liability_list_stacked <- readRDS(fs::path(stackdir, "liability_list_stacked.rds
 source(fs::path(altdir, "inputs_stack.R")) 
 
 load(fs::path(stackdir, "inputs_stacked_env.RData")) 
-source(fs::altdir(rdir, "benefit_data_stack.R")) 
+source(fs::path(altdir, "benefit_data_stack.R")) 
 
 

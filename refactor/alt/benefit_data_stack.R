@@ -81,29 +81,6 @@ ann_factor_retire_table_stacked <- inputs_stacked_env$mort_retire_table_stacked 
   ungroup()
 
 
-# dist_age_table_stacked ----
-
-get_dist_age_table_stacked <- function(benefit_table_stacked){
-  # Determine the ultimate distribution age for each member (the age when they're assumed to retire/get a refund, given their termination age)
-  dist_age_table_stacked <- benefit_table_stacked |> 
-    summarise(
-      earliest_norm_retire_age = n() - sum(is_norm_retire_elig) + min(dist_age),
-      term_status = first(term_status),
-      .by=c(class, entry_year, entry_age, term_age)
-    ) |> 
-    mutate(
-      dist_age = if_else(
-        term_status == "vested",
-        earliest_norm_retire_age, 
-        term_age)
-    ) |> 
-    select(class, entry_year, entry_age, term_age, dist_age)
-  
-  return(dist_age_table_stacked)
-}
-
-system.time(dist_age_table_stacked <- get_dist_age_table_stacked(benefit_table_stacked)) # 2.3 secs
-
 # benefit_table_stacked ----
 source(fs::path(altdir, "make_benefit_table_stacked.R"))
 
@@ -127,6 +104,31 @@ get_final_benefit_table_stacked <- function(benefit_table_stacked, dist_age_tabl
 
 system.time(final_benefit_table_stacked <- get_final_benefit_table_stacked(benefit_table_stacked, dist_age_table_stacked))
 
+
+
+
+# dist_age_table_stacked ----
+
+get_dist_age_table_stacked <- function(benefit_table_stacked){
+  # Determine the ultimate distribution age for each member (the age when they're assumed to retire/get a refund, given their termination age)
+  dist_age_table_stacked <- benefit_table_stacked |> 
+    summarise(
+      earliest_norm_retire_age = n() - sum(is_norm_retire_elig) + min(dist_age),
+      term_status = first(term_status),
+      .by=c(class, entry_year, entry_age, term_age)
+    ) |> 
+    mutate(
+      dist_age = if_else(
+        term_status == "vested",
+        earliest_norm_retire_age, 
+        term_age)
+    ) |> 
+    select(class, entry_year, entry_age, term_age, dist_age)
+  
+  return(dist_age_table_stacked)
+}
+
+system.time(dist_age_table_stacked <- get_dist_age_table_stacked(benefit_table_stacked)) # 2.3 secs
 
 # indv_norm_cost_table_stacked ----
 
