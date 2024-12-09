@@ -160,6 +160,7 @@ data_list <- named_list(
   ann_factor_retire_table_stacked,
   benefit_table_stacked,
   final_benefit_table_stacked,
+  benefit_table_stacked,
   indv_norm_cost_table_stacked,
   agg_norm_cost_table_stacked
 )
@@ -171,4 +172,9 @@ system.time(save(benefit_data_stacked_env, file = fs::path(stackdir, "benefit_da
 
 
 # delete intermediate objects ----
+rm(list=names(data_list))
+rm(data_list)
+
+gc()
+
 
