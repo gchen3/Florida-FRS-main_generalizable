@@ -2,25 +2,26 @@
 % Please edit documentation in R/functions.R
 \name{get_pv_pmt}
 \alias{get_pv_pmt}
-\title{get_pv_pmt calculates the present value for an annuity (same payment at equal intervals of time) for 1 unit (such as $1) with rate and t
-Reference:financial mathematics for actuaries 3rd (p.21)
-Link: https://actuarialscience.yolasite.com/resources/Ruckman.pdf}
+\title{Calculate Present Value of an Annuity Payment}
 \usage{
 get_pv_pmt(rate, t)
 }
 \arguments{
-\item{rate}{Annual discount rate (scalar double).}
+\item{rate}{Numeric. The interest rate per period as a decimal (e.g., 0.05 for 5%). If the rate is 0, the present value is equal to the total number of periods.}
 
-\item{t}{Number of years in the future (scalar).}
+\item{t}{Numeric. The total number of periods for the annuity payments.}
 }
 \value{
-Numeric value.
+Numeric. The present value of the annuity payments.
 }
 \description{
-get_pv_pmt calculates the present value for an annuity (same payment at equal intervals of time) for 1 unit (such as $1) with rate and t
-Reference:financial mathematics for actuaries 3rd (p.21)
-Link: https://actuarialscience.yolasite.com/resources/Ruckman.pdf
+This function computes the present value of an annuity payment over a given time period and interest rate.
 }
 \examples{
-get_pv_pmt(.05, 5) # 4.3295
+# Present value of an annuity with 5\% interest over 10 periods
+get_pv_pmt(rate = 0.05, t = 10)
+
+# Present value of an annuity with 0\% interest over 10 periods
+get_pv_pmt(rate = 0, t = 10)
+
 }

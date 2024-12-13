@@ -15,8 +15,6 @@ roll_pv <- function(rate, g = 0, nper, pmt_vec, t = 1) {
   return(pv_vec)
 }
 
-
-
 #NPV function
 #' @export
 npv = function(rate, cashflows) {
@@ -236,7 +234,7 @@ recur_grow3 <- function(x, g, nper) {
 #sep_rate_vec is a vector containing separation rates. interest_vec is a discount rate (ARR) vector. value_vect is a vector containing the present values of pension benefits at separation ages.
 #The purpose of this function is to calculate the PVFB at each active age (not just the entry age)
 #' @export
-get_pvfb <- function(sep_rate_vec, interest_vec, value_vec) {
+get_pvfb_reason <- function(sep_rate_vec, interest_vec, value_vec) {
   PVFB <- double(length = length(value_vec))
   for (i in 1:length(value_vec)) {
     sep_rate <- sep_rate_vec[i:length(sep_rate_vec)]
@@ -316,7 +314,7 @@ get_pvfs <- function(remaining_prob_vec, interest_vec, sal_vec) {
 #Annuity factor for current retirees' benefits
 #We need this function to calculate the annuity factors when a constant COLA is granted after the first year
 #' @export
-annfactor <- function(surv_DR_vec, cola_vec, one_time_cola = F){
+annfactor_reason <- function(surv_DR_vec, cola_vec, one_time_cola = F){
   annfactor_vec <- double(length(surv_DR_vec))
   for (i in 1:length(annfactor_vec)) {
     cola <- ifelse(one_time_cola == F, cola_vec[i], 0)

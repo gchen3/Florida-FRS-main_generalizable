@@ -2,25 +2,28 @@
 % Please edit documentation in R/functions.R
 \name{get_pv_gpmt}
 \alias{get_pv_gpmt}
-\title{get_pv_gpmt calculates the present value of a growth annuity for 1 unit (such as $1) with interest rate, growth rate and t
-Reference: https://financeformulas.net/Present_Value_of_Growing_Annuity.html}
+\title{Calculate Present Value of a Growing Annuity Payment}
 \usage{
 get_pv_gpmt(rate, growth, t)
 }
 \arguments{
-\item{rate}{Annual discount rate (scalar double).}
+\item{rate}{Numeric. The interest rate per period as a decimal (e.g., 0.05 for 5%).}
 
-\item{growth}{Annual growth rate (scalar double).}
+\item{growth}{Numeric. The growth rate of the payments per period as a decimal (e.g., 0.02 for 2%).}
 
-\item{t}{Number of years in the future (scalar).}
+\item{t}{Numeric. The total number of periods for the growing annuity payments.}
 }
 \value{
-Numeric value.
+Numeric. The present value of the growing annuity payments.
 }
 \description{
-get_pv_gpmt calculates the present value of a growth annuity for 1 unit (such as $1) with interest rate, growth rate and t
-Reference: https://financeformulas.net/Present_Value_of_Growing_Annuity.html
+This function computes the present value of a series of growing annuity payments over a specified time period, given an interest rate and growth rate.
 }
 \examples{
-get_pv_gpmt(0.08, 0.05, 18) # 13.2582
+# Present value of a growing annuity with 5\% interest, 2\% growth, over 10 periods
+get_pv_gpmt(rate = 0.05, growth = 0.02, t = 10)
+
+# Present value of a growing annuity with 5\% interest, 5\% growth, over 10 periods
+get_pv_gpmt(rate = 0.05, growth = 0.05, t = 10)
+
 }

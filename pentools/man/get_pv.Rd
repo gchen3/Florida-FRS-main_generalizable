@@ -2,21 +2,29 @@
 % Please edit documentation in R/functions.R
 \name{get_pv}
 \alias{get_pv}
-\title{get_pv calculate the discount factor with rate and t}
+\title{Calculate Present Value Factor}
 \usage{
 get_pv(rate, t)
 }
 \arguments{
-\item{rate}{Annual discount rate (scalar double).}
+\item{rate}{Numeric. The interest rate per period as a decimal (e.g., 0.05 for 5%).}
 
-\item{t}{Number of years in the future (scalar).}
+\item{t}{Numeric. The time period for which the present value factor is calculated.}
 }
 \value{
-Numeric value.
+Numeric. The present value factor, which is the discount factor (1 + rate)^(-t)
 }
 \description{
-get_pv calculate the discount factor with rate and t
+This function computes the present value factor for a given interest rate and time period.
+}
+\details{
+The present value factor is used to discount future cash flows to their present value.
 }
 \examples{
-get_pv(0.05,5) # 0.7835
+# Calculate the present value factor for a 5\% interest rate over 3 periods
+get_pv(rate = 0.05, t = 3)
+
+# Calculate the present value factor for a 10\% interest rate over 1 period
+get_pv(rate = 0.10, t = 1)
+
 }

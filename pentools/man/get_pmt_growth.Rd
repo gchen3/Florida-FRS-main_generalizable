@@ -2,7 +2,7 @@
 % Please edit documentation in R/functions.R
 \name{get_pmt_growth}
 \alias{get_pmt_growth}
-\title{get_pmt_growth calculates the first payment for an growth annuity due with a present value pv, 
+\title{get_pmt_growth calculates the first payment for an growth annuity due with a present value pv,
 interet rate (rate), # remaining period (t), and growth rate (g)
 payments are made in advance (beginning of each time period)}
 \usage{
@@ -19,7 +19,7 @@ get_pmt_growth(rate, growth, t)
 numeric value.
 }
 \description{
-get_pmt_growth calculates the first payment for an growth annuity due with a present value pv, 
+get_pmt_growth calculates the first payment for an growth annuity due with a present value pv,
 interet rate (rate), # remaining period (t), and growth rate (g)
 payments are made in advance (beginning of each time period)
 }
