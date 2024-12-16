@@ -132,3 +132,226 @@ microbenchmark (annfactor(surv_DR_vec, cola_vec, one_time_cola = FALSE),
                 annfactor_2(surv_DR_vec, cola_vec, one_time_cola = FALSE),
                 times = 1000)
 
+npv = function(rate, cashflows) {
+  for(i in 1:length(cashflows)){
+    if(i == 1){
+      NPV <- cashflows[i]/((1+rate)^(i))
+    } else {
+      NPV <- NPV + cashflows[i]/((1+rate)^(i))
+    }
+  }
+
+  return(NPV)
+}
+
+get_pvfs_reason <- function(remaining_prob_vec, interest_vec, sal_vec) {
+  PVFS <- double(length = length(sal_vec))
+  for (i in 1:length(sal_vec)) {
+    remaining_prob_og <- remaining_prob_vec[i:length(remaining_prob_vec)]
+    remaining_prob <- remaining_prob_og / remaining_prob_og[1]
+    interest <- interest_vec[i]
+    sal <- sal_vec[i:length(sal_vec)]
+    sal_adjusted <- sal * remaining_prob
+    PVFS[i] <- npv(interest, sal_adjusted)
+  }
+  return(PVFS)
+}
+
+get_pvfs <- function(remaining_prob_vec, interest_vec, sal_vec) {
+  N <- length(sal_vec)
+  PVFS <- double(length = N)
+  for (i in 1:N) {
+    remaining_prob_sub <- remaining_prob_vec[i:N] / remaining_prob_vec[i]
+    interest <- interest_vec[i]
+    sal_sub <- sal_vec[i:N]
+    df_sub  <- (1 + interest)^(-(1:length(sal_sub)))  # Discount factors in each year based on the interest rate used in t
+    PVFS[i] <- sum(sal_sub * remaining_prob_sub * df_sub)
+  }
+  return(PVFS)
+}
+
+remaining_prob_vec <- c(0.95, 0.90, 0.85, 0.80, 0.90, 0.95, 0.90, 0.85, 0.80, 0.90)
+interest_vec <- c(0.05, 0.04, 0.03, 0.04, 0.05, 0.05, 0.04, 0.03, 0.04, 0.05)
+sal_vec <- c(100, 200, 320, 420, 540,100, 200, 320, 420, 540)
+
+get_pvfs_reason(remaining_prob_vec, interest_vec, sal_vec)
+get_pvfs(remaining_prob_vec, interest_vec, sal_vec)
+
+
+microbenchmark(get_pvfs_reason(remaining_prob_vec, interest_vec, sal_vec),
+               get_pvfs(remaining_prob_vec, interest_vec, sal_vec),
+               times = 1000)
+
+####get_pmt########
+
+get_pmt0_reason <- function(r, nper, pv) {
+  if (r == 0) {
+    a <- pv/nper
+  } else {
+    a <- ifelse(nper == 0, 0, pv*r*(1+r)^(nper-1)/((1+r)^nper-1))
+  }
+
+  return(a)
+}
+
+get_pmt_due <- function(rate, t) {
+  if (rate == 0) {
+    pmt = 1/t
+  } else {
+    pmt = (rate / (1 -(1 + rate) ^ (-t))) * (1 / (1 + rate))
+  }
+  return(pmt)
+}
+
+get_pmt0 <- function(r, nper, pv) {
+  get_pmt_due(r, nper)*pv
+}
+
+r <- 0.02
+nper <- 50
+pv <- 500
+
+get_pmt0(r, nper, pv)
+get_pmt0_reason(r, nper, pv)
+
+microbenchmark(get_pmt0_reason(r, nper, pv),
+               get_pmt0(r, nper, pv),
+               times = 1000)
+
+
+####growth#####
+
+recur_grow_reason <- function(x, g) {
+  if (length(x) > 1) {
+    for (i in 2:length(x)) {
+      x[i] <- x[i-1] * (1 + g[i - 1])
+    }
+  }
+  return(x)
+}
+
+recur_grow <- function(x, g) {
+ g_cul <- cumprod(1 + g)
+ x[2:length(x)] <- x[1] * g_cul[1:(length(g) - 1)]
+ return(x)
+}
+
+x1 <- c(100, 0, 0, 0)  # Initial vector
+g1 <- c(0.05, 0.03, 0.04, 0.05)  # Growth rates
+recur_grow(x1, g1)
+recur_grow_reason(x1, g1)
+
+microbenchmark(recur_grow(x1, g1),
+               recur_grow_reason(x1, g1),
+               times=1000)
+
+recur_grow2_reason <- function(x, g) {
+  if (length(x) > 1) {
+    for (i in 2:length(x)) {
+      x[i] <- x[i-1] * (1 + g[i])
+    }
+  }
+  return(x)
+}
+
+recur_grow2 <- function(x, g) {
+  g[1:length(g)-1] <- g[2:length(g)]
+  recur_grow(x, g)
+}
+
+x1 <- c(100, 0, 0, 0)  # Initial vector
+g1 <- c(0.05, 0.03, 0.04, 0.05)  # Growth rates
+recur_grow2(x1, g1)
+recur_grow2_reason(x1, g1)
+
+microbenchmark(recur_grow2(x1, g1),
+               recur_grow2_reason(x1, g1),
+               times=1000)
+
+
+recur_grow3_reason <- function(x, g, nper) {
+  x_vec <- double(length = nper)
+  x_vec[1] <- x
+
+  for (i in 2:length(x_vec)) {
+    x_vec[i] <- x_vec[i-1] * (1 + g)
+  }
+
+  return(x_vec)
+}
+
+recur_grow3 <- function(x, g, nper) {
+  growth_factors <- cumprod(rep(1 + g, nper - 1))
+  x_vec <- c(x, x * growth_factors)
+  return(x_vec)
+}
+
+recur_grow3_reason(100, 0.05, 10)
+recur_grow3(100, 0.05, 10)
+
+microbenchmark(recur_grow3_reason(100, 0.05, 3),
+               recur_grow3(100, 0.05, 3),
+               times=1000)
+
+####pv#####
+pv_reason <- function(rate, g = 0, nper, pmt, t = 1) {
+  r <- (1 + rate)/(1 + g) - 1
+  PV <- pmt/r * (1 - (1 / (1 + r)^nper)) / (1 + g) * (1 + rate)^(1 - t)
+  return(PV)
+}
+
+pv <- function(rate, g = 0, nper, pmt, t = 1) {
+  get_pv_gpmt (rate, growth = g, t = nper) * pmt * (1 + rate)^(1 - t)
+}
+
+rate <- 0.05
+g <- 0.03
+nper <- 5
+pmt <- 100
+
+pv_reason(rate, g, nper, pmt)
+pv(rate, g, nper, pmt)
+pv_reason(rate, g, nper, pmt, 0)
+pv(rate, g, nper, pmt, 0)
+
+microbenchmark(pv_reason(rate, g, nper, pmt),
+               pv(rate, g, nper, pmt),
+               pv_reason(rate, g, nper, pmt, 0),
+               pv(rate, g, nper, pmt, 0),
+               times=1000)
+
+####roll_pv#####
+roll_pv_reason <- function(rate, g = 0, nper, pmt_vec, t = 1) {
+  pv_vec <- double(length(pmt_vec))
+  for (i in 1:length(pv_vec)) {
+    if (i == 1) {
+      pv_vec[i] <- pv(rate, g, nper, pmt_vec[2], t)
+    } else {
+      pv_vec[i] <- pv_vec[i-1] * (1 + rate) - pmt_vec[i] * (1 + rate)^(1 - t)
+    }
+  }
+
+  return(pv_vec)
+}
+
+roll_pv <- function(rate, g = 0, nper, pmt_vec, t = 1) {
+  pv_vec <- double(length(pmt_vec))
+  for (i in 1:length(pv_vec)) {
+    if (i == 1) {
+      pv_vec[i] <- pv(rate, g, nper, pmt_vec[2], t)
+    } else {
+      pv_vec[i] <- pv_vec[i-1] * (1 + rate) - pmt_vec[i] * (1 + rate)^(1 - t)
+    }
+  }
+
+  return(pv_vec)
+}
+
+
+rate <-0.05
+g <- 0.03
+nper <- 5
+pmt_vec <- c(100, 102, 103, 105, 109)
+roll_pv(rate, g, nper, pmt_vec)
+
+roll_pv_reason(rate, g, nper, pmt_vec)
