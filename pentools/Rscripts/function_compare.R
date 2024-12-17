@@ -1,3 +1,6 @@
+
+# npv ---------------------------------------------------------------------
+
 npv_reason <- function(rate, cashflows) {
   for(i in 1:length(cashflows)){
     if(i == 1){
@@ -23,6 +26,8 @@ npv_reason(rate, cashflows)
 npv(rate, cashflows)
 
 microbenchmark(npv_reason(rate, cashflows), npv(rate, cashflows), times = 1000)
+
+# get_pvfb ----------------------------------------------------------------
 
 get_pvfb_reason <- function(sep_rate_vec, interest_vec, value_vec) {
   PVFB <- double(length = length(value_vec))
@@ -67,6 +72,8 @@ get_pvfb(sep_rate_vec, interest_vec, value_vec)
 
 microbenchmark(get_pvfb_reason(sep_rate_vec, interest_vec, value_vec), get_pvfb(sep_rate_vec, interest_vec, value_vec), times = 1000)
 
+
+# annfactor ---------------------------------------------------------------
 
 annfactor_reason <- function(surv_DR_vec, cola_vec, one_time_cola = F){
   annfactor_vec <- double(length(surv_DR_vec))
@@ -144,6 +151,9 @@ npv = function(rate, cashflows) {
   return(NPV)
 }
 
+
+# get_pvfs ----------------------------------------------------------------
+
 get_pvfs_reason <- function(remaining_prob_vec, interest_vec, sal_vec) {
   PVFS <- double(length = length(sal_vec))
   for (i in 1:length(sal_vec)) {
@@ -182,7 +192,7 @@ microbenchmark(get_pvfs_reason(remaining_prob_vec, interest_vec, sal_vec),
                get_pvfs(remaining_prob_vec, interest_vec, sal_vec),
                times = 1000)
 
-####get_pmt########
+# get_pmt -----------------------------------------------------------------
 
 get_pmt0_reason <- function(r, nper, pv) {
   if (r == 0) {
@@ -219,7 +229,7 @@ microbenchmark(get_pmt0_reason(r, nper, pv),
                times = 1000)
 
 
-####growth#####
+# growth ------------------------------------------------------------------
 
 recur_grow_reason <- function(x, g) {
   if (length(x) > 1) {
@@ -293,7 +303,9 @@ microbenchmark(recur_grow3_reason(100, 0.05, 3),
                recur_grow3(100, 0.05, 3),
                times=1000)
 
-####pv#####
+
+# pv ----------------------------------------------------------------------
+
 pv_reason <- function(rate, g = 0, nper, pmt, t = 1) {
   r <- (1 + rate)/(1 + g) - 1
   PV <- pmt/r * (1 - (1 / (1 + r)^nper)) / (1 + g) * (1 + rate)^(1 - t)
@@ -320,7 +332,9 @@ microbenchmark(pv_reason(rate, g, nper, pmt),
                pv(rate, g, nper, pmt, 0),
                times=1000)
 
-####roll_pv#####
+
+# roll_pv -----------------------------------------------------------------
+
 roll_pv_reason <- function(rate, g = 0, nper, pmt_vec, t = 1) {
   pv_vec <- double(length(pmt_vec))
   for (i in 1:length(pv_vec)) {

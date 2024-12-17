@@ -21,7 +21,6 @@ test_that("get_pmt_due works as expected",{
   expect_equal(get_pmt_due(rate = 0.02, t = 10), 0.109144, tolerance = 1e-5)
 })
 
-
 test_that("get_pmt0 works as expected", {
   expect_equal(get_pmt0(0.05, 30, 1000), 61.95375, tolerance = 1e-5)
   expect_equal(get_pmt0(0.02, 50, 1000), 31.19923, tolerance = 1e-5)
