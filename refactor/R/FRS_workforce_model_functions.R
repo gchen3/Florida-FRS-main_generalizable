@@ -182,7 +182,7 @@ loop_through_arrays <- function(wf_active,
     wf_active[,,i] <- (wf_active[,,i-1] - active2term) %*% TM  
     
     # new entrants matrix to be added to the active workforce
-    new_entrants <- add_new_entrants(g = pop_growth, # GLOBAL
+    new_entrants <- pentools::add_new_entrants(g = pop_growth, # GLOBAL
                                      ne_dist = entrant_profile_table$entrant_dist, 
                                      wf1 = wf_active[,,i-1],
                                      wf2 = wf_active[,,i], 

@@ -48,7 +48,7 @@ get_annuity_factor_retire_table <- function(
       cum_dr = cumprod(1 + lag(dr, default = 0)),
       cum_mort = cumprod(1 - lag(mort_final, default = 0)),
       cum_mort_dr = cum_mort / cum_dr,
-      ann_factor_retire = annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = params$one_time_cola_)
+      ann_factor_retire = pentools::annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = params$one_time_cola_)
     )
   return(ann_factor_retire_table)
 }
@@ -247,10 +247,10 @@ get_benefit_val_table <- function(
     group_by(entry_year, entry_age) %>%
     mutate(
       #calculate the present value of future DB benefits at current age (discount the annual DB benefits back to current age)
-      pvfb_db_wealth_at_current_age = get_pvfb(sep_rate_vec = separation_rate, interest_vec = dr, value_vec = pvfb_db_wealth_at_term_age),
+      pvfb_db_wealth_at_current_age = pentools::get_pvfb(sep_rate_vec = separation_rate, interest_vec = dr, value_vec = pvfb_db_wealth_at_term_age),
       
       #calculate the present value of future salary at current age (discount the annual salary back to current age)
-      pvfs_at_current_age = get_pvfs(remaining_prob_vec = remaining_prob, interest_vec = dr, sal_vec = salary),
+      pvfs_at_current_age = pentools::get_pvfs(remaining_prob_vec = remaining_prob, interest_vec = dr, sal_vec = salary),
       
       #calculate the individual normal cost rate at current age
       indv_norm_cost = pvfb_db_wealth_at_current_age[yos == 0] / pvfs_at_current_age[yos == 0],
@@ -343,9 +343,12 @@ get_salary_benefit_table <- function(class_name,
     ) %>% 
     group_by(entry_year, entry_age) %>% 
     mutate(
-      fas = baseR.rollmean(salary, fas_period),
+      # fas = baseR.rollmean(salary, fas_period),
+      # code below is much faster than baseR.rollmean
+      fas = RcppRoll::roll_mean(c(NA, salary[-length(salary)]), # drop the current value
+                                n = max(fas_period), align="right", fill = NA),
       db_ee_cont = params$db_ee_cont_rate_ * salary,
-      db_ee_balance = get_cum_fv(params$db_ee_interest_rate_, db_ee_cont),
+      db_ee_balance = pentools::get_cum_fv(params$db_ee_interest_rate_, db_ee_cont),
     ) %>% 
     ungroup() %>% 
     filter(!is.na(salary))

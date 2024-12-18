@@ -347,8 +347,8 @@ get_wf_retire_current_final <- function(
     left_join(retire_current_int, by = c("age", "year")) %>% 
     select(base_age:ann_factor_retire, n_retire_current, avg_ben_current, total_ben_current) %>% 
     group_by(base_age) %>% 
-    mutate(n_retire_current = recur_grow(n_retire_current, -mort_final),
-           avg_ben_current = recur_grow2(avg_ben_current, cola),
+    mutate(n_retire_current = pentools::recur_grow(n_retire_current, -mort_final),
+           avg_ben_current = pentools::recur_grow2(avg_ben_current, cola),
            total_ben_current = n_retire_current * avg_ben_current,
            #W e use "AnnuityFactor_DR - 1" below because the PVFB for retirees excludes the first payment (i.e. the first payment has already been delivered when the PVFB is calculated)
            pvfb_retire_current = avg_ben_current * (ann_factor_retire - 1)
@@ -382,10 +382,10 @@ get_wf_term_current <- function(
   amo_years_term <- (params$start_year_ + 1):(params$start_year_ + params$amo_period_term_)
   
   retire_ben_term_est <- double(length = length(year))
-  retire_ben_term_est[which(year %in% amo_years_term)] <- recur_grow3(retire_ben_term, params$payroll_growth_, params$amo_period_term_)
+  retire_ben_term_est[which(year %in% amo_years_term)] <- pentools::recur_grow3(retire_ben_term, params$payroll_growth_, params$amo_period_term_)
   
   wf_term_current <- data.frame(year, retire_ben_term_est) %>% 
-    mutate(aal_term_current_est = roll_pv(rate = params$dr_current_,
+    mutate(aal_term_current_est = pentools::roll_pv(rate = params$dr_current_,
                                           g = params$payroll_growth_, 
                                           nper = params$amo_period_term_, 
                                           pmt_vec = retire_ben_term_est))

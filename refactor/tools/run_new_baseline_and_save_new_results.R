@@ -4,6 +4,14 @@ rm(list = ls())
 
 # run the following in a CLEAN environment with the branch of interest checked out --------------------------------
 
+# pkdir <- "E:/R_projects/packages"
+# detach("package:pentools", unload = TRUE)
+# remove.packages("pentools")
+# pkg <- fs::path(pkdir, "pentools_0.2.0.tar.gz")
+# pkg <- fs::path(pkdir, "pentools_0.3.0.tar.gz")
+# install.packages(pkg, repos = NULL, type = "source")
+# library(pentools)
+# ??pentools-package
 # MANUALLY RESET AND CLEAR ENVIRONMENT WITH Ctrl-Shift-F10 !!!!!
 # Then source this file (or run line by line)
 

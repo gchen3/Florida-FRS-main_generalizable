@@ -366,7 +366,7 @@ ann_factor_retire_table_stacked <- stack_env$mort_retire_table_stacked |>
     cum_dr = cumprod(1 + lag(dr, default = 0)),
     cum_mort = cumprod(1 - lag(mort_final, default = 0)),
     cum_mort_dr = cum_mort / cum_dr,
-    ann_factor_retire = annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = params$one_time_cola_)
+    ann_factor_retire = pentools::annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = params$one_time_cola_)
   ) |> 
   ungroup()
 
@@ -385,7 +385,7 @@ ann_factor_retire_table <- mort_retire_table %>%
     cum_dr = cumprod(1 + lag(dr, default = 0)),
     cum_mort = cumprod(1 - lag(mort_final, default = 0)),
     cum_mort_dr = cum_mort / cum_dr,
-    ann_factor_retire = annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = params$one_time_cola_)
+    ann_factor_retire = pentools::annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = params$one_time_cola_)
   ) |> 
   ungroup() # djb addition
 
