@@ -284,7 +284,7 @@ get_pvfb <- function(sep_rate_vec, interest_vec, value_vec) {
         df_sub <- (1 + interest)^(-(1:length(value_sub))) # Discount factors in each year based on the interest rate used in t
         PVFB[i] <- sum(value_sub * sep_prob_sub * df_sub) # The product of probability, discount factor, future values (benefits) is PVFB
       } else {
-        PVFB[i = N] <- 0                                 # At the last period, there are no future periods, so PVFB is 0
+        PVFB[i = N] <- NA                                 # At the last period, there are no future periods, so PVFB is 0
       }
     }
     return(PVFB)
