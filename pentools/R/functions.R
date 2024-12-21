@@ -450,3 +450,41 @@ recur_grow3 <- function(x, g, nper) {
   x_vec <- c(x, x * growth_factors)
   return(x_vec)
 }
+
+
+
+# not yet developed -------------------------------------------------------
+
+
+#' @export
+get_pmt <- function(r, g = 0, nper, pv, t = 1) {
+  a <- get_pmt0((1+r)/(1+g) - 1, nper, pv*(1+r)^t)
+  return(a)
+}
+
+#Cumulative future values function (with interest being a single value)
+#' @export
+get_cum_fv <- function(interest, cashflow, first_value = 0){
+  cumvalue <- double(length = length(cashflow))
+  cumvalue[1] <- first_value
+  for (i in 2:length(cumvalue)) {
+    cumvalue[i] <- cumvalue[i - 1]*(1 + interest) + cashflow[i - 1]
+  }
+  return(cumvalue)
+}
+
+#Adding new entrants function
+#' @export
+add_new_entrants <- function(g, ne_dist, wf1, wf2, ea, age, position_matrix){
+  #g is the assumed population growth of the plan
+  #ne_dist is a vector representing the distribution of new entrants for each entry age
+  #wf1 is the population in period 1. wf2 is the wf1 population after decremented
+  #ea and age are two vectors representing entry age and age for active members
+  #position_matrix is the matrix that rearranges the new entrant numbers in the right positions to be added to the active workforce array
+  ne <- sum(wf1)*(1 + g) - sum(wf2)
+  ne_vec <- ne * ne_dist
+  ne_matrix <- matrix(ne_vec, nrow = length(ea), ncol = length(age))
+  ne_matrix_trans <- ne_matrix * position_matrix
+
+  return(ne_matrix_trans)
+}
