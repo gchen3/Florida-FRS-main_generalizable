@@ -1,4 +1,4 @@
-# rm(list = ls())
+rm(list = ls())
 
 # Ctrl-Shift-F10 to restart R
 
@@ -21,7 +21,11 @@ library(btools) # ns, ht
 # For first time installing package, or each time package is updated, install as follows
 # OLD: devtools::install(pkg = here::here("pentools"))
 # instead, install from separate package
-# devtools::install_github("donboyd5/pentools")
+# devtools::install_github(
+#   repo = "gchen3/Florida-FRS-main_generalizable",
+#   subdir = "pentools",
+#   ref   = "add-annuity-function"
+# )
 # devtools::install_github("donboyd5/pendata")
 library(pentools) # use this instead of sourcing "FRS_utility_functions.R"
 library(pendata)
