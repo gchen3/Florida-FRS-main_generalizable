@@ -15,19 +15,19 @@ library(parallel)
 
 # boyd additions to libraries
 library(purrr)
+#devtools::install_github("donboyd5/btools")
 library(btools) # ns, ht
 
 # load pension-specific libraries
 # For first time installing package, or each time package is updated, install as follows
 # OLD: devtools::install(pkg = here::here("pentools"))
 # instead, install from separate package
-# devtools::install_github(
-#   repo = "gchen3/Florida-FRS-main_generalizable",
-#   subdir = "pentools",
-#   ref   = "add-annuity-function"
-# )
-# devtools::install_github("donboyd5/pendata")
+remove.packages("pentools")
+devtools::install_github("gchen3/pentools")
 library(pentools) # use this instead of sourcing "FRS_utility_functions.R"
+
+# remove.packages("pendata")
+# devtools::install_github("donboyd5/pendata")
 library(pendata)
 
 
