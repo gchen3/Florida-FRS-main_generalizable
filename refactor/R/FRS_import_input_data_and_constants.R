@@ -41,6 +41,44 @@ senior_management_salary_table_ <- read_excel(FileName, sheet="Salary Distributi
 senior_management_headcount_table_ <- read_excel(FileName, sheet="HeadCount Distribution Sen Man") %>% 
   mutate(across(everything(), ~replace(.x, is.na(.x), 0)))
 
+
+
+# Stacked salary and count tables -----------------------------------------
+
+salary_list <- list(
+  regular = regular_salary_table_,
+  special = special_salary_table_,
+  admin   = admin_salary_table_,
+  eco     = eco_salary_table_,
+  eso     = eso_salary_table_,
+  judges  = judges_salary_table_,
+  senior  = senior_management_salary_table_
+)
+
+headcount_list <- list(
+  regular = regular_headcount_table_,
+  special = special_headcount_table_,
+  admin   = admin_headcount_table_,
+  eco     = eco_headcount_table_,
+  eso     = eso_headcount_table_,
+  judges  = judges_headcount_table_,
+  senior  = senior_management_headcount_table_
+)
+
+salary_table_ <- map2_df(salary_list,
+                                names(salary_list),
+                                ~ .x %>%
+                                  mutate(employee_class = .y))
+
+headcount_table_ <- map2_df(headcount_list,
+                                   names(headcount_list),
+                                   ~ .x %>%
+                                     mutate(employee_class = .y))
+
+count(salary_table_, employee_class)
+count(headcount_table_ , employee_class)
+
+####
 # Retirement rate tables
 
 drop_entry_tier_1_table_ <- read_excel(fs::path(xidir, "drop entry tier 1.xlsx"))
@@ -75,6 +113,45 @@ judges_term_rate_female_table_ <- read_excel(FileName, sheet = "Withdrawal Rate 
 senior_management_term_rate_male_table_ <- read_excel(FileName, sheet = "Withdrawal Rate Sen Man Male")
 senior_management_term_rate_female_table_ <- read_excel(FileName, sheet = "Withdrawal Rate Sen Man Female")
 
+
+# stacked termination rates -----------------------------------------------
+
+male_list <- list(
+  regular = regular_term_rate_male_table_,
+  special = special_term_rate_male_table_,
+  admin   = admin_term_rate_male_table_,
+  eco     = eco_term_rate_male_table_,
+  eso     = eso_term_rate_male_table_,
+  judges  = judges_term_rate_male_table_,
+  senior  = senior_management_term_rate_male_table_
+)
+
+female_list <- list(
+  regular = regular_term_rate_female_table_,
+  special = special_term_rate_female_table_,
+  admin   = admin_term_rate_female_table_,
+  eco     = eco_term_rate_female_table_,
+  eso     = eso_term_rate_female_table_,
+  judges  = judges_term_rate_female_table_,
+  senior  = senior_management_term_rate_female_table_
+)
+
+term_rate_male_table_ <- map2_df(male_list,
+                   names(male_list),
+                   ~ .x %>%
+                     mutate(employee_class = .y, gender = "male"))
+
+term_rate_female_table_ <- map2_df(female_list,
+                     names(female_list),
+                     ~ .x %>%
+                       mutate(employee_class = .y, gender = "female"))
+
+
+term_rate_ <- bind_rows(term_rate_male_table_, term_rate_female_table_)
+
+count(term_rate, employee_class, gender)
+
+######
 
 retiree_distribution <- read_excel(FileName, sheet = "Retiree Distribution") 
 

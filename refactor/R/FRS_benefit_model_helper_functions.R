@@ -7,7 +7,16 @@ get_salary_headcount_table <- function(class_name,
   # djb TEMPORARY until we have stacked data: get params values for the class
   salary_table <- params[[paste0(class_name, "_salary_table_")]]
   headcount_table <- params[[paste0(class_name, "_headcount_table_")]]
+  
+  # salary_table <- salary_table_
+  # headcount_table <- headcount_table_
 
+  # if (class_name %in% c("eco", "eso", "judges")) {
+  #   total_active_member <- params$eco_eso_judges_total_active_member_
+  # } else {
+  #   total_active_member <- params[[paste0(class_name, "_total_active_member_")]]
+  # }
+  
   if (class_name %in% c("eco", "eso", "judges")) {
     total_active_member <- params$eco_eso_judges_total_active_member_
   } else {

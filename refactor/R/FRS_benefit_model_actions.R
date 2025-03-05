@@ -380,3 +380,160 @@ senior_management_separation_rate_table <- bm_env$get_separation_table("senior_m
 
 print("All done with separation tables")
 
+
+# stacked tables ----------------------------------------------------------
+
+# 1) Salary & Headcount ----------------------------------------
+salary_headcount_list <- list(
+  regular            = regular_salary_headcount_table,
+  special            = special_salary_headcount_table,
+  admin              = admin_salary_headcount_table,
+  eco                = eco_salary_headcount_table,
+  eso                = eso_salary_headcount_table,
+  judges             = judges_salary_headcount_table,
+  senior_management  = senior_management_salary_headcount_table
+)
+
+salary_headcount_table <- map2_df(
+  salary_headcount_list,
+  names(salary_headcount_list),
+  ~ .x %>% mutate(employee_class = .y)
+)
+
+
+# 2) Entrant Profile -------------------------------------------
+entrant_profile_list <- list(
+  regular            = regular_entrant_profile_table,
+  special            = special_entrant_profile_table,
+  admin              = admin_entrant_profile_table,
+  eco                = eco_entrant_profile_table,
+  eso                = eso_entrant_profile_table,
+  judges             = judges_entrant_profile_table,
+  senior_management  = senior_management_entrant_profile_table
+)
+
+entrant_profile_table <- map2_df(
+  entrant_profile_list,
+  names(entrant_profile_list),
+  ~ .x %>% mutate(employee_class = .y)
+)
+
+
+# 3) Mortality Tables (Active) ----------------------------------
+mort_list <- list(
+  regular            = regular_mort_table,
+  special            = special_mort_table,
+  admin              = admin_mort_table,
+  eco                = eco_mort_table,
+  eso                = eso_mort_table,
+  judges             = judges_mort_table,
+  senior_management  = senior_management_mort_table
+)
+
+mort_table <- map2_df(mort_list, names(mort_list), ~ .x %>% mutate(employee_class = .y))
+
+
+# 4) Mortality Tables (Retirees) --------------------------------
+mort_retire_list <- list(
+  regular            = regular_mort_retire_table,
+  special            = special_mort_retire_table,
+  admin              = admin_mort_retire_table,
+  eco                = eco_mort_retire_table,
+  eso                = eso_mort_retire_table,
+  judges             = judges_mort_retire_table,
+  senior_management  = senior_management_mort_retire_table
+)
+
+mort_retire_table <- map2_df(mort_retire_list,
+                                  names(mort_retire_list),
+                                  ~ .x %>% mutate(employee_class = .y))
+
+
+# 5) Normal Retirement Rate (Tier 1) ----------------------------
+normal_retire_rate_tier_1_list <- list(
+  regular            = regular_normal_retire_rate_tier_1_table,
+  special            = special_normal_retire_rate_tier_1_table,
+  admin              = admin_normal_retire_rate_tier_1_table,
+  eco                = eco_normal_retire_rate_tier_1_table,
+  eso                = eso_normal_retire_rate_tier_1_table,
+  judges             = judges_normal_retire_rate_tier_1_table,
+  senior_management  = senior_management_normal_retire_rate_tier_1_table
+)
+
+normal_retire_rate_tier_1_table <- map2_df(
+  normal_retire_rate_tier_1_list,
+  names(normal_retire_rate_tier_1_list),
+  ~ .x %>% mutate(employee_class = .y)
+)
+
+
+# 6) Normal Retirement Rate (Tier 2) ----------------------------
+normal_retire_rate_tier_2_list <- list(
+  regular            = regular_normal_retire_rate_tier_2_table,
+  special            = special_normal_retire_rate_tier_2_table,
+  admin              = admin_normal_retire_rate_tier_2_table,
+  eco                = eco_normal_retire_rate_tier_2_table,
+  eso                = eso_normal_retire_rate_tier_2_table,
+  judges             = judges_normal_retire_rate_tier_2_table,
+  senior_management  = senior_management_normal_retire_rate_tier_2_table
+)
+
+normal_retire_rate_tier_2_table <- map2_df(
+  normal_retire_rate_tier_2_list,
+  names(normal_retire_rate_tier_2_list),
+  ~ .x %>% mutate(employee_class = .y)
+)
+
+
+# 7) Early Retirement Rate (Tier 1) -----------------------------
+early_retire_rate_tier_1_list <- list(
+  regular            = regular_early_retire_rate_tier_1_table,
+  special            = special_early_retire_rate_tier_1_table,
+  admin              = admin_early_retire_rate_tier_1_table,
+  eco                = eco_early_retire_rate_tier_1_table,
+  eso                = eso_early_retire_rate_tier_1_table,
+  judges             = judges_early_retire_rate_tier_1_table,
+  senior_management  = senior_management_early_retire_rate_tier_1_table
+)
+
+early_retire_rate_tier_1_table <- map2_df(
+  early_retire_rate_tier_1_list,
+  names(early_retire_rate_tier_1_list),
+  ~ .x %>% mutate(employee_class = .y)
+)
+
+
+# 8) Early Retirement Rate (Tier 2) -----------------------------
+early_retire_rate_tier_2_list <- list(
+  regular            = regular_early_retire_rate_tier_2_table,
+  special            = special_early_retire_rate_tier_2_table,
+  admin              = admin_early_retire_rate_tier_2_table,
+  eco                = eco_early_retire_rate_tier_2_table,
+  eso                = eso_early_retire_rate_tier_2_table,
+  judges             = judges_early_retire_rate_tier_2_table,
+  senior_management  = senior_management_early_retire_rate_tier_2_table
+)
+
+early_retire_rate_tier_2_table <- map2_df(
+  early_retire_rate_tier_2_list,
+  names(early_retire_rate_tier_2_list),
+  ~ .x %>% mutate(employee_class = .y)
+)
+
+
+# 9) Separation Rate Tables --------------------------------------
+separation_rate_list <- list(
+  regular            = regular_separation_rate_table,
+  special            = special_separation_rate_table,
+  admin              = admin_separation_rate_table,
+  eco                = eco_separation_rate_table,
+  eso                = eso_separation_rate_table,
+  judges             = judges_separation_rate_table,
+  senior_management  = senior_management_separation_rate_table
+)
+
+separation_rate_table <- map2_df(
+  separation_rate_list,
+  names(separation_rate_list),
+  ~ .x %>% mutate(employee_class = .y)
+)
