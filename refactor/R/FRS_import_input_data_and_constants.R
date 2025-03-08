@@ -66,17 +66,40 @@ headcount_list <- list(
 )
 
 salary_table_ <- map2_df(salary_list,
-                                names(salary_list),
-                                ~ .x %>%
-                                  mutate(employee_class = .y))
+                         names(salary_list),
+                         ~ .x %>%
+                           mutate(employee_class = .y)) %>%
+  pivot_longer(
+    cols = -c(employee_class, age),
+    names_to = "yos",
+    values_to = "salary"
+  ) %>%
+  mutate(yos = as.numeric(yos))
 
 headcount_table_ <- map2_df(headcount_list,
-                                   names(headcount_list),
-                                   ~ .x %>%
-                                     mutate(employee_class = .y))
+                            names(headcount_list),
+                            ~ .x %>%
+                              mutate(employee_class = .y)) %>%
+  pivot_longer(
+    cols = -c(employee_class, age),
+    names_to = "yos",
+    values_to = "count"
+  ) %>%
+  mutate(yos = as.numeric(yos))
 
 count(salary_table_, employee_class)
-count(headcount_table_ , employee_class)
+count(salary_table_, employee_class, age)
+count(headcount_table_ , employee_class, age)
+
+salary_table_$total_salary_cost <- salary_table_$salary * 
+  headcount_table_$count[match(
+    paste(salary_table_$yos, salary_table_$age, salary_table_$employee_class),
+    paste(headcount_table_$yos, headcount_table_$age, headcount_table_$employee_class)
+  )]
+
+merged_table <- salary_table_ %>%
+  left_join(headcount_table_, by = c("yos", "age", "employee_class")) %>%
+  mutate(total_salary_cost = salary * count)
 
 ####
 # Retirement rate tables
@@ -137,19 +160,39 @@ female_list <- list(
 )
 
 term_rate_male_table_ <- map2_df(male_list,
-                   names(male_list),
-                   ~ .x %>%
-                     mutate(employee_class = .y, gender = "male"))
+                                 names(male_list),
+                                 ~ .x %>%
+                                   mutate(employee_class = .y, gender = "male")) %>%
+  pivot_longer(
+    cols = -c(employee_class, yos, gender),
+    names_to = "age",
+    values_to = "rate"
+  )
 
 term_rate_female_table_ <- map2_df(female_list,
                      names(female_list),
                      ~ .x %>%
-                       mutate(employee_class = .y, gender = "female"))
-
+                       mutate(employee_class = .y, gender = "female")) %>%
+  pivot_longer(
+    cols = -c(employee_class, yos, gender),
+    names_to = "age",
+    values_to = "rate"
+  )
 
 term_rate_ <- bind_rows(term_rate_male_table_, term_rate_female_table_)
 
-count(term_rate, employee_class, gender)
+term_rate_age <- term_rate_ %>%
+  mutate(age = case_when(
+    age == "25_to_29" ~ list(25:29),
+    age == "30_to_34" ~ list(30:34),
+    age == "35_to_44" ~ list(35:44),
+    age == "45_to_54" ~ list(45:54),
+    age == "over_55" ~ list(55:100)  # Assuming 100 as an upper bound
+  )) %>%
+  unnest(age)  # Expand age ranges into individual rows
+
+count(term_rate_, employee_class, gender)
+count(term_rate_, employee_class, gender, age)
 
 ######
 
