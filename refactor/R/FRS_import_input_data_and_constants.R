@@ -89,17 +89,26 @@ headcount_table_ <- map2_df(headcount_list,
 
 count(salary_table_, employee_class)
 count(salary_table_, employee_class, age)
-count(headcount_table_ , employee_class, age)
+count(headcount_table_ , employee_class)
 
-salary_table_$total_salary_cost <- salary_table_$salary * 
-  headcount_table_$count[match(
-    paste(salary_table_$yos, salary_table_$age, salary_table_$employee_class),
-    paste(headcount_table_$yos, headcount_table_$age, headcount_table_$employee_class)
-  )]
+unique(salary_table_$age)
+unique(salary_table_$yos)
+unique(headcount_table_$yos)
+unique(headcount_table_$age)
 
-merged_table <- salary_table_ %>%
-  left_join(headcount_table_, by = c("yos", "age", "employee_class")) %>%
-  mutate(total_salary_cost = salary * count)
+unique_classes <- unique(salary_table_$employee_class)
+full_ages <- 20:67
+full_yos <- 2:52
+
+expanded_table <- expand.grid(employee_class = unique_classes, age = full_ages, yos = full_yos)
+
+#   To be imputed
+#   salary_table_fill <- expanded_table %>%
+#   left_join(salary_table_, by = c("employee_class", "age", "yos")) %>%
+#   group_by(employee_class, age) %>%
+#   mutate(salary = approx)
+#   ungroup()
+
 
 ####
 # Retirement rate tables
@@ -191,8 +200,11 @@ term_rate_age <- term_rate_ %>%
   )) %>%
   unnest(age)  # Expand age ranges into individual rows
 
-count(term_rate_, employee_class, gender)
-count(term_rate_, employee_class, gender, age)
+count(term_rate_age, employee_class, gender, age)
+count(term_rate_age, employee_class, gender, yos)
+unique(term_rate_age$age)
+unique(term_rate_age$yos)
+## Note that age under 25 with 30 yos still have positive withdraw rates from the input tables, which is likely not correct
 
 ######
 

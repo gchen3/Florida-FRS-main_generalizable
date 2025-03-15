@@ -106,6 +106,69 @@ get_tier <- function(class_name, entry_year, age, yos, new_year){
   return(tier)
 }
 
+
+# Create tier table -------------------------------------------------------
+unique_classes <- unique(salary_table_$employee_class)
+model_period_ <- 30     #Projection period (typically 30 years)
+min_age_ <- 18          #Age of the typical youngest member
+max_age_ <- 120         #Max age from mortality assumptions
+start_year_ <- 2022     #Year of the latest val report (update this when a new val report comes out)
+new_year_ <- 2024       #Year for new entrants with a new tier to join (update this when a new val report comes out)
+min_year_ <- 1970       #No hard rule about this. Should get back to about 40 years from now.   
+max_year_ <- start_year_ + model_period_ + max_age_ - min_age_
+entry_year_range_ <- min_year_:(start_year_ + model_period_)
+# RetYear <- MinYear:(YearStart + ModelPeriod)
+year_range_ <- min_year_:max_year_
+age_range_ <- min_age_:max_age_
+yos_range_ <- 0:70
+
+tier_table <- expand.grid(class = unique_classes, entry_year = entry_year_range_, yos = yos_range_, age = age_range_, new_year = new_year_) %>%
+  mutate(
+    tier = case_when(
+      entry_year < 2011 & (
+        (class %in% c("special", "admin") & (yos >= 25 | (age >= 55 & yos >= 6) | (age >= 52 & yos >= 25))) |
+          (yos >= 30 | (age >= 62 & yos >= 6))
+      ) ~ "tier_1_norm",
+      entry_year < 2011 & (
+        (class %in% c("special", "admin") & (yos >= 6 & age >= 53)) |
+          (yos >= 6 & age >= 58)
+      ) ~ "tier_1_early",
+      entry_year < 2011 & (yos >= 6) ~ "tier_1_vested",
+      entry_year < 2011 ~ "tier_1_non_vested",
+      
+      entry_year < new_year & (
+        (class %in% c("special", "admin") & (yos >= 30 | (age >= 60 & yos >= 8))) |
+          (yos >= 33 | (age >= 65 & yos >= 8))
+      ) ~ "tier_2_norm",
+      entry_year < new_year & (
+        (class %in% c("special", "admin") & (yos >= 8 & age >= 56)) |
+          (yos >= 8 & age >= 61)
+      ) ~ "tier_2_early",
+      entry_year < new_year & (yos >= 8) ~ "tier_2_vested",
+      entry_year < new_year ~ "tier_2_non_vested",
+      
+      (class %in% c("special", "admin") & (yos >= 30 | (age >= 60 & yos >= 8))) |
+        (yos >= 33 | (age >= 65 & yos >= 8)) ~ "tier_3_norm",
+      (class %in% c("special", "admin") & (yos >= 8 & age >= 56)) |
+        (yos >= 8 & age >= 61) ~ "tier_3_early",
+      yos >= 8 ~ "tier_3_vested",
+      TRUE ~ "tier_3_non_vested"
+    )
+  )
+
+# Display the table
+print(tier_table)
+
+# test the new table is equivalent to the get_tier function
+random_sample <- tier_table |>  
+  slice_sample(n = 10) %>%
+  rowwise() %>%
+  mutate(calculated_tier = get_tier(class, entry_year, age, yos, new_year)) %>%
+  ungroup()
+
+print(random_sample)
+
+
 #Separation type function
 get_sep_type <- function(tier) {
   sep_type <- case_when(
