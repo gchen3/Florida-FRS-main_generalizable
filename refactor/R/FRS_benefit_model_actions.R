@@ -400,7 +400,6 @@ salary_headcount_table <- map2_df(
   ~ .x %>% mutate(employee_class = .y)
 )
 
-
 # 2) Entrant Profile -------------------------------------------
 entrant_profile_list <- list(
   regular            = regular_entrant_profile_table,
@@ -449,7 +448,7 @@ mort_retire_table <- map2_df(mort_retire_list,
                                   ~ .x %>% mutate(employee_class = .y))
 
 
-# 5) Normal Retirement Rate (Tier 1) ----------------------------
+# 5) Normal Retirement Rate ----------------------------
 normal_retire_rate_tier_1_list <- list(
   regular            = regular_normal_retire_rate_tier_1_table,
   special            = special_normal_retire_rate_tier_1_table,
@@ -466,8 +465,6 @@ normal_retire_rate_tier_1_table <- map2_df(
   ~ .x %>% mutate(employee_class = .y)
 )
 
-
-# 6) Normal Retirement Rate (Tier 2) ----------------------------
 normal_retire_rate_tier_2_list <- list(
   regular            = regular_normal_retire_rate_tier_2_table,
   special            = special_normal_retire_rate_tier_2_table,
@@ -484,8 +481,12 @@ normal_retire_rate_tier_2_table <- map2_df(
   ~ .x %>% mutate(employee_class = .y)
 )
 
+normal_retire_rate_table <- bind_rows(
+  normal_retire_rate_tier_1_table %>% mutate(tier = "tier_1"),
+  normal_retire_rate_tier_2_table %>% mutate(tier = "tier_2")
+)
 
-# 7) Early Retirement Rate (Tier 1) -----------------------------
+# 6) Early Retirement Rate -----------------------------
 early_retire_rate_tier_1_list <- list(
   regular            = regular_early_retire_rate_tier_1_table,
   special            = special_early_retire_rate_tier_1_table,
@@ -502,8 +503,6 @@ early_retire_rate_tier_1_table <- map2_df(
   ~ .x %>% mutate(employee_class = .y)
 )
 
-
-# 8) Early Retirement Rate (Tier 2) -----------------------------
 early_retire_rate_tier_2_list <- list(
   regular            = regular_early_retire_rate_tier_2_table,
   special            = special_early_retire_rate_tier_2_table,
@@ -521,7 +520,12 @@ early_retire_rate_tier_2_table <- map2_df(
 )
 
 
-# 9) Separation Rate Tables --------------------------------------
+early_retire_rate_table <- bind_rows(
+  early_retire_rate_tier_1_table %>% mutate(tier = "tier_1"),
+  early_retire_rate_tier_2_table %>% mutate(tier = "tier_2")
+)
+
+# 7) Separation Rate Tables --------------------------------------
 separation_rate_list <- list(
   regular            = regular_separation_rate_table,
   special            = special_separation_rate_table,
@@ -537,3 +541,103 @@ separation_rate_table <- map2_df(
   names(separation_rate_list),
   ~ .x %>% mutate(employee_class = .y)
 )
+
+# 8) list all the tables
+# List of all tables to analyze
+tables_list <- list(
+  salary_headcount_table = salary_headcount_table,
+  entrant_profile_table = entrant_profile_table,
+  mort_table = mort_table,
+  mort_retire_table = mort_retire_table,
+  normal_retire_rate_table = normal_retire_rate_table,
+  early_retire_rate_table = early_retire_rate_table,
+  separation_rate_table = separation_rate_table
+)
+
+# Function to get table dimensions and numeric variable ranges
+summarize_table <- function(df, table_name) {
+  num_rows <- nrow(df)
+  num_cols <- ncol(df)
+  numeric_cols <- df %>% select(where(is.numeric)) 
+  num_ranges <- map_df(numeric_cols, ~ data.frame(
+    min = min(.x, na.rm = TRUE),
+    max = max(.x, na.rm = TRUE)
+  ), .id = "variable")
+  summary_df <- tibble(
+    table = table_name,
+    num_rows = num_rows,
+    num_cols = num_cols
+  ) %>%
+    bind_cols(num_ranges)
+  return(summary_df)
+}
+
+# Apply function to all tables and combine results
+table_summaries <- map2_df(tables_list, names(tables_list), summarize_table)
+
+# Print the results
+table_summaries %>%
+  gt() %>%
+  fmt_number(
+    columns = c(min, max),
+    decimals = 0,  # Default to two decimal places
+    use_seps = FALSE
+  ) %>%
+  fmt_number(
+    columns = c(num_rows),
+    decimals = 0,  # Default to two decimal places
+    use_seps = TRUE
+  ) 
+
+
+# summarize dimensions ----------------------------------------------------
+summarize_dimensions <- function(df, table_name) {
+  df %>%
+    summarize(
+      table = table_name,
+      unique_employee_class = if ("employee_class" %in% colnames(df)) n_distinct(employee_class, na.rm = TRUE) else NA,
+      unique_age = if ("age" %in% colnames(df)) n_distinct(age, na.rm = TRUE) else NA,
+      unique_yos = if ("yos" %in% colnames(df)) n_distinct(yos, na.rm = TRUE) else NA,
+      unique_entry_year = if ("entry_year" %in% colnames(df)) n_distinct(entry_year, na.rm = TRUE) else NA,
+      unique_entry_age = if ("entry_age" %in% colnames(df)) n_distinct(entry_age, na.rm = TRUE) else NA,
+      unique_dist_year = if ("dist_year" %in% colnames(df)) n_distinct(dist_year, na.rm = TRUE) else NA,
+      unique_dist_age = if ("dist_age" %in% colnames(df)) n_distinct(dist_age, na.rm = TRUE) else NA,
+      unique_term_year = if ("term_year" %in% colnames(df)) n_distinct(term_year, na.rm = TRUE) else NA,
+      unique_base_age = if ("base_age" %in% colnames(df)) n_distinct(base_age, na.rm = TRUE) else NA,
+      unique_year = if ("year" %in% colnames(df)) n_distinct(year, na.rm = TRUE) else NA,
+      unique_term_age = if ("term_age" %in% colnames(df)) n_distinct(term_age, na.rm = TRUE) else NA,
+      num_rows = n()
+    )
+}
+
+# Apply function to all tables and combine results
+dimensions_summary <- map2_df(tables_list, names(tables_list), summarize_dimensions)
+
+# Display results using gt()
+dimensions_table <- dimensions_summary %>%
+  mutate(
+    product_all_dims = apply(select(., starts_with("unique_")), 1, function(x) prod(x, na.rm = TRUE))) %>%
+  gt() %>%
+  cols_label(
+    table = "Table Name",
+    unique_employee_class = "Employee Classes",
+    unique_age = "Age Values",
+    unique_yos = "YOS Values",
+    unique_entry_year = "Entry Years",
+    unique_entry_age = "Entry Ages",
+    unique_dist_year = "Distribution Years",
+    unique_dist_age = "Distribution Ages",
+    unique_term_year = "Termination Years",
+    unique_base_age = "Base Ages",
+    unique_year = "Years",
+    unique_term_age = "Termination Ages",
+    num_rows = "Total Rows"
+  ) %>%
+  sub_missing(columns = everything(), missing_text = "") %>%
+  fmt_number(
+    columns = c(product_all_dims),
+    decimals = 0,  # Default to two decimal places
+    use_seps = TRUE
+  ) 
+
+dimensions_table
