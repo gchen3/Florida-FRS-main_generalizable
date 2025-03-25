@@ -12,6 +12,8 @@ library(openxlsx)
 library(janitor)
 library(rio)
 library(parallel)
+library(janitor)
+library(gt)
 
 # boyd additions to libraries
 library(purrr)
@@ -90,7 +92,7 @@ ns(params)
 
 # Get benefit model environment -----------------------------------------------
 print("sourcing FRS_benefit_model_helper_functions.R and FRS_benefit_model_get_benefit_data_function.R...")
-bm_env <- new.env()
+bm_env <- frs_data_env
 source(fs::path(rdir, "FRS_benefit_model_helper_functions.R"), local = bm_env) # only creates functions - no live code, puts them into the bm_env environment
 source(fs::path(rdir, "FRS_benefit_model_get_benefit_data_function.R"), local = bm_env) # only creates functions - no live code, also into the bm_env environment
 save(bm_env, file = fs::path(wddir, "bm_env.RData"))
