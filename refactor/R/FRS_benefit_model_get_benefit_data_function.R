@@ -338,18 +338,18 @@ get_salary_benefit_table <- function(class_name,
     mutate(
       term_age = entry_age + yos,
       # term_year = entry_year + yos,
-      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, params$new_year_)
+      age = entry_age + yos,
+      # tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, params$new_year_)
     ) %>% 
+    left_join(tier_table %>% filter(class == class_name)  ####|> filter(class == class_name) is just temporary
+              , by = c("yos", "entry_year", "age")) %>%
+    mutate(tier_at_term_age = tier) %>%
     filter(term_age <= params$max_age_) %>% 
     arrange(entry_year, entry_age, yos) %>% 
     left_join(entrant_profile_table, by = "entry_age") %>% 
-    left_join(class_salary_growth_table # |> filter(class == class_name)  ####|> filter(class == class_name) is just temporary
+    left_join(class_salary_growth_table %>% filter(class == class_name)  ####|> filter(class == class_name) is just temporary
       , by = "yos"
-<<<<<<< HEAD
     ) %>%
-=======
-    ) 
->>>>>>> origin/try-stacked-data
     #Join salary_head_count_table by entry_year and entry_age only to get historical entry_salary
     left_join(salary_headcount_table %>% select(entry_year, entry_age, entry_salary), 
               by = c("entry_year", "entry_age")) %>%
@@ -387,8 +387,8 @@ get_benefit_data <- function(
     params
 ) {
   
-  class_salary_growth_table <- get_class_salary_growth_table(class_name, params$salary_growth_table_)
-  # class_salary_growth_table <- params$salary_growth_table   #Used the stacked table
+  # class_salary_growth_table <- get_class_salary_growth_table(class_name, params$salary_growth_table_)
+  class_salary_growth_table <- benefit_model_data_env$salary_growth_table   #Used the stacked table
   
   salary_benefit_table <- get_salary_benefit_table(class_name,
                                                    entrant_profile_table,

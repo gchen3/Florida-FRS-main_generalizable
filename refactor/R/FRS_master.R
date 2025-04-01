@@ -17,7 +17,7 @@ library(gt)
 
 # boyd additions to libraries
 library(purrr)
-#devtools::install_github("donboyd5/btools")
+# devtools::install_github("donboyd5/btools")
 library(btools) # ns, ht
 
 # load pension-specific libraries

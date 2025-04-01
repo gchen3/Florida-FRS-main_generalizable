@@ -47,7 +47,7 @@ wfm_env$get_wf_data(class_name = "judges",
             separation_rate_table = benefit_model_data_env$judges_separation_rate_table,
             params = params)
 
-wfm_env$get_wf_data(class_name = "senior_management", 
+wfm_env$get_wf_data(class_name = "senior_management",
             entrant_profile_table = benefit_model_data_env$senior_management_entrant_profile_table,
             salary_headcount_table = benefit_model_data_env$senior_management_salary_headcount_table,
             mort_table = benefit_model_data_env$senior_management_mort_table,
