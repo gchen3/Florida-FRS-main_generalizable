@@ -345,7 +345,11 @@ get_salary_benefit_table <- function(class_name,
     left_join(entrant_profile_table, by = "entry_age") %>% 
     left_join(class_salary_growth_table # |> filter(class == class_name)  ####|> filter(class == class_name) is just temporary
       , by = "yos"
+<<<<<<< HEAD
     ) %>%
+=======
+    ) 
+>>>>>>> origin/try-stacked-data
     #Join salary_head_count_table by entry_year and entry_age only to get historical entry_salary
     left_join(salary_headcount_table %>% select(entry_year, entry_age, entry_salary), 
               by = c("entry_year", "entry_age")) %>%
