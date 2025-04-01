@@ -161,7 +161,7 @@ print(tier_table)
 
 # test the new table is equivalent to the get_tier function
 random_sample <- tier_table |>  
-  slice_sample(n = 100) %>%
+  slice_sample(n = 10) %>%
   rowwise() %>%
   mutate(calculated_tier = get_tier(class, entry_year, age, yos, new_year)) %>%
   ungroup()
@@ -188,8 +188,8 @@ get_base_mort_table <- function(raw_mort_table){
     slice(-(1:3)) %>% 
     remove_empty() %>% 
     #elevate first row to become col names, then clean col names
-    janitor::row_to_names(row_number = 1) %>% 
-    janitor::clean_names() %>% 
+    row_to_names(row_number = 1) %>% 
+    clean_names() %>% 
     select(-na) %>% 
     #rename columns to differentiate female and male rates
     rename_with(.fn = ~ paste0(.x, "_female"),

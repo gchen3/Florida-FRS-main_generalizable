@@ -104,7 +104,7 @@ save(bm_env, file = fs::path(wddir, "bm_env.RData"))
 print("sourcing FRS_benefit_model_actions.R...") 
 
 if(BENEFIT_RUN){
-  benefit_model_data_env <- new.env()
+  benefit_model_data_env <- bm_env
   # uses: bm_env and params
   source(fs::path(rdir, "FRS_benefit_model_actions.R"), local = benefit_model_data_env)
   save(benefit_model_data_env, file = fs::path(wddir, "benefit_model_data_env.RData"))

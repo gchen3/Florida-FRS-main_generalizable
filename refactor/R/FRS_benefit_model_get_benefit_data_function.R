@@ -233,11 +233,23 @@ get_benefit_val_table <- function(
     mutate(
       #note that the tier below applies at termination age only
       dr = if_else(str_detect(tier_at_term_age, "tier_3"), params$dr_new_, params$dr_current_),
-      sep_type = get_sep_type(tier_at_term_age),
-      ben_decision = if_else(yos == 0, 
-                             NA, 
-                             if_else(sep_type == "retire", "retire",
-                                     if_else(sep_type == "vested", "mix", "refund"))),
+      # sep_type = get_sep_type(tier_at_term_age),
+      # ben_decision = if_else(yos == 0, 
+      #                        NA, 
+      #                        if_else(sep_type == "retire", "retire",
+      #                                if_else(sep_type == "vested", "mix", "refund"))),
+      sep_type = case_when(
+        str_detect(tier_at_term_age, "early|norm|reduced") ~ "retire",
+        str_detect(tier_at_term_age, "non_vested") ~ "non_vested",
+        str_detect(tier_at_term_age, "vested") & !str_detect(tier_at_term_age, "non_vested") ~ "vested",
+        TRUE ~ NA
+      ),
+      ben_decision = case_when(
+        yos == 0 ~ NA,
+        sep_type == "retire" ~ "retire",
+        sep_type == "vested" ~ "mix",
+        TRUE ~ "refund"
+      ),
       pvfb_db_wealth_at_term_age = case_when(
         sep_type == "retire" ~ pvfb_db_at_term_age,
         sep_type == "vested" ~ (params$retire_refund_ratio_ * pvfb_db_at_term_age + (1 - params$retire_refund_ratio_) * db_ee_balance),
@@ -331,7 +343,9 @@ get_salary_benefit_table <- function(class_name,
     filter(term_age <= params$max_age_) %>% 
     arrange(entry_year, entry_age, yos) %>% 
     left_join(entrant_profile_table, by = "entry_age") %>% 
-    left_join(class_salary_growth_table, by = "yos") %>% 
+    left_join(class_salary_growth_table # |> filter(class == class_name)  ####|> filter(class == class_name) is just temporary
+      , by = "yos"
+    ) 
     #Join salary_head_count_table by entry_year and entry_age only to get historical entry_salary
     left_join(salary_headcount_table %>% select(entry_year, entry_age, entry_salary), 
               by = c("entry_year", "entry_age")) %>%
@@ -370,6 +384,7 @@ get_benefit_data <- function(
 ) {
   
   class_salary_growth_table <- get_class_salary_growth_table(class_name, params$salary_growth_table_)
+  # class_salary_growth_table <- params$salary_growth_table   #Used the stacked table
   
   salary_benefit_table <- get_salary_benefit_table(class_name,
                                                    entrant_profile_table,
