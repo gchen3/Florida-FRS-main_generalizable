@@ -542,7 +542,31 @@ separation_rate_table <- map2_df(
   ~ .x %>% mutate(employee_class = .y)
 )
 
-# 8) list all the tables
+# 8) Salary growth rate table -------------------------------------
+
+salary_growth_table <- salary_growth_table_original_ %>%
+  bind_rows(tibble(yos = (max(salary_growth_table_original_$yos) + 1):max(yos_range_))) %>%
+  fill(everything(), .direction = "down") %>%
+  mutate(
+    across(contains("salary"), ~ cumprod(1 + lag(.x, default = 0)), .names = "cumprod_{.col}"),
+    .keep = "unused"
+  ) %>%
+  pivot_longer(
+    cols = contains("cumprod"),
+    names_to = "class",
+    names_prefix = "cumprod_salary_increase_",
+    values_to = "cumprod_salary_increase"
+  ) %>%
+  mutate(
+    class = case_when(
+      class == "special_risk" ~ "special",
+      TRUE ~ class
+    )
+  )
+
+class_salary_growth_table <- salary_growth_table   #temporary for now
+
+# 9) list all the tables
 # List of all tables to analyze
 tables_list <- list(
   salary_headcount_table = salary_headcount_table,
@@ -551,7 +575,8 @@ tables_list <- list(
   mort_retire_table = mort_retire_table,
   normal_retire_rate_table = normal_retire_rate_table,
   early_retire_rate_table = early_retire_rate_table,
-  separation_rate_table = separation_rate_table
+  separation_rate_table = separation_rate_table,
+  salary_growth_table = salary_growth_table
 )
 
 # Function to get table dimensions and numeric variable ranges
