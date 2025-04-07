@@ -108,7 +108,7 @@ get_tier <- function(class_name, entry_year, age, yos, new_year){
 
 
 # Create tier table -------------------------------------------------------
-unique_classes <- unique(salary_table_$employee_class)
+unique_classes <- c("regular", "special", "admin", "eco", "eso", "judges", "senior_management")
 model_period_ <- 30     #Projection period (typically 30 years)
 min_age_ <- 18          #Age of the typical youngest member
 max_age_ <- 120         #Max age from mortality assumptions
