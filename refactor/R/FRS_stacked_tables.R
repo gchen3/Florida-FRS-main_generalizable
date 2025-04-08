@@ -1,7 +1,7 @@
 # Stacked salary and count tables -----------------------------------------
 
 
-# 1. Salary and headcount ----------------------------------------------------
+# 1).Salary and headcount ----------------------------------------------------
 
 salary_list <- list(
   regular = regular_salary_table_,
@@ -45,8 +45,23 @@ headcount_table_ <- map2_df(headcount_list,
   ) %>%
   mutate(yos = as.numeric(yos))
 
+salary_headcount_list <- list(
+  regular            = regular_salary_headcount_table,
+  special            = special_salary_headcount_table,
+  admin              = admin_salary_headcount_table,
+  eco                = eco_salary_headcount_table,
+  eso                = eso_salary_headcount_table,
+  judges             = judges_salary_headcount_table,
+  senior_management  = senior_management_salary_headcount_table
+)
 
-# 2. Separation tables ------------------------------------
+salary_headcount_table <- map2_df(
+  salary_headcount_list,
+  names(salary_headcount_list),
+  ~ .x %>% mutate(employee_class = .y)
+)
+
+# 2).Separation tables ------------------------------------
 
 male_list <- list(
   regular = regular_term_rate_male_table_,
@@ -100,25 +115,20 @@ term_rate_age <- term_rate_ %>%
   )) %>%
   unnest(age)  # Expand age ranges into individual rows
 
-
-# 1) Salary & Headcount ----------------------------------------
-salary_headcount_list <- list(
-  regular            = regular_salary_headcount_table,
-  special            = special_salary_headcount_table,
-  admin              = admin_salary_headcount_table,
-  eco                = eco_salary_headcount_table,
-  eso                = eso_salary_headcount_table,
-  judges             = judges_salary_headcount_table,
-  senior_management  = senior_management_salary_headcount_table
+mort_list <- list(
+  regular            = regular_mort_table,
+  special            = special_mort_table,
+  admin              = admin_mort_table,
+  eco                = eco_mort_table,
+  eso                = eso_mort_table,
+  judges             = judges_mort_table,
+  senior_management  = senior_management_mort_table
 )
 
-salary_headcount_table <- map2_df(
-  salary_headcount_list,
-  names(salary_headcount_list),
-  ~ .x %>% mutate(employee_class = .y)
-)
+mort_table <- map2_df(mort_list, names(mort_list), ~ .x %>% mutate(employee_class = .y))
 
-# 2) Entrant Profile -------------------------------------------
+
+# 3) Entrant Profile -------------------------------------------
 entrant_profile_list <- list(
   regular            = regular_entrant_profile_table,
   special            = special_entrant_profile_table,
@@ -134,20 +144,6 @@ entrant_profile_table <- map2_df(
   names(entrant_profile_list),
   ~ .x %>% mutate(employee_class = .y)
 )
-
-
-# 3) Mortality Tables (Active) ----------------------------------
-mort_list <- list(
-  regular            = regular_mort_table,
-  special            = special_mort_table,
-  admin              = admin_mort_table,
-  eco                = eco_mort_table,
-  eso                = eso_mort_table,
-  judges             = judges_mort_table,
-  senior_management  = senior_management_mort_table
-)
-
-mort_table <- map2_df(mort_list, names(mort_list), ~ .x %>% mutate(employee_class = .y))
 
 
 # 4) Mortality Tables (Retirees) --------------------------------
