@@ -2,7 +2,7 @@
 
 get_salary_headcount_table <- function(class_name,
                                        params)
-  {
+{
   
   # djb TEMPORARY until we have stacked data: get params values for the class
   salary_table <- params[[paste0(class_name, "_salary_table_")]]
@@ -10,7 +10,7 @@ get_salary_headcount_table <- function(class_name,
   
   # salary_table <- salary_table_
   # headcount_table <- headcount_table_
-
+  
   # if (class_name %in% c("eco", "eso", "judges")) {
   #   total_active_member <- params$eco_eso_judges_total_active_member_
   # } else {
@@ -22,8 +22,8 @@ get_salary_headcount_table <- function(class_name,
   } else {
     total_active_member <- params[[paste0(class_name, "_total_active_member_")]]
   }
-
-  salary_growth_table <- params$salary_growth_table_ %>% # one table for all classes
+  
+  salary_growth_table <- params$salary_growth_table_original_ %>% # one table for all classes
     select(yos, contains(class_name)) %>% 
     rename(cumprod_salary_increase = 2)
   
@@ -63,7 +63,7 @@ get_salary_headcount_table <- function(class_name,
   output <- list(
     salary_headcount_table = salary_headcount_table, 
     entrant_profile = entrant_profile)
-    
+  
   return(output)
 }
 
@@ -78,31 +78,31 @@ get_salary_headcount_table <- function(class_name,
 
 get_tier <- function(class_name, entry_year, age, yos, new_year){
   tier = if_else(entry_year < 2011,
-                     case_when(
-                       class_name %in% c("special", "admin") & (yos >= 25 | (age >= 55 & yos >= 6) | (age >= 52 & yos >= 25)) ~ "tier_1_norm",
-                       yos >= 30 | (age >= 62 & yos >= 6) ~ "tier_1_norm",
-                       class_name %in% c("special", "admin") & (yos >= 6 & age >= 53) ~ "tier_1_early",
-                       (yos >= 6 & age >= 58) ~ "tier_1_early",
-                       yos >= 6 ~ "tier_1_vested",
-                       .default = "tier_1_non_vested"
-                     ),
-                     if_else(entry_year < new_year,
-                             case_when(
-                               class_name %in% c("special", "admin") & (yos >= 30 | (age >= 60 & yos >= 8)) ~ "tier_2_norm",
-                               yos >= 33 | (age >= 65 & yos >= 8) ~ "tier_2_norm",
-                               class_name %in% c("special", "admin") & (yos >= 8 & age >= 56) ~ "tier_2_early",
-                               (yos >= 8 & age >= 61) ~ "tier_2_early",
-                               yos >= 8 ~ "tier_2_vested",
-                               .default = "tier_2_non_vested"
-                             ),
-                             case_when(
-                               class_name %in% c("special", "admin") & (yos >= 30 | (age >= 60 & yos >= 8)) ~ "tier_3_norm",
-                               yos >= 33 | (age >= 65 & yos >= 8) ~ "tier_3_norm",
-                               class_name %in% c("special", "admin") & (yos >= 8 & age >= 56) ~ "tier_3_early",
-                               (yos >= 8 & age >= 61) ~ "tier_3_early",
-                               yos >= 8 ~ "tier_3_vested",
-                               .default = "tier_3_non_vested"
-                             )))
+                 case_when(
+                   class_name %in% c("special", "admin") & (yos >= 25 | (age >= 55 & yos >= 6) | (age >= 52 & yos >= 25)) ~ "tier_1_norm",
+                   yos >= 30 | (age >= 62 & yos >= 6) ~ "tier_1_norm",
+                   class_name %in% c("special", "admin") & (yos >= 6 & age >= 53) ~ "tier_1_early",
+                   (yos >= 6 & age >= 58) ~ "tier_1_early",
+                   yos >= 6 ~ "tier_1_vested",
+                   .default = "tier_1_non_vested"
+                 ),
+                 if_else(entry_year < new_year,
+                         case_when(
+                           class_name %in% c("special", "admin") & (yos >= 30 | (age >= 60 & yos >= 8)) ~ "tier_2_norm",
+                           yos >= 33 | (age >= 65 & yos >= 8) ~ "tier_2_norm",
+                           class_name %in% c("special", "admin") & (yos >= 8 & age >= 56) ~ "tier_2_early",
+                           (yos >= 8 & age >= 61) ~ "tier_2_early",
+                           yos >= 8 ~ "tier_2_vested",
+                           .default = "tier_2_non_vested"
+                         ),
+                         case_when(
+                           class_name %in% c("special", "admin") & (yos >= 30 | (age >= 60 & yos >= 8)) ~ "tier_3_norm",
+                           yos >= 33 | (age >= 65 & yos >= 8) ~ "tier_3_norm",
+                           class_name %in% c("special", "admin") & (yos >= 8 & age >= 56) ~ "tier_3_early",
+                           (yos >= 8 & age >= 61) ~ "tier_3_early",
+                           yos >= 8 ~ "tier_3_vested",
+                           .default = "tier_3_non_vested"
+                         )))
   return(tier)
 }
 
@@ -230,7 +230,7 @@ clean_mp_table <- function(raw_mp_table, extend_2_yrs = FALSE){
       add_row(age=18, .before = 1) %>% 
       fill(everything(), .direction = "up")
   }
-
+  
   return(mp_table)
 }
 
@@ -283,7 +283,7 @@ get_mort_table <- function(class_name,
     mutate(
       term_year = entry_year + yos,
       dist_year = entry_year + dist_age - entry_age
-      )  %>% 
+    )  %>% 
     filter(term_year <= dist_year) %>% 
     arrange(entry_year, entry_age, yos, dist_age) %>% 
     left_join(base_mort_table, by = c("dist_age" = "age")) %>% 
@@ -299,7 +299,7 @@ get_mort_table <- function(class_name,
                             healthy_retiree_female) * female_mp_cumprod_adj,
       
       mort_final = (male_mort + female_mort)/2
-      ) %>% 
+    ) %>% 
     #filter out the necessary variables
     select(entry_year, entry_age, dist_year, dist_age, yos, term_year, mort_final, tier_at_dist_age)
   
@@ -360,7 +360,7 @@ clean_retire_rate_table <- function(df, col_names){
   return(df)
 }
 
-  
+
 get_normal_retire_rate_table <- function(class_name, drop_entry_table, normal_retire_rate_table){
   
   if (class_name %in% c("eco", "eso", "judge")) {
@@ -437,7 +437,7 @@ get_separation_table <- function(class_name,
   early_retire_rate_tier_2_table <- early_retire_rate_tier_2_table_list[[paste0(class_name, "_early_retire_rate_tier_2_table")]]
   
   # end of initialization ---
-    
+  
   term_rate_table <- ((term_rate_male_table + term_rate_female_table) / 2) %>% 
     add_row(yos = (max(term_rate_male_table$yos) + 1):max(params$yos_range_)) %>% 
     fill(everything(), .direction="down")
@@ -448,13 +448,13 @@ get_separation_table <- function(class_name,
   long_term_rate_table <- pivot_longer(term_rate_table, cols = -yos, names_to = "age_group", values_to = "term_rate")
   
   separation_rate_table <- expand_grid(entry_year = params$entry_year_range_,
-                                term_age = params$age_range_, 
-                                yos = params$yos_range_) %>% 
+                                       term_age = params$age_range_, 
+                                       yos = params$yos_range_) %>% 
     mutate(
       entry_age = term_age  - yos,
       term_year = entry_year + yos,
       age_group = cut(term_age, breaks, labels)
-      ) %>% 
+    ) %>% 
     filter(entry_age %in% entrant_profile_table$entry_age) %>% 
     arrange(entry_year, entry_age, term_age) %>% 
     left_join(long_term_rate_table,

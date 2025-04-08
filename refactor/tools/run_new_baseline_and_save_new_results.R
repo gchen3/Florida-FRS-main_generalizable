@@ -15,7 +15,7 @@ rm(list = ls())
 # MANUALLY RESET AND CLEAR ENVIRONMENT WITH Ctrl-Shift-F10 !!!!!
 # Then source this file (or run line by line)
 
-system.time(source(here::here("refactor", "R", "FRS_master.R"))) # 3 mins load and build the full FRS Florida model
+system.time(source(here::here("refactor", "R", "FRS_master_GC.R"))) # 3 mins load and build the full FRS Florida model
 
 # generate baseline results
 system.time(baseline_funding <- fm_env$get_funding_data(

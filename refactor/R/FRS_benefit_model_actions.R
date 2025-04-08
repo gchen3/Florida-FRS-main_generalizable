@@ -544,8 +544,8 @@ separation_rate_table <- map2_df(
 
 # 8) Salary growth rate table -------------------------------------
 
-salary_growth_table <- salary_growth_table_original_ %>%
-  bind_rows(tibble(yos = (max(salary_growth_table_original_$yos) + 1):max(yos_range_))) %>%
+salary_growth_table <- params$salary_growth_table_original_ %>%
+  bind_rows(tibble(yos = (max(params$salary_growth_table_original_$yos) + 1):max(params$yos_range_))) %>%
   fill(everything(), .direction = "down") %>%
   mutate(
     across(contains("salary"), ~ cumprod(1 + lag(.x, default = 0)), .names = "cumprod_{.col}"),
