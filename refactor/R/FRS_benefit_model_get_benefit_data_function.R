@@ -338,7 +338,7 @@ get_salary_benefit_table <- function(class_name,
     mutate(
       term_age = entry_age + yos,
       # term_year = entry_year + yos,
-      tier_at_term_age = frs_data_env$get_tier(class_name, entry_year, term_age, yos, params$new_year_)
+      tier_at_term_age = get_tier(class_name, entry_year, term_age, yos, params$new_year_)
     ) %>% 
     filter(term_age <= params$max_age_) %>% 
     arrange(entry_year, entry_age, yos) %>% 
