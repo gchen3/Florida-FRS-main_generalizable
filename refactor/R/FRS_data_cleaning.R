@@ -187,6 +187,15 @@ senior_management_total_active_member_ <- 7610
 eco_eso_judges_active_member_adjustment_ratio <- eco_eso_judges_total_active_member_ / sum(eco_headcount_table_[-1] + eso_headcount_table_[-1] +judges_headcount_table_[-1])
 
 #.. call get_salary_headcount_table -----------------------------------------
+# GC: Temporarily create cumulative salary growth table from original
+frs_data_env$salary_growth_table_ <- frs_data_env$salary_growth_table_original_ %>%
+  bind_rows(tibble(yos = (max(frs_data_env$salary_growth_table_original_$yos) + 1):max(frs_data_env$yos_range_))) %>%
+  fill(everything(), .direction = "down") %>%
+  mutate(
+    across(contains("salary"), ~ cumprod(1 + lag(.x, default = 0)), .names = "cumprod_{.col}"),
+    .keep = "unused"
+  )
+# End: Temporary fix to salary growth table
 
 print("get salary_headcount and entrant_profile tables")
 temp <- frs_data_env$get_salary_headcount_table("regular", frs_data_env)

@@ -23,7 +23,7 @@ get_salary_headcount_table <- function(class_name,
     total_active_member <- params[[paste0(class_name, "_total_active_member_")]]
   }
   
-  salary_growth_table <- params$salary_growth_table_original_ %>% # one table for all classes
+  salary_growth_table <- params$salary_growth_table_ %>% # one table for all classes
     select(yos, contains(class_name)) %>% 
     rename(cumprod_salary_increase = 2)
   
