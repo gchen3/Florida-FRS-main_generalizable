@@ -250,20 +250,49 @@ get_reduce_factor <- function(tier, class_name, dist_age) {
 get_cola <- function(tier, yos, entry_year, params) {
   yos_b4_2011 <- pmin(pmax(2011 - entry_year, 0), yos)
   
-  out <- rep(0, length(tier))
+  is_tier_1 <- tier %in% c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm")
+  is_tier_2 <- tier %in% c("tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm")
+  is_tier_3 <- tier %in% c("tier_3_non_vested", "tier_3_vested", "tier_3_early", "tier_3_norm")
   
-  is_t1 <- str_detect(tier, "tier_1")
-  if (!is.null(params$cola_tier_1_active_constant_) && params$cola_tier_1_active_constant_ == "no") {
-    out[is_t1] <- ifelse(yos[is_t1] > 0, params$cola_tier_1_active_ * yos_b4_2011[is_t1] / yos[is_t1], 0)
-  } else {
-    out[is_t1] <- params$cola_tier_1_active_
-  }
-  
-  out[str_detect(tier, "tier_2")] <- params$cola_tier_2_active_
-  out[str_detect(tier, "tier_3")] <- params$cola_tier_3_active_
-  
-  return(out)
+  case_when(
+    is_tier_1 & params$cola_tier_1_active_constant_ == "no" ~ if_else(yos > 0, params$cola_tier_1_active_ * yos_b4_2011 / yos, 0),
+    is_tier_1 & params$cola_tier_1_active_constant_ == "yes" ~ params$cola_tier_1_active_,
+    is_tier_2 ~ params$cola_tier_2_active_,
+    is_tier_3 ~ params$cola_tier_3_active_,
+    TRUE ~ NA_real_
+  )
 }
+
+## Test
+# cola_lookup <- expand.grid(
+#   tier_at_dist_age = c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm",
+#                        "tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm",
+#                        "tier_3_non_vested", "tier_3_vested", "tier_3_early", "tier_3_norm"),
+#   yos = frs_data_env$yos_range_,
+#   entry_year = frs_data_env$year_range_) %>%
+#   mutate(yos_b4_2011 = pmin(pmax(2011 - entry_year, 0), yos)) %>%
+#   mutate(cola = get_cola(tier = tier_at_dist_age,
+#                              yos = yos,
+#                              entry_year = entry_year,
+#                              params = params),
+#         cola_2 = case_when(
+#            str_detect(tier_at_dist_age, "tier_1") & params$cola_tier_1_active_constant_ == "no" ~ 
+#              if_else(yos > 0, params$cola_tier_1_active_ * yos_b4_2011 / yos, 0),
+#            str_detect(tier_at_dist_age, "tier_1") & params$cola_tier_1_active_constant_ == "yes" ~ 
+#              params$cola_tier_1_active_,
+#            str_detect(tier_at_dist_age, "tier_2") ~ 
+#              params$cola_tier_2_active_,
+#            str_detect(tier_at_dist_age, "tier_3") ~ 
+#              params$cola_tier_3_active_)
+#          )
+# 
+# ## Compare
+# compare_cola <- cola_lookup %>%
+#   mutate(
+#     mismatch = (cola != cola_2) |
+#       xor(is.na(cola), is.na(cola_2))
+#   ) %>%
+#   filter(mismatch == TRUE)
 
 
 
