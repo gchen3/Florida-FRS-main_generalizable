@@ -193,23 +193,25 @@ get_benefit_table <- function(class_name,
       #                                    ), NA)
       #                    )
       # ))
-      
-      reduce_factor = if_else(str_detect(tier_at_dist_age, "norm"), 1,
-                              if_else(str_detect(tier_at_dist_age, "early"),
-                                      if_else(class_name == "special",
-                                              case_when(
-                                                str_detect(tier_at_dist_age, "tier_1") ~ (1 - 0.05*(55 - dist_age)),
-                                                str_detect(tier_at_dist_age, "tier_2") ~ (1 - 0.05*(60 - dist_age)),
-                                                str_detect(tier_at_dist_age, "tier_3") ~ (1 - 0.05*(60 - dist_age))
-                                              ),
-                                              case_when(
-                                                str_detect(tier_at_dist_age, "tier_1") ~ (1 - 0.05*(62 - dist_age)),
-                                                str_detect(tier_at_dist_age, "tier_2") ~ (1 - 0.05*(65 - dist_age)),
-                                                str_detect(tier_at_dist_age, "tier_3") ~ (1 - 0.05*(65 - dist_age))
-                                              )
-                                      ), NA
-                              )
-      ),
+      reduce_factor = frs_data_env$get_reduce_factor(tier = tier_at_dist_age,
+                                        class_name = class_name,
+                                        dist_age = dist_age),
+      # reduce_factor = if_else(str_detect(tier_at_dist_age, "norm"), 1,
+      #                         if_else(str_detect(tier_at_dist_age, "early"),
+      #                                 if_else(class_name == "special",
+      #                                         case_when(
+      #                                           str_detect(tier_at_dist_age, "tier_1") ~ (1 - 0.05*(55 - dist_age)),
+      #                                           str_detect(tier_at_dist_age, "tier_2") ~ (1 - 0.05*(60 - dist_age)),
+      #                                           str_detect(tier_at_dist_age, "tier_3") ~ (1 - 0.05*(60 - dist_age))
+      #                                         ),
+      #                                         case_when(
+      #                                           str_detect(tier_at_dist_age, "tier_1") ~ (1 - 0.05*(62 - dist_age)),
+      #                                           str_detect(tier_at_dist_age, "tier_2") ~ (1 - 0.05*(65 - dist_age)),
+      #                                           str_detect(tier_at_dist_age, "tier_3") ~ (1 - 0.05*(65 - dist_age))
+      #                                         )
+      #                                 ), NA
+      #                         )
+      # ),
       
       db_benefit = yos * ben_mult * fas * reduce_factor,
       

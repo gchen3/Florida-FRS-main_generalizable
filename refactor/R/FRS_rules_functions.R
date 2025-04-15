@@ -182,30 +182,68 @@ get_ben_mult <- function(tier, class_name, dist_age, dist_year, yos) {
 # Benefit reduction factor function ---------------------------------------
 
 get_reduce_factor <- function(tier, class_name, dist_age) {
-  if (str_detect(tier, "norm")) {
-    return(1)
-  }
+  # Define tier groups
+  tier_1 <- c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm")
+  tier_2 <- c("tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm")
+  tier_3 <- c("tier_3_non_vested", "tier_3_vested", "tier_3_early", "tier_3_norm")
+  tier_early <- c("tier_1_early", "tier_2_early", "tier_3_early")
+  tier_norm  <- c("tier_1_norm", "tier_2_norm", "tier_3_norm")
   
-  if (str_detect(tier, "early")) {
-    if (class_name == "special") {
-      return(case_when(
-        str_detect(tier, "tier_1") ~ (1 - 0.05 * (55 - dist_age)),
-        str_detect(tier, "tier_2") ~ (1 - 0.05 * (60 - dist_age)),
-        str_detect(tier, "tier_3") ~ (1 - 0.05 * (60 - dist_age)),
-        TRUE ~ NA_real_
-      ))
-    } else {
-      return(case_when(
-        str_detect(tier, "tier_1") ~ (1 - 0.05 * (62 - dist_age)),
-        str_detect(tier, "tier_2") ~ (1 - 0.05 * (65 - dist_age)),
-        str_detect(tier, "tier_3") ~ (1 - 0.05 * (65 - dist_age)),
-        TRUE ~ NA_real_
-      ))
-    }
-  }
-  
-  return(NA_real_)
+  case_when(
+    tier %in% tier_norm ~ 1,
+    
+    tier %in% tier_early & class_name == "special" ~ case_when(
+      tier %in% tier_1 ~ (1 - 0.05 * (55 - dist_age)),
+      tier %in% c(tier_2, tier_3) ~ (1 - 0.05 * (60 - dist_age)),
+      TRUE ~ NA
+    ),
+    
+    tier %in% tier_early & class_name != "special" ~ case_when(
+      tier %in% tier_1 ~ (1 - 0.05 * (62 - dist_age)),
+      tier %in% tier_2 ~ (1 - 0.05 * (65 - dist_age)),
+      tier %in% tier_3 ~ (1 - 0.05 * (65 - dist_age)),
+      TRUE ~ NA
+    ),
+    
+    TRUE ~ NA
+  )
 }
+
+## Test
+# reduce_factor_lookup <- expand.grid(
+#   tier_at_dist_age = c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm",
+#                        "tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm",
+#                        "tier_3_non_vested", "tier_3_vested", "tier_3_early", "tier_3_norm"),
+#   class_name = frs_data_env$class_names_no_drop_frs_,
+#   dist_age = frs_data_env$age_range_,
+#   yos = frs_data_env$yos_range_,
+#   dist_year = c(1973, 2022)) %>%
+#   mutate(reduce_factor = get_reduce_factor(tier = tier_at_dist_age,
+#                                                         class_name = class_name,
+#                                                         dist_age = dist_age),
+#          reduce_factor_reason = if_else(str_detect(tier_at_dist_age, "norm"), 1,
+#                                         if_else(str_detect(tier_at_dist_age, "early"),
+#                                                 if_else(class_name == "special",
+#                                                         case_when(
+#                                                           str_detect(tier_at_dist_age, "tier_1") ~ (1 - 0.05*(55 - dist_age)),
+#                                                           str_detect(tier_at_dist_age, "tier_2") ~ (1 - 0.05*(60 - dist_age)),
+#                                                           str_detect(tier_at_dist_age, "tier_3") ~ (1 - 0.05*(60 - dist_age))
+#                                                         ),
+#                                                         case_when(
+#                                                           str_detect(tier_at_dist_age, "tier_1") ~ (1 - 0.05*(62 - dist_age)),
+#                                                           str_detect(tier_at_dist_age, "tier_2") ~ (1 - 0.05*(65 - dist_age)),
+#                                                           str_detect(tier_at_dist_age, "tier_3") ~ (1 - 0.05*(65 - dist_age))
+#                                                         )
+#                                                 ), NA
+#                                         )
+#          ))
+# 
+# compare_reduce_factor <- reduce_factor_lookup %>%
+#   mutate(
+#     mismatch = (reduce_factor != reduce_factor_reason) |
+#       xor(is.na(reduce_factor), is.na(reduce_factor_reason))
+#   ) %>%
+#   filter(mismatch == TRUE)
 
 
 # Cost-of-living adjustment factor ----------------------------------------
@@ -226,6 +264,8 @@ get_cola <- function(tier, yos, entry_year, params) {
   
   return(out)
 }
+
+
 
 
 # Discount rate -----------------------------------------------------------
