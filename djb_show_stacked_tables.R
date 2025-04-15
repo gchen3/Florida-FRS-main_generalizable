@@ -1,6 +1,6 @@
 
 fde <- frs_data_env
-fde$salary_headcount_table
+fde$salary_headcount_table |> filter(employee_class=="regular") |>  arrange(entry_year, entry_age, age)
 fde$term_rate_age
 fde$mort_table
 fde$entrant_profile_table
