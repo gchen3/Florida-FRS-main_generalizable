@@ -64,7 +64,7 @@ save(frs_data_env, file = fs::path(wddir, "frs_data_env.RData"))
 load(fs::path(wddir, "modparm_data_env.RData"))
 load(fs::path(wddir, "frs_data_env.RData")) # this gets init_funding_data
 
-source(fs::path(rdir, "FRS_create_params_env.R")) 
+source(fs::path(rdir, "FRS_create_params_env_GC.R")) 
 params <- get_params(frs_data_env, modparm_data_env)
 ns(params)
 

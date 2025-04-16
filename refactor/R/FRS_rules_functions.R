@@ -74,6 +74,16 @@ get_ben_mult <- function(tier, class_name, dist_age, dist_year, yos) {
 }
 
 
+# ben_mult_lookup <- expand.grid(
+#   tier_at_dist_age = c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm",
+#            "tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm",
+#            "tier_3_non_vested", "tier_3_vested", "tier_3_early", "tier_3_norm"),
+#   class_name = frs_data_env$class_names_no_drop_frs_,
+#   dist_age = frs_data_env$age_range_,
+#   yos = frs_data_env$yos_range_,
+#   dist_year = frs_data_env$year_range_) 
+
+
 # # The first version of get_ben_mult was wrong because it didn't consider the difference in Admin class between tier 2 and tier 3 multipliers
 #  ben_mult_lookup <- expand.grid(
 #    tier_at_dist_age = c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm", 

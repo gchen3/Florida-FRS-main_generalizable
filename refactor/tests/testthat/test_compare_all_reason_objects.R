@@ -84,6 +84,11 @@ if (is_tibble(newws$baseline_funding)) {
   newws$baseline_funding <- get_baseline_funding_list(newws$baseline_funding, oldws$baseline_funding)
 }
 
+# GC: temp to set the salary growth table to the old one (unstacked)
+
+newws$salary_growth_table <- oldws$salary_growth_table ##Temp to set the salary growth table to the old one (unstacked)
+
+
 # select names ----
 reason_object_names <- ls(envir = oldws)
 newws_object_names <- ls(envir = newws)
