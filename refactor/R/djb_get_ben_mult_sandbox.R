@@ -200,9 +200,96 @@ rules <- read_csv(
 regular, tier_1, 0, Inf, 0, Inf, 33, Inf, .0168
 regular, tier_1, 65, Inf, 0, Inf, 6, 32, .0168
 
+regular, tier_1, 0, 64, 0, Inf, 32, 32, .0165
+regular, tier_1, 64, 64, 0, Inf, 6, 31, .0165
+
+regular, tier_1, 0, 63, 0, Inf, 31, 31, .0163
+regular, tier_1, 63, 63, 0, Inf, 6, 30, .0163
+
+regular, tier_1, 0, 62, 0, Inf, 30, 30, .0160
+regular, tier_1, 62, 62, 0, Inf, 6, 29, .0160
+
+regular, tier_1_early, 0, 61, 0, Inf, 0, Inf, .0160
+
+
+
+regular, tier_2, 0, Inf, 0, Inf, 36, Inf, .0168
+regular, tier_2, 68, Inf, 0, Inf, 8, 35, .0168
+
+regular, tier_2, 0, 67, 0, Inf, 35, 35, .0165
+regular, tier_2, 67, 67, 0, Inf, 8, 34, .0165
+
+regular, tier_2, 0, 66, 0, Inf, 34, 34, .0163
+regular, tier_2, 66, 66, 0, Inf, 8, 33, .0163
+
+regular, tier_2, 0, 65, 0, Inf, 33, 33, .0160
+regular, tier_2, 65, 65, 0, Inf, 8, 32, .0160
+
+regular, tier_2_early, 0, 64, 0, Inf, 0, Inf, .0160
+
+
+
+regular, tier_3, 0, Inf, 0, Inf, 36, Inf, .0168
+regular, tier_3, 68, Inf, 0, Inf, 8, 35, .0168
+
+regular, tier_3, 0, 67, 0, Inf, 35, 35, .0165
+regular, tier_3, 67, 67, 0, Inf, 8, 34, .0165
+
+regular, tier_3, 0, 66, 0, Inf, 34, 34, .0163
+regular, tier_3, 66, 66, 0, Inf, 8, 33, .0163
+
+regular, tier_3, 0, 65, 0, Inf, 33, 33, .0160
+regular, tier_3, 65, 65, 0, Inf, 8, 32, .0160
+
+regular, tier_3_early, 0, 64, 0, Inf, 0, Inf, .0160
+
+
 ")
 
 rules
+
+# dist_year_low, dist_year_high,
+regular_tier1 <- tribble(
+  ~tier_group, ~dist_age_low, ~dist_age_high, ~yos_low, ~yos_high, ~benmult,
+  "tier_1", 0, Inf, 33, Inf, .0168,
+  "tier_1", 65, Inf, 6, 32, .0168,
+  
+  "tier_1", 0, 64, 32, 32, .0165,
+  "tier_1", 64, 64, 6, 31, .0165,
+  
+  "tier_1", 0, 63, 31, 31, .0163,
+  "tier_1", 63, 63, 6, 30, .0163,
+  
+  "tier_1", 0, 62, 30, 30, .0160,
+  "tier_1", 62, 62, 6, 29, .0160,
+  
+  "tier_1_early", 0, 61, 0, Inf, .0160
+  ) |> 
+  mutate(class_name = "regular") |> 
+  select(class_name, tier_group, benmult, everything())
+regular_tier1
+
+eco_eso_judges_srmgt <- crossing(
+  class_name = c("eco", "eso", "judges", "senior_management"),
+  tier_group = c("tier_1", "tier_2", "tier_3",
+                 "tier_1_early", "tier_2_early", "tier_3_early")) |> 
+  mutate(benmult = case_when(
+    class_name %in% c("eco", "eso") ~ 0.03,
+    class_name == "judges" ~ 0.0333,
+    class_name == "senior_management" ~ 0.02,
+    .default = -Inf)) |> 
+  mutate(dist_age_low = 0, dist_age_high = Inf,
+         yos_low = 0, yos_high = Inf)
+count(eco_eso_judges_srmgt, class_name, benmult)
+
+
+rules <- bind_rows(
+  regular_tier1,
+  eco_eso_judges_srmgt,
+  tibble(dist_year_low = NA_real_)) |> 
+  mutate(dist_year_low = ifelse(is.na(dist_year_low), 0, dist_year_low)) |> 
+  filter(!is.na(class_name))
+
 
 djb2 <- djb1 |> 
   rename(benmult_true = benmult) |> 
@@ -225,10 +312,10 @@ check <- djb2 |>
 check |> 
   filter(benmult != benmult_true)
 
-dups1 <- djb1 |> 
-  mutate(n = n(), 
-         .by=c(class_name, tier_group, tier, dist_age, dist_year, yos))
-count(dups1, n)  
+# dups1 <- djb1 |> 
+#   mutate(n = n(), 
+#          .by=c(class_name, tier_group, tier, dist_age, dist_year, yos))
+# count(dups1, n)  
 
 
 dups2 <- djb2 |> 
@@ -244,7 +331,26 @@ dups2a <- dups2 |>
          starts_with("yos"),
          starts_with("benmult")) |> 
   arrange(class_name, tier_group, tier, dist_age, dist_year, yos)
+nrow(dups2a)
 
+
+summary(djb2)
+djb2 |> filter(benmult != benmult_true)
+
+tribble(
+  ~colA, ~colB,
+  "a",   1,
+  "b",   2,
+  "c",   3
+)
+
+tribble(
+  ~colA, ~colB,
+  "a",   1,
+  # comment
+  "b",   2,
+  "c",   3
+)
 
 
 result <- case_when(
