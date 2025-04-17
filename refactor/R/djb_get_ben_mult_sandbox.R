@@ -6,15 +6,19 @@
 # my goal is to develop a fast and easily modifiable way to do what get_ben_mult_GC does
 
 
-# analysis ----------------------------------------------------------------
+# libraries ----------------------------------------------------------------
 
 library(tidyverse)
 library(fs)
 library(btools)
+library(readxl)
 
-
-# Gang's get_ben_mult from FRS_rules_functions.R (I added _GC suffix) ----
+# Gang's get_ben_mult ----------------------------------------------------------------
+# Gang's get_ben_mult from FRS_rules_functions.R (I added _GC suffix)
 # note this is in frs_data_env ?? 
+# tier_2_vested regular          50      2052    32
+
+
 get_ben_mult_GC <- function(tier, class_name, dist_age, dist_year, yos) {
   tier_1 <- c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm")
   tier_2 <- c("tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm")
@@ -88,9 +92,27 @@ get_ben_mult_GC <- function(tier, class_name, dist_age, dist_year, yos) {
 }
 
 
-# get a data file ---------------------------------------------------------
+# get benefit table data ---------------------------------------------------------
 
-bentable <- readRDS(here::here("djb", "bentable_regular.rds"))
+classes <- c("admin", "eco", "eso", "judges", "regular", "special", "senior_management")
+f <- function(class){
+  fname <- paste0("bentable_", class, ".rds")
+  print(fname)
+  readRDS(here::here("djb", fname))
+}
+
+benstack <- purrr::map(classes, f) |> 
+  list_rbind()
+glimpse(benstack)
+count(benstack, class_name)
+
+
+
+# prep data ---------------------------------------------------------------
+
+bentable <- benstack |> 
+  filter(class_name == "regular")
+# bentable <- readRDS(here::here("djb", "bentable_regular.rds"))
 glimpse(bentable)
 
 df <- bentable |> 
@@ -102,7 +124,45 @@ df2 <- df |> distinct() # 456k records
 res <- df2 |> 
   mutate(benmult = get_ben_mult_GC(tier, class_name, dist_age, dist_year, yos))
 glimpse(res)  
-summary(res) # 115.8k are NA
+summary(res) # 205k are NA; none of the function inputs are NA -- did Reason have this, too?
+
+
+# why do we have benmult = na recs? ---------------------------------------
+
+narecs <- res |> filter(is.na(benmult)) |> select(-benmult)
+glimpse(narecs)
+summary(narecs)
+# max yos is 39
+ht(narecs)
+
+count(narecs, class_name) # only admin and regular classes; don't see other patterns yet
+count(narecs, class_name, tier)
+count(narecs, yos)
+count(narecs, dist_age)
+count(narecs, dist_year) |> tail()
+
+regna <- narecs |> filter(class_name == "regular")
+
+head(regna)
+
+tmp <- regna |> filter(yos==max(yos)) |> arrange(dist_age) # yos 32
+head(tmp) # why do these fall through the cracks? 
+# because we must have yos >= 33 or else dist_age >= 65
+# so why do we keep them in the data?
+# (dist_age >= 65 & yos >= 8) | yos >= 33 ~ 0.0160,
+# # A tibble: 6 × 5
+# tier          class_name dist_age dist_year   yos
+# <chr>         <chr>         <dbl>     <dbl> <dbl>
+# 1 tier_2_vested regular          50      2052    32
+# 2 tier_2_vested regular          50      2053    32
+# 3 tier_2_vested regular          50      2054    32
+# 4 tier_2_vested regular          50      2055    32
+# 5 tier_3_vested regular          50      2056    32
+# 6 tier_3_vested regular          50      2057    32
+
+
+
+# prepare data for alternative approach -----------------------------------
 
 res2 <- res |> 
   na.omit() # 340k recs
@@ -142,154 +202,13 @@ glimpse(djb1)
 # (dist_age >= 65 & yos >= 8) | yos >= 33 ~ 0.0160,
 # tier %in% tier_early ~ 0.0160, 
 
-# regular rules - note tier_early rule is same for all
-rules <- read_csv(
-"class_name, tier_group, dist_age_low, dist_age_high, dist_year_low, dist_year_high, yos_low, yos_high, benmult
 
-regular, tier_1, 0, Inf, 0, Inf, 33, Inf, .0168
-regular, tier_1, 65, Inf, 0, Inf, 6, Inf, .0168
+# use tribble to create rules ---------------------------------------------
+# dist_year_low, dist_year_high,
 
-regular, tier_1, 0, 64, 0, Inf, 32, 32, .0165
-regular, tier_1, 64, 64, 0, Inf, 6, 32, .0165
-
-regular, tier_1, 0, 63, 0, Inf, 31, 31, .0163
-regular, tier_1, 63, 63, 0, Inf, 6, 31, .0163
-
-regular, tier_1, 0, 62, 0, Inf, 30, 30, .0160
-regular, tier_1, 62, 62, 0, Inf, 6, 30, .0160
-
-regular, tier_1_early, 0, 61, 0, Inf, 0, 29, .0160
-
-
-
-regular, tier_2, 0, Inf, 0, Inf, 36, Inf, .0168
-regular, tier_2, 68, Inf, 0, Inf, 8, Inf, .0168
-
-regular, tier_2, 0, 67, 0, Inf, 35, 35, .0165
-regular, tier_2, 67, 67, 0, Inf, 8, 35, .0165
-
-regular, tier_2, 0, 66, 0, Inf, 34, 34, .0163
-regular, tier_2, 66, 66, 0, Inf, 8, 34, .0163
-
-regular, tier_2, 0, 65, 0, Inf, 33, 33, .0160
-regular, tier_2, 65, 65, 0, Inf, 8, 33, .0160
-
-regular, tier_2_early, 0, 64, 0, Inf, 0, 32, .0160
-
-
-
-regular, tier_3, 0, Inf, 0, Inf, 36, Inf, .0168
-regular, tier_3, 68, Inf, 0, Inf, 8, Inf, .0168
-
-regular, tier_3, 0, 67, 0, Inf, 35, 35, .0165
-regular, tier_3, 67, 67, 0, Inf, 8, 35, .0165
-
-regular, tier_3, 0, 66, 0, Inf, 34, 34, .0163
-regular, tier_3, 66, 66, 0, Inf, 8, 34, .0163
-
-regular, tier_3, 0, 65, 0, Inf, 33, 33, .0160
-regular, tier_3, 65, 65, 0, Inf, 8, 33, .0160
-
-regular, tier_3_early, 0, 64, 0, Inf, 0, 32, .0160
-
-")
-
-rules <- read_csv(
-  "class_name, tier_group, dist_age_low, dist_age_high, dist_year_low, dist_year_high, yos_low, yos_high, benmult
-
-regular, tier_1, 0, Inf, 0, Inf, 33, Inf, .0168
-regular, tier_1, 65, Inf, 0, Inf, 6, 32, .0168
-
-regular, tier_1, 0, 64, 0, Inf, 32, 32, .0165
-regular, tier_1, 64, 64, 0, Inf, 6, 31, .0165
-
-regular, tier_1, 0, 63, 0, Inf, 31, 31, .0163
-regular, tier_1, 63, 63, 0, Inf, 6, 30, .0163
-
-regular, tier_1, 0, 62, 0, Inf, 30, 30, .0160
-regular, tier_1, 62, 62, 0, Inf, 6, 29, .0160
-
-regular, tier_1_early, 0, 61, 0, Inf, 0, Inf, .0160
-
-
-
-regular, tier_2, 0, Inf, 0, Inf, 36, Inf, .0168
-regular, tier_2, 68, Inf, 0, Inf, 8, 35, .0168
-
-regular, tier_2, 0, 67, 0, Inf, 35, 35, .0165
-regular, tier_2, 67, 67, 0, Inf, 8, 34, .0165
-
-regular, tier_2, 0, 66, 0, Inf, 34, 34, .0163
-regular, tier_2, 66, 66, 0, Inf, 8, 33, .0163
-
-regular, tier_2, 0, 65, 0, Inf, 33, 33, .0160
-regular, tier_2, 65, 65, 0, Inf, 8, 32, .0160
-
-regular, tier_2_early, 0, 64, 0, Inf, 0, Inf, .0160
-
-
-
-regular, tier_3, 0, Inf, 0, Inf, 36, Inf, .0168
-regular, tier_3, 68, Inf, 0, Inf, 8, 35, .0168
-
-regular, tier_3, 0, 67, 0, Inf, 35, 35, .0165
-regular, tier_3, 67, 67, 0, Inf, 8, 34, .0165
-
-regular, tier_3, 0, 66, 0, Inf, 34, 34, .0163
-regular, tier_3, 66, 66, 0, Inf, 8, 33, .0163
-
-regular, tier_3, 0, 65, 0, Inf, 33, 33, .0160
-regular, tier_3, 65, 65, 0, Inf, 8, 32, .0160
-
-regular, tier_3_early, 0, 64, 0, Inf, 0, Inf, .0160
-
-
-")
+source(here::here("djb_benefit_rules.R"))
 
 rules
-
-# dist_year_low, dist_year_high,
-regular_tier1 <- tribble(
-  ~tier_group, ~dist_age_low, ~dist_age_high, ~yos_low, ~yos_high, ~benmult,
-  "tier_1", 0, Inf, 33, Inf, .0168,
-  "tier_1", 65, Inf, 6, 32, .0168,
-  
-  "tier_1", 0, 64, 32, 32, .0165,
-  "tier_1", 64, 64, 6, 31, .0165,
-  
-  "tier_1", 0, 63, 31, 31, .0163,
-  "tier_1", 63, 63, 6, 30, .0163,
-  
-  "tier_1", 0, 62, 30, 30, .0160,
-  "tier_1", 62, 62, 6, 29, .0160,
-  
-  "tier_1_early", 0, 61, 0, Inf, .0160
-  ) |> 
-  mutate(class_name = "regular") |> 
-  select(class_name, tier_group, benmult, everything())
-regular_tier1
-
-eco_eso_judges_srmgt <- crossing(
-  class_name = c("eco", "eso", "judges", "senior_management"),
-  tier_group = c("tier_1", "tier_2", "tier_3",
-                 "tier_1_early", "tier_2_early", "tier_3_early")) |> 
-  mutate(benmult = case_when(
-    class_name %in% c("eco", "eso") ~ 0.03,
-    class_name == "judges" ~ 0.0333,
-    class_name == "senior_management" ~ 0.02,
-    .default = -Inf)) |> 
-  mutate(dist_age_low = 0, dist_age_high = Inf,
-         yos_low = 0, yos_high = Inf)
-count(eco_eso_judges_srmgt, class_name, benmult)
-
-
-rules <- bind_rows(
-  regular_tier1,
-  eco_eso_judges_srmgt,
-  tibble(dist_year_low = NA_real_)) |> 
-  mutate(dist_year_low = ifelse(is.na(dist_year_low), 0, dist_year_low)) |> 
-  filter(!is.na(class_name))
-
 
 djb2 <- djb1 |> 
   rename(benmult_true = benmult) |> 
@@ -298,25 +217,20 @@ djb2 <- djb1 |>
                          
                          # inequalities
                          dist_age >= dist_age_low,
-                         dist_age <= dist_age_high,
-                         
-                         dist_year >= dist_year_low,
-                         dist_year <= dist_year_high,                         
+                         dist_age < dist_age_high,                         
                          
                          yos >= yos_low,
-                         yos <= yos_high))
+                         yos < yos_high,
+                         
+                         dist_year >= dist_year_low,
+                         dist_year < dist_year_high))
+summary(djb2)
 
 check <- djb2 |> 
   filter(!is.na(benmult))
 
 check |> 
   filter(benmult != benmult_true)
-
-# dups1 <- djb1 |> 
-#   mutate(n = n(), 
-#          .by=c(class_name, tier_group, tier, dist_age, dist_year, yos))
-# count(dups1, n)  
-
 
 dups2 <- djb2 |> 
   mutate(n = n(), 
@@ -334,44 +248,12 @@ dups2a <- dups2 |>
 nrow(dups2a)
 
 
-summary(djb2)
-djb2 |> filter(benmult != benmult_true)
-
-tribble(
-  ~colA, ~colB,
-  "a",   1,
-  "b",   2,
-  "c",   3
-)
-
-tribble(
-  ~colA, ~colB,
-  "a",   1,
-  # comment
-  "b",   2,
-  "c",   3
-)
+summary(djb2) # make sure we have no NA values
+djb2 |> filter(!is.na(benmult_true),
+               !is.na(benmult)) |> 
+  filter(benmult != benmult_true)
 
 
-result <- case_when(
-  # Tier 1: Regular
-  tier %in% tier_1 & class_name == "regular" ~ case_when(
-    (dist_age >= 65 & yos >= 6) | yos >= 33 ~ 0.0168,
-    (dist_age >= 64 & yos >= 6) | yos >= 32 ~ 0.0165,
-    (dist_age >= 63 & yos >= 6) | yos >= 31 ~ 0.0163,
-    (dist_age >= 62 & yos >= 6) | yos >= 30 ~ 0.0160,
-    tier %in% tier_early ~ 0.0160,
-    TRUE ~ NA
-  ),
-
-  tier %in% c(tier_2, tier_3) & class_name == "regular" ~ case_when(
-    (dist_age >= 68 & yos >= 8) | yos >= 36 ~ 0.0168,
-    (dist_age >= 67 & yos >= 8) | yos >= 35 ~ 0.0165,
-    (dist_age >= 66 & yos >= 8) | yos >= 34 ~ 0.0163,
-    (dist_age >= 65 & yos >= 8) | yos >= 33 ~ 0.0160,
-    tier %in% tier_early ~ 0.0160,
-    TRUE ~ NA
-  ),
 
 
 # Gang's call to get_ben_mult in ----
