@@ -106,28 +106,77 @@ benstack <- purrr::map(classes, f) |>
 glimpse(benstack)
 count(benstack, class_name)
 
+tier_1 <- c("tier_1_non_vested", "tier_1_vested", "tier_1_norm") # I removed "tier_1_early"
+tier_2 <- c("tier_2_non_vested", "tier_2_vested", "tier_2_norm") # I removed "tier_2_early", 
+tier_3 <- c("tier_3_non_vested", "tier_3_vested", "tier_3_norm") # I removed tier_3_early", 
+tier_early <- c("tier_1_early", "tier_2_early", "tier_3_early")
 
-
-# prep data ---------------------------------------------------------------
-
-bentable <- benstack |> 
-  filter(class_name == "regular")
-# bentable <- readRDS(here::here("djb", "bentable_regular.rds"))
-glimpse(bentable)
-
-df <- bentable |> 
+data <- benstack |> 
   select(tier = tier_at_dist_age,
-         class_name, dist_age, dist_year, yos) # 1.4m regular records
+         class_name, dist_age, dist_year, yos) |> 
+  mutate(tier_group = case_when(
+    tier %in% tier_1 ~ "tier_1",
+    tier %in% tier_2 ~ "tier_2",
+    tier %in% tier_3 ~ "tier_3",
+    tier %in% tier_early ~ tier,
+    .default = "ERROR"))
 
-df2 <- df |> distinct() # 456k records
+# get benmult_true ---------------------------------------------------------------
 
-res <- df2 |> 
-  mutate(benmult = get_ben_mult_GC(tier, class_name, dist_age, dist_year, yos))
+a <- proc.time()
+res <- data |> 
+  mutate(benmult_true = get_ben_mult_GC(tier, class_name, dist_age, dist_year, yos))
+b <- proc.time()
+b - a # ~3.9 secs on full file
+
 glimpse(res)  
-summary(res) # 205k are NA; none of the function inputs are NA -- did Reason have this, too?
+summary(res) # ~510k are NA; none of the function inputs are NA -- did Reason have this, too?
 
 
-# why do we have benmult = na recs? ---------------------------------------
+# get benmult using rules-tibble approach -----------------------------------
+
+rules <- read_excel(here::here("djb", "benefit_rules.xlsx")) |> 
+  filter(!is.na(system))
+rules
+
+a1 <- proc.time()
+res2 <- res |> 
+  left_join(rules |> select(-system),
+            by = join_by(class_name, 
+                         tier_group,
+                         dist_age >= dist_age_min_ge,
+                         dist_age < dist_age_max_lt,
+                         yos >= yos_min_ge,
+                         yos < yos_max_lt,
+                         dist_year >= dist_year_min_ge,
+                         dist_year < dist_year_max_lt)) |> 
+  relocate(benmult_true, .before = benmult) |> 
+  mutate(rownum = row_number())
+b1 <- proc.time()
+b1 - a1 # ~ 2 secs
+
+# CAUTION: check nrow(check) == nrow(djb1) !!!!!
+nrow(res2) == nrow(res)
+summary(res2)
+
+check <- res2 |> 
+  filter(!is.na(benmult)) |> 
+  filter(benmult != benmult_true)
+
+
+#**************************************************************************************************************----
+#**************************************************************************************************************----
+
+# APPENDIX: how many unique combinations do we have? ---------------------------------------------------------------
+
+df <- benstack |> 
+  select(tier = tier_at_dist_age,
+         class_name, dist_age, dist_year, yos) # 1.4m regular records, 7.3m total
+
+df2 <- df |> distinct() # 456k regular records, 2.7m total
+
+
+# APPENDIX: why do we have benmult = na recs? ---------------------------------------
 
 narecs <- res |> filter(is.na(benmult)) |> select(-benmult)
 glimpse(narecs)
@@ -160,124 +209,4 @@ head(tmp) # why do these fall through the cracks?
 # 5 tier_3_vested regular          50      2056    32
 # 6 tier_3_vested regular          50      2057    32
 
-
-
-# prepare data for alternative approach -----------------------------------
-
-res2 <- res |> 
-  na.omit() # 340k recs
-count(res2, benmult) # 4 unique values
-
-res2
-
-tier_1 <- c("tier_1_non_vested", "tier_1_vested", "tier_1_norm") # I removed "tier_1_early"
-tier_2 <- c("tier_2_non_vested", "tier_2_vested", "tier_2_norm") # I removed "tier_2_early", 
-tier_3 <- c("tier_3_non_vested", "tier_3_vested", "tier_3_norm") # I removed tier_3_early", 
-tier_early <- c("tier_1_early", "tier_2_early", "tier_3_early")
-
-djb1 <- res2 |> 
-  mutate(tier_group = case_when(
-    tier %in% tier_1 ~ "tier_1",
-    tier %in% tier_2 ~ "tier_2",
-    tier %in% tier_3 ~ "tier_3",
-    tier %in% tier_early ~ tier,
-    .default = "ERROR"))
-count(djb1, tier_group, tier)
-glimpse(djb1)
-
-# regt1 <- res2 |> 
-#   filter()
-
-# regular tier_group 1 or tier_early
-# (dist_age >= 65 & yos >= 6) | yos >= 33 ~ 0.0168,
-# (dist_age >= 64 & yos >= 6) | yos >= 32 ~ 0.0165,
-# (dist_age >= 63 & yos >= 6) | yos >= 31 ~ 0.0163,
-# (dist_age >= 62 & yos >= 6) | yos >= 30 ~ 0.0160,
-# tier %in% tier_early ~ 0.0160, # note that this is the same for all
-
-# regular tier_group 2 or 3, or tier_early
-# (dist_age >= 68 & yos >= 8) | yos >= 36 ~ 0.0168,
-# (dist_age >= 67 & yos >= 8) | yos >= 35 ~ 0.0165,
-# (dist_age >= 66 & yos >= 8) | yos >= 34 ~ 0.0163,
-# (dist_age >= 65 & yos >= 8) | yos >= 33 ~ 0.0160,
-# tier %in% tier_early ~ 0.0160, 
-
-
-# use tribble to create rules ---------------------------------------------
-# dist_year_low, dist_year_high,
-
-source(here::here("djb_benefit_rules.R"))
-
-rules
-
-djb2 <- djb1 |> 
-  rename(benmult_true = benmult) |> 
-  left_join(rules,
-            by = join_by(class_name, tier_group, # equality
-                         
-                         # inequalities
-                         dist_age >= dist_age_low,
-                         dist_age < dist_age_high,                         
-                         
-                         yos >= yos_low,
-                         yos < yos_high,
-                         
-                         dist_year >= dist_year_low,
-                         dist_year < dist_year_high))
-summary(djb2)
-
-check <- djb2 |> 
-  filter(!is.na(benmult))
-
-check |> 
-  filter(benmult != benmult_true)
-
-dups2 <- djb2 |> 
-  mutate(n = n(), 
-         .by=c(class_name, tier_group, tier, dist_age, dist_year, yos))
-count(dups2, n)
-
-dups2a <- dups2 |> 
-  filter(n==2) |> 
-  select(class_name, tier_group, tier, 
-         starts_with("dist_age"),
-         starts_with("dist_year"),
-         starts_with("yos"),
-         starts_with("benmult")) |> 
-  arrange(class_name, tier_group, tier, dist_age, dist_year, yos)
-nrow(dups2a)
-
-
-summary(djb2) # make sure we have no NA values
-djb2 |> filter(!is.na(benmult_true),
-               !is.na(benmult)) |> 
-  filter(benmult != benmult_true)
-
-
-
-
-# Gang's call to get_ben_mult in ----
-
-# get_funding_data()
-  # call_get_liability_data()
-    # get_liability_data()
-      # bm_env$get_benefit_data() in FRS_liability_model_functions.R
-        # get_benefit_table()
-          #  get_ben_mult()
-
-# benefit_table <- get_benefit_table(
-#   class_name,
-#   ann_factor_table,
-#   salary_benefit_table,
-#   params)
-
-#   frs_data_env$get_ben_mult() line 116 of FRS_benefit_model_get_benefit_data_function_GC.R
-#     in get_benefit_table <- function(class_name, ann_factor_table, salary_benefit_table, params)
-
-# ben_mult = frs_data_env$get_ben_mult(
-#   tier = tier_at_dist_age,
-#   class_name = class_name,
-#   dist_age = dist_age,
-#   dist_year = dist_year,
-#   yos = yos),
 
