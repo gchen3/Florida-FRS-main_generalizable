@@ -276,14 +276,14 @@ get_benefit_val_table <- function(
 }
 
 
-# get_class_salary_growth_table <- function(class_name, salary_growth_table){
-#   
-#   class_salary_growth_table <- salary_growth_table %>% 
-#     select(yos, contains(class_name)) %>% 
-#     rename(cumprod_salary_increase = 2)
-#   
-#   return(class_salary_growth_table)
-# }
+get_class_salary_growth_table <- function(class_name, salary_growth_table){
+
+  class_salary_growth_table <- salary_growth_table %>%
+    select(yos, contains(class_name)) %>%
+    rename(cumprod_salary_increase = 2)
+
+  return(class_salary_growth_table)
+}
 
 
 get_dist_age_table <- function(benefit_table){
@@ -383,8 +383,8 @@ get_benefit_data <- function(
     params
 ) {
   
-  #class_salary_growth_table <- get_class_salary_growth_table(class_name, params$salary_growth_table_)
-  class_salary_growth_table <- params$salary_growth_table %>% filter(class == class_name)            #Used the stacked table
+  class_salary_growth_table <- get_class_salary_growth_table(class_name, params$salary_growth_table_)
+  #class_salary_growth_table <- params$salary_growth_table %>% filter(class == class_name)            #Used the stacked table
   
   salary_benefit_table <- get_salary_benefit_table(class_name,
                                                    entrant_profile_table,

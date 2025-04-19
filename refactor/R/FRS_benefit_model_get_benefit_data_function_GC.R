@@ -289,14 +289,14 @@ get_benefit_val_table <- function(
 }
 
 
-get_class_salary_growth_table <- function(class_name, salary_growth_table){
-  
-  class_salary_growth_table <- salary_growth_table %>% 
-    select(yos, contains(class_name)) %>% 
-    rename(cumprod_salary_increase = 2)
-  
-  return(class_salary_growth_table)
-}
+# get_class_salary_growth_table <- function(class_name, salary_growth_table){
+#   
+#   class_salary_growth_table <- salary_growth_table %>% 
+#     select(yos, contains(class_name)) %>% 
+#     rename(cumprod_salary_increase = 2)
+#   
+#   return(class_salary_growth_table)
+# }
 
 
 get_dist_age_table <- function(benefit_table){
@@ -349,16 +349,16 @@ get_salary_benefit_table <- function(class_name,
                                       entry_age = entrant_profile_table$entry_age, 
                                       yos = params$yos_range_) %>% 
     mutate(
-      term_age = entry_age + yos,
+      term_age = entry_age + yos#,
       # term_year = entry_year + yos,
-      tier_at_term_age = frs_data_env$get_tier(class_name, entry_year, term_age, yos, params$new_year_)
+      #tier_at_term_age = frs_data_env$get_tier(class_name, entry_year, term_age, yos, params$new_year_)
     ) %>% 
+    left_join(frs_data_env$tier_table %>% filter(class == class_name) , by = c("entry_year", "yos", "term_age"= "age")) %>%
+    mutate(tier_at_term_age = tier) %>%
     filter(term_age <= params$max_age_) %>% 
     arrange(entry_year, entry_age, yos) %>% 
     left_join(entrant_profile_table, by = "entry_age") %>% 
-    left_join(class_salary_growth_table # |> filter(class == class_name)  ####|> filter(class == class_name) is just temporary
-              , by = "yos"
-    ) %>%
+    left_join(class_salary_growth_table, by = "yos") %>%
     #Join salary_head_count_table by entry_year and entry_age only to get historical entry_salary
     left_join(salary_headcount_table %>% select(entry_year, entry_age, entry_salary), 
               by = c("entry_year", "entry_age")) %>%
@@ -396,8 +396,8 @@ get_benefit_data <- function(
     params
 ) {
   
-  class_salary_growth_table <- get_class_salary_growth_table(class_name, params$salary_growth_table_)
-  # class_salary_growth_table <- params$salary_growth_table   #Used the stacked table
+  # class_salary_growth_table <- get_class_salary_growth_table(class_name, params$salary_growth_table_)
+  class_salary_growth_table <- params$salary_growth_table %>% filter(class == class_name)  #Used the stacked table
   
   salary_benefit_table <- get_salary_benefit_table(class_name,
                                                    entrant_profile_table,
