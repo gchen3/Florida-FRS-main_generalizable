@@ -1,5 +1,6 @@
 
 # Create benefit multiplier function --------------------------------------
+
 get_ben_mult <- function(tier, class_name, dist_age, dist_year, yos) {
   tier_1 <- c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm")
   tier_2 <- c("tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm")
@@ -73,7 +74,6 @@ get_ben_mult <- function(tier, class_name, dist_age, dist_year, yos) {
 }
 
 
-
 # ben_mult_lookup <- expand.grid(
 #   tier_at_dist_age = c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm",
 #            "tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm",
@@ -84,62 +84,59 @@ get_ben_mult <- function(tier, class_name, dist_age, dist_year, yos) {
 #   dist_year = frs_data_env$year_range_) %>%
 #   mutate(ben_mult = get_ben_mult(tier = tier_at_dist_age, class_name, dist_age, dist_year, yos))
 
-  
-  ## Use a loop to build the lookup table
-  tier_vec <- c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm",
-                "tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm",
-                "tier_3_non_vested", "tier_3_vested", "tier_3_early", "tier_3_norm")
-  
-  class_vec <- frs_data_env$class_names_no_drop_frs_
-  
-  # Loop over combinations of class and tier
-  ben_mult_lookup_list <- list()
 
+## Use a loop to build the lookup table
+tier_vec <- c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm",
+              "tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm",
+              "tier_3_non_vested", "tier_3_vested", "tier_3_early", "tier_3_norm")
+
+class_vec <- frs_data_env$class_names_no_drop_frs_
+
+# Loop over combinations of class and tier
+ben_mult_lookup_list <- list()
+
+
+for (cl in frs_data_env$class_names_no_drop_frs_) {  
   
- for (cl in frs_data_env$class_names_no_drop_frs_) {  
-  
-    ben_mult_lookup <- expand.grid(
+  ben_mult_lookup <- expand.grid(
     tier_at_dist_age = c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm",
-             "tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm",
-             "tier_3_non_vested", "tier_3_vested", "tier_3_early", "tier_3_norm"),
+                         "tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm",
+                         "tier_3_non_vested", "tier_3_vested", "tier_3_early", "tier_3_norm"),
     class_name = cl,
     dist_age = frs_data_env$age_range_,
     yos = frs_data_env$yos_range_,
     dist_year = frs_data_env$year_range_) %>%
     mutate(ben_mult = get_ben_mult(tier = tier_at_dist_age, class_name, dist_age, dist_year, yos))
-
-    ben_mult_lookup_list[[cl]] <- ben_mult_lookup
-   }
   
+  ben_mult_lookup_list[[cl]] <- ben_mult_lookup
+}
+
 ben_mult_lookup <- dplyr::bind_rows(ben_mult_lookup_list)
 
 summary(ben_mult_lookup$ben_mult)
-x <- ben_mult_lookup %>% 
-  filter((tier_at_dist_age != "tier_1_non_vested") & (tier_at_dist_age != "tier_2_non_vested") & (tier_at_dist_age != "tier_3_non_vested")) %>% 
-  select(ben_mult)
+x <- ben_mult_lookup$ben_mult
 
 summary_stats <- c(
   Q1 = round(quantile(x, 0.25, na.rm = TRUE), 3),
   Median = round(quantile(x, 0.5, na.rm = TRUE), 3),
   Q3 = round(quantile(x, 0.75, na.rm = TRUE), 3),
-  n = sum(!is.na(x)),
-  na = sum(is.na(x))
+  n = sum(!is.na(x))
 )
 summary_stats
 
 
- compare_benefit_mult <-  ben_mult_lookup %>%
-   mutate(ben_mult_2 = get_ben_mult(tier = tier_at_dist_age,
-                              class_name = class_name,
-                              dist_age = dist_age,
-                              dist_year = dist_year,
-                              yos = yos)) %>%
-   select(tier_at_dist_age, class_name, dist_year, ben_mult, ben_mult_2) %>%
-   mutate(
-     mismatch = (ben_mult != ben_mult_2) |
-       xor(is.na(ben_mult), is.na(ben_mult_2))
-   ) %>%
-   filter(mismatch == TRUE)
+compare_benefit_mult <-  ben_mult_lookup %>%
+  mutate(ben_mult_2 = get_ben_mult(tier = tier_at_dist_age,
+                                   class_name = class_name,
+                                   dist_age = dist_age,
+                                   dist_year = dist_year,
+                                   yos = yos)) %>%
+  select(tier_at_dist_age, class_name, dist_year, ben_mult, ben_mult_2) %>%
+  mutate(
+    mismatch = (ben_mult != ben_mult_2) |
+      xor(is.na(ben_mult), is.na(ben_mult_2))
+  ) %>%
+  filter(mismatch == TRUE)
 
 # Validate the calculation results:
 # compare_benefit_mult <- benefit_table %>%

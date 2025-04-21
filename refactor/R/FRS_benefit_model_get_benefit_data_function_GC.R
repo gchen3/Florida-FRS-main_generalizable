@@ -112,13 +112,15 @@ get_benefit_table <- function(class_name,
     # distribution age means the age when the member starts to accept benefits (either a refund or a pension)
     left_join(salary_benefit_table,
               by = c("entry_year", "entry_age", "yos", "term_age")) %>%
+    left_join(frs_data_env$ben_mult_lookup %>% filter(class_name == !!class_name),
+              by = c("tier_at_dist_age", "dist_age", "dist_year", "yos")) %>%
     mutate(
-      ben_mult = frs_data_env$get_ben_mult(
-        tier = tier_at_dist_age,
-        class_name = class_name,
-        dist_age = dist_age,
-        dist_year = dist_year,
-        yos = yos),
+      # ben_mult = frs_data_env$get_ben_mult(
+      #   tier = tier_at_dist_age,
+      #   class_name = class_name,
+      #   dist_age = dist_age,
+      #   dist_year = dist_year,
+      #   yos = yos),
 
       # ben_mult = if_else(str_detect(tier_at_dist_age, "tier_1"),
       #                    if_else(class_name == "regular",
@@ -197,7 +199,7 @@ get_benefit_table <- function(class_name,
       #                                    ), NA)
       #                    )
       # ))
-      reduce_factor = frs_data_env$get_reduce_factor(tier = tier_at_dist_age,
+     reduce_factor = frs_data_env$get_reduce_factor(tier = tier_at_dist_age,
                                         class_name = class_name,
                                         dist_age = dist_age),
       # reduce_factor = if_else(str_detect(tier_at_dist_age, "norm"), 1,
