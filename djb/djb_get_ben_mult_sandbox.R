@@ -127,7 +127,7 @@ a <- proc.time()
 res <- data |> 
   mutate(benmult_true = get_ben_mult_GC(tier, class_name, dist_age, dist_year, yos))
 b <- proc.time()
-b - a # ~3.9 secs on full file
+b - a # ~4 secs on full file
 
 glimpse(res)  
 summary(res) # ~510k are NA; none of the function inputs are NA -- did Reason have this, too?
@@ -162,6 +162,47 @@ summary(res2)
 check <- res2 |> 
   filter(!is.na(benmult)) |> 
   filter(benmult != benmult_true)
+
+
+
+# turn the merge approach into a function ----
+params2 <- list() # normally we'd use the params environment
+params2$rules <- rules
+
+get_ben_mult_merge <- function(tier, class_name, dist_age, dist_year, yos, params = params2){ # use rules from environment
+  # take the inputs, turn them into a tibble, do the merge, return a vector
+  df <- tibble(tier, class_name, dist_age, dist_year, yos) |> 
+    mutate(tier_group = case_when(
+      tier %in% tier_1 ~ "tier_1",
+      tier %in% tier_2 ~ "tier_2",
+      tier %in% tier_3 ~ "tier_3",
+      tier %in% tier_early ~ tier,
+      .default = "ERROR")) |> 
+    left_join(params$rules |> select(-system),
+              by = join_by(class_name, 
+                           tier_group,
+                           dist_age >= dist_age_min_ge,
+                           dist_age < dist_age_max_lt,
+                           yos >= yos_min_ge,
+                           yos < yos_max_lt,
+                           dist_year >= dist_year_min_ge,
+                           dist_year < dist_year_max_lt))
+    return(df$benmult)
+}
+
+a2 <- proc.time()
+res3 <- benstack |> 
+  mutate(benmult_merge = get_ben_mult_merge(tier_at_dist_age, class_name, dist_age, dist_year, yos))
+b2 <- proc.time()
+b2 - a2
+
+summary(res)
+summary(res3)
+tibble(benmult_true = res$benmult_true, benmult_merge = res3$benmult_merge) |> 
+  mutate(diff = benmult_merge - benmult_true) |> 
+  arrange(desc(abs(diff)))
+  
+
 
 
 #**************************************************************************************************************----
