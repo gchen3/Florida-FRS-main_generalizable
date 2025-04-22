@@ -23,8 +23,6 @@ ann_factor_table <- get_annuity_factor_table(
   salary_benefit_table,
   params)
 
-
-
 benefit_table <- ann_factor_table %>%
   mutate(
     term_age = entry_age + yos, .before = term_year,
@@ -35,15 +33,20 @@ benefit_table <- ann_factor_table %>%
   # distribution age means the age when the member starts to accept benefits (either a refund or a pension)
   # left_join(salary_benefit_table,
   #           by = c("entry_year", "entry_age", "yos", "term_age")) %>%
-  left_join(ben_mult_lookup %>% filter(class_name == "regular"),
-            by = c("tier_at_dist_age", "dist_age", "dist_year", "yos")) %>%
-  mutate(
-    ben_mult_2 = frs_data_env$get_ben_mult(
-      tier = tier_at_dist_age,
-      class_name = class_name,
-      dist_age = dist_age,
-      dist_year = dist_year,
-      yos = yos))
+  # left_join(frs_data_env$ben_mult_lookup %>% filter(class_name == "regular"),
+  #           by = c("tier_at_dist_age", "dist_age", "dist_year", "yos")) %>%
+  # mutate(
+  #   ben_mult_2 = frs_data_env$get_ben_mult(
+  #     tier = tier_at_dist_age,
+  #     class_name = class_name,
+  #     dist_age = dist_age,
+  #     dist_year = dist_year,
+  #     yos = yos)) %>%
+  left_join(reduce_factor_lookup %>% filter(class_name == "regular"),
+            by = c("tier_at_dist_age", "dist_age")) %>%
+  mutate(reduce_factor_2 = frs_data_env$get_reduce_factor(tier = tier_at_dist_age,
+                                                          class_name = class_name,
+                                                          dist_age = dist_age))
 
 x <- benefit_table$ben_mult
   
@@ -63,4 +66,21 @@ x <- benefit_table$ben_mult
     )) %>%
     filter(mismatch == TRUE)
 
+  x <- benefit_table$reduce_factor
+  
+  summary_stats <- c(
+    Q1 = round(quantile(x, 0.25, na.rm = TRUE), 3),
+    Median = round(quantile(x, 0.5, na.rm = TRUE), 3),
+    Q3 = round(quantile(x, 0.75, na.rm = TRUE), 3),
+    n = sum(!is.na(x))
+  )
+  summary_stats
+  
+  compare_benefit_table <- benefit_table %>%
+    mutate(mismatch = case_when(
+      is.na(reduce_factor) & is.na(reduce_factor_2) ~ FALSE,                      # treat NA == NA as match
+      !is.na(reduce_factor) & !is.na(reduce_factor_2) ~ !near(reduce_factor, reduce_factor_2, tol = 1e-6),  # compare numerics
+      TRUE ~ TRUE  # one NA, one not => mismatch
+    )) %>%
+    filter(mismatch == TRUE)
   
