@@ -63,8 +63,9 @@ get_annuity_factor_table <- function(
   ann_factor_table <- mort_table %>% 
     #Semi join the salary_benefit_able to reduce the size of the data that needs to be calculated
     semi_join(salary_benefit_table, by = c("entry_year", "entry_age")) %>%
-    mutate(
-      dr = if_else(str_detect(tier_at_dist_age, "tier_3"), params$dr_new_, params$dr_current_)
+    left_join(frs_data_env$dr_lookup, by = c("tier_at_dist_age")) %>%
+    # mutate(
+    #   dr = if_else(str_detect(tier_at_dist_age, "tier_3"), params$dr_new_, params$dr_current_)
       # ,
       # # yos_b4_2011 = pmin(pmax(2011 - entry_year, 0), yos),
       # # cola = case_when(
@@ -82,7 +83,7 @@ get_annuity_factor_table <- function(
       #                     yos = yos,
       #                     entry_year = entry_year,
       #                     params = params)
-    ) %>% 
+    # ) %>% 
     left_join(frs_data_env$cola_lookup, 
               by = c("tier_at_dist_age", "entry_year", "yos")) %>%
     group_by(entry_year, entry_age, yos) %>% 
@@ -145,9 +146,10 @@ get_benefit_val_table <- function(
     left_join(final_benefit_table, by = c("entry_year", "entry_age", "term_age")) %>%
     left_join(separation_rate_table,
               by = join_by(entry_year, entry_age, yos, term_age)) %>%
+    left_join(frs_data_env$dr_lookup, by = c("tier" = "tier_at_dist_age")) %>%
     mutate(
       #note that the tier below applies at termination age only
-      dr = if_else(str_detect(tier_at_term_age, "tier_3"), params$dr_new_, params$dr_current_),
+      #dr = if_else(str_detect(tier_at_term_age, "tier_3"), params$dr_new_, params$dr_current_),
       # sep_type = get_sep_type(tier_at_term_age),
       # ben_decision = if_else(yos == 0, 
       #                        NA, 
@@ -267,9 +269,11 @@ get_salary_benefit_table <- function(class_name,
     mutate(
       salary = if_else(entry_year <= max(salary_headcount_table$entry_year), 
                        entry_salary * cumprod_salary_increase,
-                       start_sal * cumprod_salary_increase * (1 + params$payroll_growth_)^(entry_year - max(salary_headcount_table$entry_year))),
-      fas_period = if_else(str_detect(tier_at_term_age, "tier_1"), 5, 8)
+                       start_sal * cumprod_salary_increase * (1 + params$payroll_growth_)^(entry_year - max(salary_headcount_table$entry_year)))
+      # ,
+      # fas_period = if_else(str_detect(tier_at_term_age, "tier_1"), 5, 8)
     ) %>% 
+    left_join(frs_data_env$fas_period_lookup, by = c("tier_at_term_age")) %>%
     group_by(entry_year, entry_age) %>% 
     mutate(
       # fas = baseR.rollmean(salary, fas_period),

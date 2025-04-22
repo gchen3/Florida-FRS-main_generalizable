@@ -190,7 +190,7 @@ reduce_factor_lookup <- expand.grid(
                                                         dist_age = dist_age))
          
 
-compare_reduce_factor <- reduce_factor_lookup %>%
+  reduce_factor_lookup %>%
   mutate(reduce_factor_reason = if_else(str_detect(tier_at_dist_age, "norm"), 1,
                                         if_else(str_detect(tier_at_dist_age, "early"),
                                                 if_else(class_name == "special",
@@ -254,7 +254,7 @@ cola_lookup <- expand.grid(
          )
 
 ## Compare
-compare_cola <- cola_lookup %>%
+cola_lookup %>%
   mutate(yos_b4_2011 = pmin(pmax(2011 - entry_year, 0), yos),
   cola_2 = case_when(
      str_detect(tier_at_dist_age, "tier_1") & modparm_data_env$cola_tier_1_active_constant_ == "no" ~
@@ -278,16 +278,45 @@ compare_cola <- cola_lookup %>%
 # Discount rate -----------------------------------------------------------
 
 get_discount_rate <- function(tier, params) {
-  if (str_detect(tier, "tier_3")) {
-    return(params$dr_new_)
-  } else {
-    return(params$dr_current_)
-  }
+  if_else(
+    str_detect(tier, "tier_3"),
+    params$dr_new_,
+    params$dr_current_
+  )
 }
 
+dr_lookup <- expand.grid(
+  tier_at_dist_age = c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm",
+                       "tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm",
+                       "tier_3_non_vested", "tier_3_vested", "tier_3_early", "tier_3_norm")) %>%
+  mutate(dr = get_discount_rate(tier = tier_at_dist_age, params = modparm_data_env))
+  
+dr_lookup %>%
+  mutate(dr_2 = if_else(str_detect(tier_at_dist_age, "tier_3"),
+                                   modparm_data_env$dr_new_,
+                                   modparm_data_env$dr_current_)) %>%
+  mutate(
+    mismatch = (dr != dr_2) |
+      xor(is.na(dr), is.na(dr_2))
+  ) %>%
+  filter(mismatch == TRUE)
+  
 
 # final average salary period ---------------------------------------------
 get_fas_period <- function(tier) {
-  if (str_detect(tier, "tier_1")) return(5)
-  return(8)
+  if_else(str_detect(tier, "tier_1"), 5L, 8L)
 }
+
+fas_period_lookup <- expand.grid(
+  tier_at_term_age = c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm",
+                       "tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm",
+                       "tier_3_non_vested", "tier_3_vested", "tier_3_early", "tier_3_norm")) %>%
+  mutate(fas_period = get_fas_period(tier_at_term_age))
+
+fas_period_lookup %>%
+  mutate(fas_period_2 = if_else(str_detect(tier_at_term_age, "tier_1"), 5, 8)) %>%
+  mutate(
+    mismatch = (fas_period != fas_period_2) |
+      xor(is.na(fas_period), is.na(fas_period_2))
+  ) %>%
+  filter(mismatch == TRUE)

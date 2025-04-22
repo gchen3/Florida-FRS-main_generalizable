@@ -28,9 +28,10 @@ salary_benefit_table <- get_salary_benefit_table(class_name,
                                    yos = yos,
                                    entry_year = entry_year,
                                    params = params)
-    ) %>% 
-    left_join(cola_lookup, 
-              by = c("tier_at_dist_age", "entry_year  ", "yos")) 
+    ) 
+  #%>% 
+    #left_join(cola_lookup, 
+    #          by = c("tier_at_dist_age", "entry_year  ", "yos")) 
 
 head(ann_factor_table)
 
