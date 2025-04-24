@@ -163,6 +163,14 @@ check <- res2 |>
   filter(!is.na(benmult)) |> 
   filter(benmult != benmult_true)
 
+check <- res2 |> 
+  filter(is.na(benmult) | is.na(benmult_true))
+summary(check)
+
+
+rules2 <- rules |> 
+  mutate(benmult = case_when(tier_group == "tier_1" ~ benmult + .01,
+                             .default = benmult))
 
 
 # turn the merge approach into a function ----
