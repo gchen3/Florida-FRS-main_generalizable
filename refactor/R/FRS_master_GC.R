@@ -53,7 +53,8 @@ frs_data_env <- new.env()
 source(fs::path(rdir, "FRS_data_cleaning_functions.R"), local = frs_data_env) # put data, params into frs_data_env
 source(fs::path(rdir, "FRS_data_cleaning.R"), local = frs_data_env) # put data, params into frs_data_env
 source(fs::path(rdir, "FRS_stacked_tables.R"), local = frs_data_env) # put data, params into frs_data_env
-source(fs::path(rdir, "FRS_rules_functions.R"), local = frs_data_env) # put data, params into frs_data_env
+#source(fs::path(rdir, "FRS_rules_functions.R"), local = frs_data_env) # put data, params into frs_data_env
+source(fs::path(rdir, "FRS_rules_tables.R"), local = frs_data_env) # put data, params into frs_data_env
 save(frs_data_env, file = fs::path(wddir, "frs_data_env.RData"))
 # ls(envir = modparm_data_env)
 

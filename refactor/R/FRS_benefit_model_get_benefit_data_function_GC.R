@@ -64,26 +64,6 @@ get_annuity_factor_table <- function(
     #Semi join the salary_benefit_able to reduce the size of the data that needs to be calculated
     semi_join(salary_benefit_table, by = c("entry_year", "entry_age")) %>%
     left_join(frs_data_env$dr_lookup, by = c("tier_at_dist_age")) %>%
-    # mutate(
-    #   dr = if_else(str_detect(tier_at_dist_age, "tier_3"), params$dr_new_, params$dr_current_)
-      # ,
-      # # yos_b4_2011 = pmin(pmax(2011 - entry_year, 0), yos),
-      # # cola = case_when(
-      # #   #Tier 1 cola (current policy) = 3% * YOS before 2011 / Total YOS
-      # #   str_detect(tier_at_dist_age, "tier_1") & params$cola_tier_1_active_constant_ == "no" ~ 
-      # #     if_else(yos > 0, params$cola_tier_1_active_ * yos_b4_2011 / yos, 0),
-      # #   str_detect(tier_at_dist_age, "tier_1") & params$cola_tier_1_active_constant_ == "yes" ~ 
-      # #     params$cola_tier_1_active_,
-      # #   str_detect(tier_at_dist_age, "tier_2") ~ 
-      # #     params$cola_tier_2_active_,
-      # #   str_detect(tier_at_dist_age, "tier_3") ~ 
-      # #     params$cola_tier_3_active_
-      # # )
-      # cola = frs_data_env$get_cola(tier = tier_at_dist_age,
-      #                     yos = yos,
-      #                     entry_year = entry_year,
-      #                     params = params)
-    # ) %>% 
     left_join(frs_data_env$cola_lookup, 
               by = c("tier_at_dist_age", "entry_year", "yos")) %>%
     group_by(entry_year, entry_age, yos) %>% 
@@ -116,8 +96,15 @@ get_benefit_table <- function(class_name,
     # distribution age means the age when the member starts to accept benefits (either a refund or a pension)
     left_join(salary_benefit_table,
               by = c("entry_year", "entry_age", "yos", "term_age")) %>%
-    left_join(frs_data_env$ben_mult_lookup %>% filter(class_name == !!class_name),
-              by = c("tier_at_dist_age", "dist_age", "dist_year", "yos")) %>%
+    left_join(frs_data_env$ben_mult_lookup %>% filter(class_name == !!class_name) %>% select(-system),
+              by = join_by(class_name, 
+                           tier_at_dist_age,
+                           dist_age >= dist_age_min_ge,
+                           dist_age < dist_age_max_lt,
+                           yos >= yos_min_ge,
+                           yos < yos_max_lt,
+                           dist_year >= dist_year_min_ge,
+                           dist_year < dist_year_max_lt)) %>%
     left_join(frs_data_env$reduce_factor_lookup %>% filter(class_name == !!class_name),
               by = c("tier_at_dist_age", "dist_age")) %>%
     mutate(db_benefit = yos * ben_mult * fas * reduce_factor,
