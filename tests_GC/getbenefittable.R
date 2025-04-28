@@ -29,10 +29,19 @@ benefit_table <- ann_factor_table %>%
     class_name = class_name,
     is_norm_retire_elig = str_detect(tier_at_dist_age, "norm")
   ) %>%
-  # dist_age is distribution age, and dist_year is distribution year.
-  # distribution age means the age when the member starts to accept benefits (either a refund or a pension)
-  # left_join(salary_benefit_table,
-  #           by = c("entry_year", "entry_age", "yos", "term_age")) %>%
+  left_join(salary_benefit_table,
+            by = c("entry_year", "entry_age", "yos", "term_age")) %>%
+  left_join(frs_data_env$ben_mult_lookup %>% filter(class_name == !!class_name) %>% select(-system),
+           by = join_by(class_name, 
+                        tier_at_dist_age,
+                        dist_age >= dist_age_min_ge,
+                        dist_age < dist_age_max_lt,
+                        yos >= yos_min_ge,
+                        yos < yos_max_lt,
+                        dist_year >= dist_year_min_ge,
+                        dist_year < dist_year_max_lt))
+  
+  
   # left_join(frs_data_env$ben_mult_lookup %>% filter(class_name == "regular"),
   #           by = c("tier_at_dist_age", "dist_age", "dist_year", "yos")) %>%
   # mutate(
