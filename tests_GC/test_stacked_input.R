@@ -288,8 +288,105 @@ ann_factor_table <- get_annuity_factor_table(
   salary_benefit_table,
   params)
 
-
 ann_factor_table_s %>% filter(employee_class == "regular") %>% select(-employee_class) %>% 
   anti_join(ann_factor_table)
 
 
+# get benefit table -------------------------------------------------------
+get_benefit_table <- function(class_name,
+                              ann_factor_table, 
+                              salary_benefit_table,
+                              params){
+  benefit_table <- ann_factor_table %>%
+    mutate(
+      term_age = entry_age + yos, .before = term_year,
+      class_name = class_name,
+      is_norm_retire_elig = str_detect(tier_at_dist_age, "norm")
+    ) %>%
+    # dist_age is distribution age, and dist_year is distribution year.
+    # distribution age means the age when the member starts to accept benefits (either a refund or a pension)
+    left_join(salary_benefit_table,
+              by = c("entry_year", "entry_age", "yos", "term_age")) %>%
+    left_join(frs_data_env$ben_mult_lookup %>% filter(class_name == !!class_name) %>% select(-system),
+              by = join_by(class_name, 
+                           tier_at_dist_age,
+                           dist_age >= dist_age_min_ge,
+                           dist_age < dist_age_max_lt,
+                           yos >= yos_min_ge,
+                           yos < yos_max_lt,
+                           dist_year >= dist_year_min_ge,
+                           dist_year < dist_year_max_lt)) %>%
+    left_join(frs_data_env$reduce_factor_lookup %>% filter(class_name == !!class_name),
+              by = c("tier_at_dist_age", "dist_age")) %>%
+    mutate(db_benefit = yos * ben_mult * fas * reduce_factor,
+           
+           #cal_factor is a calibration factor added to match the normal cost from the val report
+           db_benefit = db_benefit * params$cal_factor_,
+           
+           #calculate the annuity factor at termination day
+           ann_factor_term = ann_factor * cum_mort_dr,
+           
+           #calculate the actuarial present value of future DB benefits at termination day (discount the annual DB benefits back to termination day)
+           pvfb_db_at_term_age = db_benefit * ann_factor_term
+           
+    )
+  return(benefit_table)  
+}
+
+class_name = "regular"
+
+benefit_table <- get_benefit_table(
+  class_name,
+  ann_factor_table,
+  salary_benefit_table,
+  params)
+
+
+get_benefit_table_s <- function(ann_factor_table, 
+                              salary_benefit_table,
+                              params){
+  
+  benefit_table <- ann_factor_table %>%
+    mutate(
+      term_age = entry_age + yos, .before = term_year
+    ) %>%
+    # dist_age is distribution age, and dist_year is distribution year.
+    # distribution age means the age when the member starts to accept benefits (either a refund or a pension)
+    left_join(salary_benefit_table,
+              by = c("entry_year", "entry_age", "yos", "term_age", "employee_class" = "class")) %>%
+     left_join(frs_data_env$ben_mult_lookup %>% select(-system),
+            by = join_by("employee_class" == "class_name", 
+                         tier_at_dist_age,
+                         dist_age >= dist_age_min_ge,
+                         dist_age < dist_age_max_lt,
+                         yos >= yos_min_ge,
+                         yos < yos_max_lt,
+                         dist_year >= dist_year_min_ge,
+                         dist_year < dist_year_max_lt)) %>%
+    left_join(frs_data_env$reduce_factor_lookup,
+              by = c("tier_at_dist_age", "dist_age", "employee_class" = "class_name")) %>%
+    mutate(db_benefit = yos * ben_mult * fas * reduce_factor,
+           
+           #cal_factor is a calibration factor added to match the normal cost from the val report
+           db_benefit = db_benefit * params$cal_factor_,
+           
+           #calculate the annuity factor at termination day
+           ann_factor_term = ann_factor * cum_mort_dr,
+           
+           #calculate the actuarial present value of future DB benefits at termination day (discount the annual DB benefits back to termination day)
+           pvfb_db_at_term_age = db_benefit * ann_factor_term
+           
+    )
+  return(benefit_table)  
+}
+
+benefit_table_s <- get_benefit_table_s(
+  ann_factor_table_s,
+  salary_benefit_table_s,
+  params)
+
+benefit_table_s %>% filter(employee_class == "regular") %>% select(-employee_class) %>%
+  anti_join(benefit_table)
+
+benefit_table_s
+benefit_table

@@ -10,11 +10,11 @@ params = params
 class_salary_growth_table <- params$salary_growth_table
 
 get_salary_benefit_table <- function(entrant_profile_table,
-                                     class_salary_growth_table,
-                                     salary_headcount_table,
-                                     params){
+                                       class_salary_growth_table,
+                                       salary_headcount_table,
+                                       params){
   
-    salary_benefit_table <- expand_grid(entry_year = params$entry_year_range_, 
+  salary_benefit_table <- expand_grid(entry_year = params$entry_year_range_, 
                                       entry_age = entrant_profile_table$entry_age, 
                                       yos = params$yos_range_,
                                       class = params$class_names_no_drop_frs_) %>% 
@@ -34,16 +34,16 @@ get_salary_benefit_table <- function(entrant_profile_table,
                        start_sal * cumprod_salary_increase * (1 + params$payroll_growth_)^(entry_year - max(salary_headcount_table$entry_year)))
     ) %>% 
     left_join(frs_data_env$fas_period_lookup, by = c("tier_at_term_age")) %>%
-    group_by(entry_year, entry_age) %>% 
+    distinct() %>%
+    group_by(class, entry_year, entry_age) %>%
     mutate(
       fas = RcppRoll::roll_mean(c(NA, salary[-length(salary)]), # drop the current value
                                 n = max(fas_period), align="right", fill = NA),
       db_ee_cont = params$db_ee_cont_rate_ * salary,
       db_ee_balance = pentools::get_cum_fv(params$db_ee_interest_rate_, db_ee_cont),
-    ) %>% 
-    ungroup() %>% 
-    filter(!is.na(salary)) %>%
-    distinct()
+    ) %>%
+    ungroup() %>%
+    filter(!is.na(salary))
   
   return(salary_benefit_table)
 }
@@ -82,7 +82,6 @@ ann_factor_table <- get_annuity_factor_table(
   mort_table,
   salary_benefit_table,
   params)
-
 
 get_benefit_table <- function(ann_factor_table, 
                               salary_benefit_table,
@@ -129,8 +128,3 @@ unique(salary_benefit_table$yos)
 unique(salary_benefit_table$term_age)
 unique(salary_benefit_table$class)
 salary_benefit_table %>% filter((entry_year == 2000) & (entry_age == 20) & (yos == 40) & (term_age == 60) & (class == "regular"))
-
-benefit_table %>% filter((entry_year == 2000) & (entry_age == 20) & (yos == 40) & (term_age == 60) & (class == "regular"))
-
-
-x <- salary_benefit_table %>% filter((entry_year == 2000) & (entry_age == 20) & (yos == 40) & (term_age == 60) & (class == "regular"))
