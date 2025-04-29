@@ -52,7 +52,7 @@ get_reduce_factor <- function(tier, class_name, dist_age) {
   )
 }
 
-## Test
+
 reduce_factor_lookup <- expand.grid(
   tier_at_dist_age = c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm",
                        "tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm",
@@ -64,27 +64,27 @@ reduce_factor_lookup <- expand.grid(
                                                         dist_age = dist_age))
 
 
-reduce_factor_lookup %>%
-  mutate(reduce_factor_reason = if_else(str_detect(tier_at_dist_age, "norm"), 1,
-                                        if_else(str_detect(tier_at_dist_age, "early"),
-                                                if_else(class_name == "special",
-                                                        case_when(
-                                                          str_detect(tier_at_dist_age, "tier_1") ~ (1 - 0.05*(55 - dist_age)),
-                                                          str_detect(tier_at_dist_age, "tier_2") ~ (1 - 0.05*(60 - dist_age)),
-                                                          str_detect(tier_at_dist_age, "tier_3") ~ (1 - 0.05*(60 - dist_age))
-                                                        ),
-                                                        case_when(
-                                                          str_detect(tier_at_dist_age, "tier_1") ~ (1 - 0.05*(62 - dist_age)),
-                                                          str_detect(tier_at_dist_age, "tier_2") ~ (1 - 0.05*(65 - dist_age)),
-                                                          str_detect(tier_at_dist_age, "tier_3") ~ (1 - 0.05*(65 - dist_age))
-                                                        )
-                                                ), NA))) %>%
-  
-  mutate(
-    mismatch = (reduce_factor != reduce_factor_reason) |
-      xor(is.na(reduce_factor), is.na(reduce_factor_reason))
-  ) %>%
-  filter(mismatch == TRUE)
+# reduce_factor_lookup %>%
+#   mutate(reduce_factor_reason = if_else(str_detect(tier_at_dist_age, "norm"), 1,
+#                                         if_else(str_detect(tier_at_dist_age, "early"),
+#                                                 if_else(class_name == "special",
+#                                                         case_when(
+#                                                           str_detect(tier_at_dist_age, "tier_1") ~ (1 - 0.05*(55 - dist_age)),
+#                                                           str_detect(tier_at_dist_age, "tier_2") ~ (1 - 0.05*(60 - dist_age)),
+#                                                           str_detect(tier_at_dist_age, "tier_3") ~ (1 - 0.05*(60 - dist_age))
+#                                                         ),
+#                                                         case_when(
+#                                                           str_detect(tier_at_dist_age, "tier_1") ~ (1 - 0.05*(62 - dist_age)),
+#                                                           str_detect(tier_at_dist_age, "tier_2") ~ (1 - 0.05*(65 - dist_age)),
+#                                                           str_detect(tier_at_dist_age, "tier_3") ~ (1 - 0.05*(65 - dist_age))
+#                                                         )
+#                                                 ), NA))) %>%
+#   
+#   mutate(
+#     mismatch = (reduce_factor != reduce_factor_reason) |
+#       xor(is.na(reduce_factor), is.na(reduce_factor_reason))
+#   ) %>%
+#   filter(mismatch == TRUE)
 
 
 # Cost-of-living adjustment factor ----------------------------------------
@@ -127,23 +127,23 @@ cola_lookup <- expand.grid(
          #      params$cola_tier_3_active_)
   )
 
-## Compare
-cola_lookup %>%
-  mutate(yos_b4_2011 = pmin(pmax(2011 - entry_year, 0), yos),
-         cola_2 = case_when(
-           str_detect(tier_at_dist_age, "tier_1") & modparm_data_env$cola_tier_1_active_constant_ == "no" ~
-             if_else(yos > 0, modparm_data_env$cola_tier_1_active_ * yos_b4_2011 / yos, 0),
-           str_detect(tier_at_dist_age, "tier_1") & modparm_data_env$cola_tier_1_active_constant_ == "yes" ~
-             modparm_data_env$cola_tier_1_active_,
-           str_detect(tier_at_dist_age, "tier_2") ~
-             modparm_data_env$cola_tier_2_active_,
-           str_detect(tier_at_dist_age, "tier_3") ~
-             modparm_data_env$cola_tier_3_active_))%>%
-  mutate(
-    mismatch = (cola != cola_2) |
-      xor(is.na(cola), is.na(cola_2))
-  ) %>%
-  filter(mismatch == TRUE)
+# ## Compare
+# cola_lookup %>%
+#   mutate(yos_b4_2011 = pmin(pmax(2011 - entry_year, 0), yos),
+#          cola_2 = case_when(
+#            str_detect(tier_at_dist_age, "tier_1") & modparm_data_env$cola_tier_1_active_constant_ == "no" ~
+#              if_else(yos > 0, modparm_data_env$cola_tier_1_active_ * yos_b4_2011 / yos, 0),
+#            str_detect(tier_at_dist_age, "tier_1") & modparm_data_env$cola_tier_1_active_constant_ == "yes" ~
+#              modparm_data_env$cola_tier_1_active_,
+#            str_detect(tier_at_dist_age, "tier_2") ~
+#              modparm_data_env$cola_tier_2_active_,
+#            str_detect(tier_at_dist_age, "tier_3") ~
+#              modparm_data_env$cola_tier_3_active_))%>%
+#   mutate(
+#     mismatch = (cola != cola_2) |
+#       xor(is.na(cola), is.na(cola_2))
+#   ) %>%
+#   filter(mismatch == TRUE)
 
 
 
@@ -165,15 +165,15 @@ dr_lookup <- expand.grid(
                        "tier_3_non_vested", "tier_3_vested", "tier_3_early", "tier_3_norm")) %>%
   mutate(dr = get_discount_rate(tier = tier_at_dist_age, params = modparm_data_env))
 
-dr_lookup %>%
-  mutate(dr_2 = if_else(str_detect(tier_at_dist_age, "tier_3"),
-                        modparm_data_env$dr_new_,
-                        modparm_data_env$dr_current_)) %>%
-  mutate(
-    mismatch = (dr != dr_2) |
-      xor(is.na(dr), is.na(dr_2))
-  ) %>%
-  filter(mismatch == TRUE)
+# dr_lookup %>%
+#   mutate(dr_2 = if_else(str_detect(tier_at_dist_age, "tier_3"),
+#                         modparm_data_env$dr_new_,
+#                         modparm_data_env$dr_current_)) %>%
+#   mutate(
+#     mismatch = (dr != dr_2) |
+#       xor(is.na(dr), is.na(dr_2))
+#   ) %>%
+#   filter(mismatch == TRUE)
 
 
 # final average salary period ---------------------------------------------
@@ -187,10 +187,10 @@ fas_period_lookup <- expand.grid(
                        "tier_3_non_vested", "tier_3_vested", "tier_3_early", "tier_3_norm")) %>%
   mutate(fas_period = get_fas_period(tier_at_term_age))
 
-fas_period_lookup %>%
-  mutate(fas_period_2 = if_else(str_detect(tier_at_term_age, "tier_1"), 5, 8)) %>%
-  mutate(
-    mismatch = (fas_period != fas_period_2) |
-      xor(is.na(fas_period), is.na(fas_period_2))
-  ) %>%
-  filter(mismatch == TRUE)
+# fas_period_lookup %>%
+#   mutate(fas_period_2 = if_else(str_detect(tier_at_term_age, "tier_1"), 5, 8)) %>%
+#   mutate(
+#     mismatch = (fas_period != fas_period_2) |
+#       xor(is.na(fas_period), is.na(fas_period_2))
+#   ) %>%
+#   filter(mismatch == TRUE)
