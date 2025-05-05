@@ -10,64 +10,24 @@ mort_table_s <- frs_data_env$mort_table
 
 # testing entrant_profile ---------------------------------------------------------
 
-entrant_profile_table_s %>% filter(employee_class == "special") %>%
-  left_join(frs_data_env$special_entrant_profile_table, by = c("entry_age", "start_sal")) %>%
-  mutate(mismatch = ifelse(entrant_dist.x != entrant_dist.y, TRUE, FALSE)) %>%
-  filter(mismatch == 1)
-
 entrant_profile_table_s %>% filter(employee_class == "eso") %>%
-  left_join(frs_data_env$eso_entrant_profile_table, by = c("entry_age", "start_sal")) %>%
-  mutate(mismatch = ifelse(entrant_dist.x != entrant_dist.y, TRUE, FALSE)) %>%
-  filter(mismatch == 1)
+  left_join(frs_data_env$eso_entrant_profile_table, by = c("entry_age", "start_sal")) 
+
 
 # testing salary_headcount --------------------------------------------------------
 
-salary_headcount_table_s %>% filter(employee_class == "special") %>%
-  left_join(frs_data_env$special_salary_headcount_table, by = c("entry_year", "entry_age", "age", "yos")) %>%
-  mutate(mismatch = ifelse(count.x != count.y, TRUE, FALSE)) %>%
-  mutate(mismatch = ifelse(entry_salary.x != entry_salary.y, TRUE, FALSE)) %>%
-  filter(mismatch == 1)
-
 salary_headcount_table_s %>% filter(employee_class == "eso") %>%
-  left_join(frs_data_env$eso_salary_headcount_table, by = c("entry_year", "entry_age", "age", "yos")) %>%
-  mutate(mismatch = ifelse(count.x != count.y, TRUE, FALSE)) %>%
-  mutate(mismatch = ifelse(entry_salary.x != entry_salary.y, TRUE, FALSE)) %>%
-  filter(mismatch == 1)
-
+  left_join(frs_data_env$eso_salary_headcount_table, by = c("entry_year", "entry_age", "age", "yos"))
 
 # mort --------------------------------------------------------------------
-mort_table_s <- frs_data_env$mort_table
-mort_table_s %>% filter(employee_class == "special") %>%
-  left_join(frs_data_env$special_mort_table, by = c("entry_year", "entry_age", "dist_year", "dist_age", "yos", "term_year", "tier_at_dist_age")) %>%
-  mutate(mismatch = ifelse(mort_final.x != mort_final.y, TRUE, FALSE)) %>%
-  filter(mismatch == 1)
-
 mort_table_s %>% filter(employee_class == "eso") %>%
-  left_join(frs_data_env$eso_mort_table, by = c("entry_year", "entry_age", "dist_year", "dist_age", "yos", "term_year", "tier_at_dist_age")) %>%
-  mutate(mismatch = ifelse(mort_final.x != mort_final.y, TRUE, FALSE)) %>%
-  filter(mismatch == 1)
+  left_join(frs_data_env$eso_mort_table, by = c("entry_year", "entry_age", "dist_year", "dist_age", "yos", "term_year", "tier_at_dist_age")) 
 
 # mort_retire -------------------------------------------------------------
-mort_retire_table_s <- frs_data_env$mort_retire_table
-mort_retire_table_s %>% filter(employee_class == "special") %>%
-  left_join(frs_data_env$special_mort_retire_table, by = c("base_age", "age", "year")) %>%
-  mutate(mismatch = mort_final.x != mort_final.y | xor(is.na(mort_final.x), is.na(mort_final.y))) %>%
-  filter(mismatch == 1)
-
 mort_retire_table_s %>% filter(employee_class == "eso") %>%
-  left_join(frs_data_env$eso_mort_retire_table, by = c("base_age", "age", "year")) %>%
-  mutate(mismatch = mort_final.x != mort_final.y | xor(is.na(mort_final.x), is.na(mort_final.y))) %>%
-  filter(mismatch == 1)
+  left_join(frs_data_env$eso_mort_retire_table, by = c("base_age", "age", "year")) 
 
 # separation_rate --------------------------------------------------------
-separation_rate_table_s = frs_data_env$separation_rate_table
-separation_rate_table_s %>% filter(employee_class == "special") %>%
-  left_join(frs_data_env$special_separation_rate_table, by = c("entry_year", "entry_age", "term_age", "yos", "term_year")) %>%
-  mutate(mismatch = separation_rate.x != separation_rate.y | xor(is.na(separation_rate.x), is.na(separation_rate.y)),
-         mismatch_2 = remaining_prob.x != remaining_prob.y | xor(is.na(remaining_prob.x), is.na(remaining_prob.y)),
-         mismatch_3 = separation_prob.x != separation_prob.y | xor(is.na(separation_prob.x), is.na(separation_prob.y))) %>%
-  filter(mismatch == 1 | mismatch_2 == 1 | mismatch_3 == 1)
-
 separation_rate_table_s %>% filter(employee_class == "eso") %>%
   left_join(frs_data_env$eso_separation_rate_table, by = c("entry_year", "entry_age", "term_age", "yos", "term_year")) %>%
   mutate(mismatch = separation_rate.x != separation_rate.y | xor(is.na(separation_rate.x), is.na(separation_rate.y)),
@@ -123,48 +83,48 @@ get_salary_benefit_table <- function(class_name,
     ungroup() %>%
     filter(!is.na(salary)) %>%
     distinct()
-
+  
   return(salary_benefit_table)
 }
 
-class_name = "special"
-entrant_profile_table = frs_data_env$special__entrant_profile_table
-salary_headcount_table = frs_data_env$special_salary_headcount_table
-mort_table = frs_data_env$special_mort_table
-mort_retire_table = frs_data_env$special_mort_retire_table
-separation_rate_table = frs_data_env$special_separation_rate_table
+class_name = "eso"
+entrant_profile_table = frs_data_env$eso_entrant_profile_table
+salary_headcount_table = frs_data_env$eso_salary_headcount_table
+mort_table = frs_data_env$eso_mort_table
+mort_retire_table = frs_data_env$eso_mort_retire_table
+separation_rate_table = frs_data_env$eso_separation_rate_table
 class_salary_growth_table <- frs_data_env$salary_growth_table %>% 
-  filter(class == "special") %>%
+  filter(class == "eso") %>%
   select(yos, cumprod_salary_increase)
 
-salary_benefit_table <- get_salary_benefit_table("special",
-                                                 frs_data_env$special_entrant_profile_table,
+salary_benefit_table <- get_salary_benefit_table("eso",
+                                                 frs_data_env$eso_entrant_profile_table,
                                                  frs_data_env$salary_growth_table %>% 
-                                                   filter(class == "special"),
-                                                 frs_data_env$special_salary_headcount_table,
+                                                   filter(class == "eso"),
+                                                 frs_data_env$eso_salary_headcount_table,
                                                  params)
 
 head(salary_benefit_table)
 
 
-get_salary_benefit_table_s <- function(entrant_profile_table,
-                                     class_salary_growth_table,
-                                     salary_headcount_table,
-                                     params){
+get_salary_benefit_table_s <- function(entrant_profile_table_s,
+                                       salary_growth_table_s,
+                                       salary_headcount_table_s,
+                                       params){
   
-  salary_benefit_table <- expand_grid(entry_year = params$entry_year_range_, 
+  salary_benefit_table_s <- expand_grid(entry_year = params$entry_year_range_, 
                                       entry_age = entrant_profile_table$entry_age, 
                                       yos = params$yos_range_,
-                                      class = params$class_names_no_drop_frs_) %>% 
+                                      class = params$class_names_no_drop_frs_) %>%
     mutate(
       term_age = entry_age + yos) %>%
     left_join(frs_data_env$tier_table, by = c("entry_year", "yos", "term_age"= "age", "class")) %>%
     mutate(tier_at_term_age = tier) %>%
     filter(term_age <= params$max_age_) %>% 
     arrange(entry_year, entry_age, yos) %>% 
-    left_join(frs_data_env$entrant_profile_table, by = c("entry_age", "class" = "employee_class")) %>%
-    left_join(frs_data_env$salary_growth_table, by = c("yos", "class")) %>%
-    left_join(frs_data_env$salary_headcount_table %>% select(entry_year, entry_age, entry_salary, employee_class), 
+    left_join(entrant_profile_table_s, by = c("entry_age", "class" = "employee_class")) %>%
+    left_join(salary_growth_table_s, by = c("yos", "class")) %>%
+    left_join(salary_headcount_table_s %>% select(entry_year, entry_age, entry_salary, employee_class), 
               by = c("entry_year", "entry_age", "class" = "employee_class")) %>%
     mutate(
       salary = if_else(entry_year <= max(salary_headcount_table$entry_year), 
@@ -183,7 +143,7 @@ get_salary_benefit_table_s <- function(entrant_profile_table,
     ungroup() %>%
     filter(!is.na(salary))
   
-  return(salary_benefit_table)
+  return(salary_benefit_table_s)
 }
 
 entrant_profile_table_s = frs_data_env$entrant_profile_table
@@ -195,12 +155,12 @@ salary_growth_table_s <- frs_data_env$salary_growth_table
 params = params
 
 salary_benefit_table_s <- get_salary_benefit_table_s(entrant_profile_table_s,
-                                                 salary_growth_table_s,
-                                                 salary_headcount_table_s,
-                                                 params) 
+                                                     salary_growth_table_s,
+                                                     salary_headcount_table_s,
+                                                     params) 
 
-salary_benefit_table_s %>% filter(class == "special")
-salary_benefit_table
+skim(salary_benefit_table_s %>% filter(class == "eso"))
+skim(salary_benefit_table)
 
 salary_benefit_table %>%
   anti_join(salary_benefit_table_s)
@@ -208,11 +168,11 @@ salary_benefit_table %>%
 salary_benefit_table_s %>%
   anti_join(salary_benefit_table)
 
-salary_benefit_table %>% filter((entry_year == 2000) & (entry_age == 20))
-salary_benefit_table_s %>% filter((entry_year == 2000) & (entry_age == 20) & (class == "special"))
+salary_benefit_table %>% filter((entry_year == 2000) & (entry_age == 30))
+salary_benefit_table_s %>% filter((entry_year == 2000) & (entry_age == 30) & (class == "eso"))
 
-salary_benefit_table_s %>% filter((entry_year == 2000) & (entry_age == 20) & (yos == 40) & (term_age == 60) & (class == "special"))
-salary_benefit_table %>% filter((entry_year == 2000) & (entry_age == 20) & (yos == 40) & (term_age == 60))
+salary_benefit_table_s %>% filter((entry_year == 2000) & (entry_age == 30) & (yos == 10) & (term_age == 40) & (class == "eso"))
+salary_benefit_table %>% filter((entry_year == 2000) & (entry_age == 30) & (yos == 10) & (term_age == 40))
 
 
 # get_ann_table -----------------------------------------------------------
@@ -279,9 +239,9 @@ ann_factor_table <- get_annuity_factor_table(
   salary_benefit_table,
   params)
 
-ann_factor_table_s %>% filter(employee_class == "special") 
+skim(ann_factor_table_s %>% filter(employee_class == "eso"))
 
-ann_factor_table 
+skim(ann_factor_table)
 
 # get_annuity_factor_retire_table -----------------------------------------
 
@@ -342,7 +302,7 @@ ann_factor_retire_table_s <- get_annuity_factor_retire_table_s(
 
 names(ann_factor_retire_table_s)
 
-ann_factor_retire_table_s %>% filter(employee_class == "special")
+ann_factor_retire_table_s %>% filter(employee_class == "eso")
 
 ann_factor_retire_table
 
@@ -387,18 +347,15 @@ get_benefit_table <- function(class_name,
   return(benefit_table)  
 }
 
-class_name = "special"
-
 benefit_table <- get_benefit_table(
-  class_name,
+  "eso",
   ann_factor_table,
   salary_benefit_table,
   params)
 
-
 get_benefit_table_s <- function(ann_factor_table, 
-                              salary_benefit_table,
-                              params){
+                                salary_benefit_table,
+                                params){
   
   benefit_table <- ann_factor_table %>%
     mutate(
@@ -408,15 +365,15 @@ get_benefit_table_s <- function(ann_factor_table,
     # distribution age means the age when the member starts to accept benefits (either a refund or a pension)
     left_join(salary_benefit_table,
               by = c("entry_year", "entry_age", "yos", "term_age", "employee_class" = "class")) %>%
-     left_join(frs_data_env$ben_mult_lookup %>% select(-system),
-            by = join_by("employee_class" == "class_name", 
-                         tier_at_dist_age,
-                         dist_age >= dist_age_min_ge,
-                         dist_age < dist_age_max_lt,
-                         yos >= yos_min_ge,
-                         yos < yos_max_lt,
-                         dist_year >= dist_year_min_ge,
-                         dist_year < dist_year_max_lt)) %>%
+    left_join(frs_data_env$ben_mult_lookup %>% select(-system),
+              by = join_by("employee_class" == "class_name", 
+                           tier_at_dist_age,
+                           dist_age >= dist_age_min_ge,
+                           dist_age < dist_age_max_lt,
+                           yos >= yos_min_ge,
+                           yos < yos_max_lt,
+                           dist_year >= dist_year_min_ge,
+                           dist_year < dist_year_max_lt)) %>%
     left_join(frs_data_env$reduce_factor_lookup,
               by = c("tier_at_dist_age", "dist_age", "employee_class" = "class_name")) %>%
     mutate(db_benefit = yos * ben_mult * fas * reduce_factor,
@@ -439,9 +396,9 @@ benefit_table_s <- get_benefit_table_s(
   salary_benefit_table_s,
   params)
 
-benefit_table_s %>% filter(employee_class == "special") %>% select(-employee_class)
+skim(benefit_table_s %>% filter(employee_class == "eso") %>% select(pvfb_db_at_term_age, db_benefit, ann_factor_term, entry_salary, salary,fas))
 
-benefit_table %>% select(-class_name.x, -is_norm_retire_elig, -class.x)
+skim(benefit_table %>% select(pvfb_db_at_term_age, db_benefit, ann_factor_term, entry_salary, salary,fas))
 
 
 # test dist age table -----------------------------------------------------
@@ -449,12 +406,12 @@ get_dist_age_table_s <- function(benefit_table){
   # Determine the ultimate distribution age for each member (the age when they're assumed to retire/get a refund, given their termination age)
   
   dist_age_table <- benefit_table %>%
-  mutate(is_norm_retire_elig = tier_at_dist_age %in% c("tier_1_norm", "tier_2_norm", "tier_3_norm")) %>%
-  group_by(employee_class, entry_year, entry_age, term_age) %>%
-  summarise(
+    mutate(is_norm_retire_elig = tier_at_dist_age %in% c("tier_1_norm", "tier_2_norm", "tier_3_norm")) %>%
+    group_by(employee_class, entry_year, entry_age, term_age) %>%
+    summarise(
       earliest_norm_retire_age = n() - sum(is_norm_retire_elig) + min(dist_age),    
       term_status = tier_at_term_age[1]) %>%
-  mutate(
+    mutate(
       dist_age = if_else(
         str_detect(term_status, "vested") & !str_detect(term_status, "non_vested"),
         earliest_norm_retire_age, 
@@ -492,9 +449,7 @@ dist_age_table_s <- get_dist_age_table_s(benefit_table_s)
 
 dist_age_table <- get_dist_age_table(benefit_table)
 
-View(dist_age_table %>% filter (entry_year == 2000, entry_age == 20, term_age == 40) %>%slice_sample ( n = 20))
-
-dist_age_table_s %>% filter(employee_class == "special")
+dist_age_table_s %>% filter(employee_class == "eso")
 
 dist_age_table
 
@@ -538,7 +493,7 @@ get_final_benefit_table_s <- function(benefit_table, dist_age_table){
 
 final_benefit_table_s <- get_final_benefit_table_s(benefit_table_s, dist_age_table_s)
 
-final_benefit_table_s %>% filter(employee_class == "special")
+final_benefit_table_s %>% filter(employee_class == "eso")
 
 final_benefit_table
 
@@ -675,7 +630,9 @@ benefit_val_table_s <- get_benefit_val_table_s(
   separation_rate_table_s,
   params)
 
+skim(benefit_val_table_s %>% filter(class == "eso"))
 
+skim(benefit_val_table)
 
 # small function -----------------------------------------------------
 
@@ -686,6 +643,11 @@ indv_norm_cost_table_s <- benefit_val_table_s %>%
 indv_norm_cost_table <- benefit_val_table %>% 
   filter(yos == 0) %>% 
   select(entry_year, entry_age, indv_norm_cost)
+
+skim(indv_norm_cost_table_s %>% filter(class == "eso"))
+skim(indv_norm_cost_table)
+
+names(indv_norm_cost_table_s)
 
 # get_agg_norm_cost_table -------------------------------------------------
 
@@ -731,6 +693,8 @@ agg_norm_cost_table_s <- get_agg_norm_cost_table_s(
   salary_headcount_table_s,
   salary_benefit_table_s)
 
+skim(agg_norm_cost_table_s %>% filter(class == "eso"))
+skim(agg_norm_cost_table)
 
 # get_benefit_function_primary ---------------------------------------------
 get_benefit_data_s <- function(
@@ -744,9 +708,9 @@ get_benefit_data_s <- function(
   
   # class_salary_growth_table <- get_class_salary_growth_table(class_name, params$salary_growth_table_)
   salary_benefit_table_s <- get_salary_benefit_table_s(entrant_profile_table_s,
-                                                   class_salary_growth_table_s,
-                                                   salary_headcount_table_s,
-                                                   params)
+                                                       salary_growth_table_s,
+                                                       salary_headcount_table_s,
+                                                       params)
   
   ann_factor_table_s <- get_annuity_factor_table_s(
     mort_table_s,
@@ -801,11 +765,11 @@ get_benefit_data_s <- function(
 
 
 benefit_data_s <- get_benefit_data_s(
-  entrant_profile_table_s,
-  salary_headcount_table_s,
-  mort_table_s,
-  mort_retire_table_s,
-  separation_rate_table_s,    
+  frs_data_env$entrant_profile_table,
+  frs_data_env$salary_headcount_table,
+  frs_data_env$mort_table,
+  frs_data_env$mort_retire_table,
+  frs_data_env$separation_rate_table,    
   params
 )
 
@@ -880,35 +844,81 @@ get_benefit_data <- function(
   return(output)
 }
 
-class_name = "special"
-
-benefit_data <- get_benefit_data(
-  "special",
-  frs_data_env$special_entrant_profile_table,
-  frs_data_env$special_salary_headcount_table,
-  frs_data_env$special_mort_table,
-  frs_data_env$special_mort_retire_table,
-  frs_data_env$special_separation_rate_table,    
+benefit_data_eso <- get_benefit_data(
+  "eso",
+  frs_data_env$eso_entrant_profile_table,
+  frs_data_env$eso_salary_headcount_table,
+  frs_data_env$eso_mort_table,
+  frs_data_env$eso_mort_retire_table,
+  frs_data_env$eso_separation_rate_table,    
   params
 )
 
-head(benefit_data_s$ann_factor_table %>% filter(employee_class == "special"))
-head(benefit_data$ann_factor_table)
+head(benefit_data_s$indv_norm_cost_table %>% filter(class == "eso"))
+head(benefit_data_eso$indv_norm_cost_table)
 
-head(benefit_data_s$ann_factor_retire_table_s %>% filter(employee_class == "special"))
-head(benefit_data$ann_factor_retire_table)
+head(benefit_data_s$agg_norm_cost_table_s %>% filter(class == "eso"))
+head(benefit_data_eso$agg_norm_cost_table)
 
-head(benefit_data_s$benefit_table_s %>% filter(employee_class == "special"))
-head(benefit_data$benefit_table)
+# test eco, judges, admin, and senior_management ----------------------------------
 
-head(benefit_data_s$final_benefit_table_s %>% filter(employee_class == "special"))
-head(benefit_data$final_benefit_table)
+benefit_data_eco <- get_benefit_data(
+  "eco",
+  frs_data_env$eco_entrant_profile_table,
+  frs_data_env$eco_salary_headcount_table,
+  frs_data_env$eco_mort_table,
+  frs_data_env$eco_mort_retire_table,
+  frs_data_env$eco_separation_rate_table,    
+  params
+)
 
-head(benefit_data_s$benefit_val_table_s %>% filter(class == "special"))
-head(benefit_data$benefit_val_table)
-     
-head(benefit_data_s$indv_norm_cost_table_s %>% filter(class == "special"))
-head(benefit_data$indv_norm_cost_table)
-     
-head(benefit_data_s$agg_norm_cost_table_s %>% filter(class == "special"))
-head(benefit_data$agg_norm_cost_table)
+head(benefit_data_s$indv_norm_cost_table %>% filter(class == "eco"))
+head(benefit_data_eco$indv_norm_cost_table)
+
+head(benefit_data_s$agg_norm_cost_table_s %>% filter(class == "eco"))
+head(benefit_data_eco$agg_norm_cost_table)
+
+benefit_data_judges <- get_benefit_data(
+  "judges",
+  frs_data_env$judges_entrant_profile_table,
+  frs_data_env$judges_salary_headcount_table,
+  frs_data_env$judges_mort_table,
+  frs_data_env$judges_mort_retire_table,
+  frs_data_env$judges_separation_rate_table,    
+  params
+)
+head(benefit_data_s$indv_norm_cost_table %>% filter(class == "judges"))
+head(benefit_data_judges$indv_norm_cost_table)
+head(benefit_data_s$agg_norm_cost_table_s %>% filter(class == "judges"))
+head(benefit_data_judges$agg_norm_cost_table)
+
+
+benefit_data_admin <- get_benefit_data(
+  "admin",
+  frs_data_env$admin_entrant_profile_table,
+  frs_data_env$admin_salary_headcount_table,
+  frs_data_env$admin_mort_table,
+  frs_data_env$admin_mort_retire_table,
+  frs_data_env$admin_separation_rate_table,    
+  params
+)
+
+head(benefit_data_s$indv_norm_cost_table %>% filter(class == "admin"))
+head(benefit_data_admin$indv_norm_cost_table)
+head(benefit_data_s$agg_norm_cost_table_s %>% filter(class == "admin"))
+head(benefit_data_admin$agg_norm_cost_table)
+
+benefit_data_senior_management <- get_benefit_data(
+  "senior_management",
+  frs_data_env$senior_management_entrant_profile_table,
+  frs_data_env$senior_management_salary_headcount_table,
+  frs_data_env$senior_management_mort_table,
+  frs_data_env$senior_management_mort_retire_table,
+  frs_data_env$senior_management_separation_rate_table,    
+  params
+)
+
+head(benefit_data_s$indv_norm_cost_table %>% filter(class == "senior_management"))
+head(benefit_data_senior_management$indv_norm_cost_table)
+head(benefit_data_s$agg_norm_cost_table_s %>% filter(class == "senior_management"))
+head(benefit_data_senior_management$agg_norm_cost_table)
