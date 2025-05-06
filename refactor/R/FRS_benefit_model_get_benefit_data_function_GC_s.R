@@ -234,7 +234,7 @@ get_salary_benefit_table_s <- function(entrant_profile_table_s,
                                        params){
   
   salary_benefit_table_s <- expand_grid(entry_year = params$entry_year_range_, 
-                                        entry_age = entrant_profile_table$entry_age, 
+                                        entry_age = entrant_profile_table_s$entry_age, 
                                         yos = params$yos_range_,
                                         class = params$class_names_no_drop_frs_) %>%
     mutate(
@@ -249,9 +249,9 @@ get_salary_benefit_table_s <- function(entrant_profile_table_s,
     left_join(salary_headcount_table_s %>% select(entry_year, entry_age, entry_salary, employee_class), 
               by = c("entry_year", "entry_age", "class" = "employee_class")) %>%
     mutate(
-      salary = if_else(entry_year <= max(salary_headcount_table$entry_year), 
+      salary = if_else(entry_year <= max(salary_headcount_table_s$entry_year), 
                        entry_salary * cumprod_salary_increase,
-                       start_sal * cumprod_salary_increase * (1 + params$payroll_growth_)^(entry_year - max(salary_headcount_table$entry_year)))
+                       start_sal * cumprod_salary_increase * (1 + params$payroll_growth_)^(entry_year - max(salary_headcount_table_s$entry_year)))
     ) %>% 
     left_join(frs_data_env$fas_period_lookup, by = c("tier_at_term_age")) %>%
     distinct() %>%
@@ -280,6 +280,8 @@ get_benefit_data_s <- function(
     separation_rate_table_s,
     params
 ) {
+  
+  salary_growth_table_s <- params$salary_growth_table
   
   # class_salary_growth_table <- get_class_salary_growth_table(class_name, params$salary_growth_table_)
   salary_benefit_table_s <- get_salary_benefit_table_s(entrant_profile_table_s,
