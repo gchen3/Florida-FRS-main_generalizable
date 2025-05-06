@@ -339,85 +339,109 @@ get_benefit_data_s <- function(
 }
 
 
-benefit_data_s <- get_benefit_data_s(
-  frs_data_env$entrant_profile_table, 
-  frs_data_env$salary_headcount_table,
-  frs_data_env$mort_table,
-  frs_data_env$mort_retire_table,
-  frs_data_env$separation_rate_table,    
-  params
-)
+# benefit_data_s <- get_benefit_data_s(
+#   frs_data_env$entrant_profile_table,
+#   frs_data_env$salary_headcount_table,
+#   frs_data_env$mort_table,
+#   frs_data_env$mort_retire_table,
+#   frs_data_env$separation_rate_table,
+#   params
+# )
+# 
+# benefit_data_regular <- get_benefit_data(
+#   "regular",
+#   frs_data_env$regular_entrant_profile_table,
+#   frs_data_env$regular_salary_headcount_table,
+#   frs_data_env$regular_mort_table,
+#   frs_data_env$regular_mort_retire_table,
+#   frs_data_env$regular_separation_rate_table,
+#   params
+# )
+# benefit_data_special <- get_benefit_data(
+#   "special",
+#   frs_data_env$special_entrant_profile_table,
+#   frs_data_env$special_salary_headcount_table,
+#   frs_data_env$special_mort_table,
+#   frs_data_env$special_mort_retire_table,
+#   frs_data_env$special_separation_rate_table,
+#   params
+# )
+# benefit_data_admin <- get_benefit_data(
+#   "admin",
+#   frs_data_env$admin_entrant_profile_table,
+#   frs_data_env$admin_salary_headcount_table,
+#   frs_data_env$admin_mort_table,
+#   frs_data_env$admin_mort_retire_table,
+#   frs_data_env$admin_separation_rate_table,
+#   params
+# )
+# benefit_data_eco <- get_benefit_data(
+#   "eco",
+#   frs_data_env$eco_entrant_profile_table,
+#   frs_data_env$eco_salary_headcount_table,
+#   frs_data_env$eco_mort_table,
+#   frs_data_env$eco_mort_retire_table,
+#   frs_data_env$eco_separation_rate_table,
+#   params
+# )
+# benefit_data_eso <- get_benefit_data(
+#   "eso",
+#   frs_data_env$eso_entrant_profile_table,
+#   frs_data_env$eso_salary_headcount_table,
+#   frs_data_env$eso_mort_table,
+#   frs_data_env$eso_mort_retire_table,
+#   frs_data_env$eso_separation_rate_table,
+#   params
+# )
+# benefit_data_judges <- get_benefit_data(
+#   "judges",
+#   frs_data_env$judges_entrant_profile_table,
+#   frs_data_env$judges_salary_headcount_table,
+#   frs_data_env$judges_mort_table,
+#   frs_data_env$judges_mort_retire_table,
+#   frs_data_env$judges_separation_rate_table,
+#   params
+# )
+# benefit_data_senior_management <- get_benefit_data(
+#   "senior_management",
+#   frs_data_env$senior_management_entrant_profile_table,
+#   frs_data_env$senior_management_salary_headcount_table,
+#   frs_data_env$senior_management_mort_table,
+#   frs_data_env$senior_management_mort_retire_table,
+#   frs_data_env$senior_management_separation_rate_table,
+#   params
+# )
+# 
+# benefit_data_admin$agg_norm_cost_table
+# benefit_data_regular$agg_norm_cost_table
+# benefit_data_special$agg_norm_cost_table
+# benefit_data_eco$agg_norm_cost_table
+# benefit_data_eso$agg_norm_cost_table
+# benefit_data_judges$agg_norm_cost_table
+# benefit_data_senior_management$agg_norm_cost_table
+# 
+# benefit_data_s$agg_norm_cost_table
+# 
+# benefit_data_admin$indv_norm_cost_table
+# benefit_data_s$indv_norm_cost_table %>% filter(class == "admin") 
+# 
+# benefit_data_regular$indv_norm_cost_table
+# benefit_data_s$indv_norm_cost_table %>% filter(class == "regular")
+# 
+# benefit_data_special$indv_norm_cost_table
+# benefit_data_s$indv_norm_cost_table %>% filter(class == "special")
+# 
+# benefit_data_eco$indv_norm_cost_table
+# benefit_data_s$indv_norm_cost_table %>% filter(class == "eco")
+# 
+# benefit_data_eso$indv_norm_cost_table
+# benefit_data_s$indv_norm_cost_table %>% filter(class == "eso")
+# 
+# benefit_data_judges$indv_norm_cost_table
+# benefit_data_s$indv_norm_cost_table %>% filter(class == "judges")
+# 
+# benefit_data_senior_management$indv_norm_cost_table
+# benefit_data_s$indv_norm_cost_table %>% filter(class == "senior_management")
 
-benefit_data_regular <- get_benefit_data(
-  "regular",
-  frs_data_env$regular_entrant_profile_table, 
-  frs_data_env$regular_salary_headcount_table,
-  frs_data_env$regular_mort_table,
-  frs_data_env$regular_mort_retire_table,
-  frs_data_env$regular_separation_rate_table,    
-  params
-)
-benefit_data_special <- get_benefit_data(
-  "special",
-  frs_data_env$special_entrant_profile_table, 
-  frs_data_env$special_salary_headcount_table,
-  frs_data_env$special_mort_table,
-  frs_data_env$special_mort_retire_table,
-  frs_data_env$special_separation_rate_table,    
-  params
-)
-benefit_data_admin <- get_benefit_data(
-  "admin",
-  frs_data_env$admin_entrant_profile_table, 
-  frs_data_env$admin_salary_headcount_table,
-  frs_data_env$admin_mort_table,
-  frs_data_env$admin_mort_retire_table,
-  frs_data_env$admin_separation_rate_table,    
-  params
-)
-benefit_data_eco <- get_benefit_data(
-  "eco",
-  frs_data_env$eco_entrant_profile_table, 
-  frs_data_env$eco_salary_headcount_table,
-  frs_data_env$eco_mort_table,
-  frs_data_env$eco_mort_retire_table,
-  frs_data_env$eco_separation_rate_table,    
-  params
-)
-benefit_data_eso <- get_benefit_data(
-  "eso",
-  frs_data_env$eso_entrant_profile_table, 
-  frs_data_env$eso_salary_headcount_table,
-  frs_data_env$eso_mort_table,
-  frs_data_env$eso_mort_retire_table,
-  frs_data_env$eso_separation_rate_table,    
-  params
-)
-benefit_data_judges <- get_benefit_data(
-  "judges",
-  frs_data_env$judges_entrant_profile_table, 
-  frs_data_env$judges_salary_headcount_table,
-  frs_data_env$judges_mort_table,
-  frs_data_env$judges_mort_retire_table,
-  frs_data_env$judges_separation_rate_table,    
-  params
-)
-benefit_data_senior_management <- get_benefit_data(
-  "senior_management",
-  frs_data_env$senior_management_entrant_profile_table, 
-  frs_data_env$senior_management_salary_headcount_table,
-  frs_data_env$senior_management_mort_table,
-  frs_data_env$senior_management_mort_retire_table,
-  frs_data_env$senior_management_separation_rate_table,    
-  params
-)
 
-benefit_data_admin$agg_norm_cost_table
-benefit_data_regular$agg_norm_cost_table
-benefit_data_special$agg_norm_cost_table
-benefit_data_eco$agg_norm_cost_table
-benefit_data_eso$agg_norm_cost_table
-benefit_data_judges$agg_norm_cost_table
-benefit_data_senior_management$agg_norm_cost_table
 
-benefit_data_s$agg_norm_cost_table
