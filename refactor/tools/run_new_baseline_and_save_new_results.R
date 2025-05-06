@@ -32,5 +32,7 @@ system.time(save.image(here::here("refactor", "new_results", "new_workspace.RDat
 system.time(source(fs::path(tooldir, "run_allobjects_tests.R"))) # run tests on all objects appropriate to compare ~ 15 secs
 
 
+print("hello")
+
 # NOTE:
 #   regex for finding global variables:   \w+_(?=\s|$|\)|,|\;)  -- use in RStudio search box
