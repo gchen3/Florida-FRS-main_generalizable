@@ -290,7 +290,7 @@ get_benefit_data <- function(
 ) {
   
   # class_salary_growth_table <- get_class_salary_growth_table(class_name, params$salary_growth_table_)
-  class_salary_growth_table <- params$salary_growth_table %>% filter(class == class_name)  #Used the stacked table
+  class_salary_growth_table <- params$salary_growth_table %>% filter(class == !!class_name)  #Used the stacked table
   
   salary_benefit_table <- get_salary_benefit_table(class_name,
                                                    entrant_profile_table,
