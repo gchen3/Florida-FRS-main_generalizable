@@ -2,3 +2,6 @@
   netlify:
     - id: 691ea4ce-d6b2-448a-a536-b8cbe90d5251
       url: https://frs-generalize.netlify.app
+
+  gh-pages:
+    - url: https://gchen3.github.io/Florida-FRS-main_generalizable/

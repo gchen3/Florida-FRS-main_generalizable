@@ -1,0 +1,44 @@
+---
+title: "stacked_table_dimensions"
+format: html
+editor: visual
+---
+
+## Skim Stacked Tables
+
+```{r library, include=FALSE}
+library(skimr)
+library(here)
+library(fs)
+library(tidyverse)
+wddir <- here::here("refactor", "working_data")
+load(fs::path(wddir, "frs_data_env.RData")) # this gets init_funding_data
+```
+
+```{r}
+#1
+skim(frs_data_env$salary_headcount_table)
+
+#2
+skim(frs_data_env$mort_table)
+
+#3
+skim(frs_data_env$entrant_profile_table)
+
+#4
+skim(frs_data_env$mort_retire_table)
+
+#5
+skim(frs_data_env$normal_retire_rate_table)
+
+#6
+skim(frs_data_env$early_retire_rate_table)
+
+#7
+skim(frs_data_env$separation_rate_table)
+
+#8
+skim(frs_data_env$salary_growth_table)
+
+frs_data_env$dimensions_table
+```

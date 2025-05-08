@@ -23,6 +23,7 @@ book:
     #   chapters:
     #   - external/soa/soa_mortality_rates.qmd
     #   - external/soa/soa_mortality_improvement.qmd
+    - stacked_table_dimensions.qmd
 
 
 # bibliography: references.bib
