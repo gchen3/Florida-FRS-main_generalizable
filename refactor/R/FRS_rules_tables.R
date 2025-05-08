@@ -57,10 +57,10 @@ reduce_factor_lookup <- expand.grid(
   tier_at_dist_age = c("tier_1_non_vested", "tier_1_vested", "tier_1_early", "tier_1_norm",
                        "tier_2_non_vested", "tier_2_vested", "tier_2_early", "tier_2_norm",
                        "tier_3_non_vested", "tier_3_vested", "tier_3_early", "tier_3_norm"),
-  class_name = frs_data_env$class_names_no_drop_frs_,
+  class = frs_data_env$class_names_no_drop_frs_,
   dist_age = frs_data_env$age_range_) %>%
   mutate(reduce_factor = frs_data_env$get_reduce_factor(tier = tier_at_dist_age,
-                                                        class_name = class_name,
+                                                        class_name = class,
                                                         dist_age = dist_age))
 
 

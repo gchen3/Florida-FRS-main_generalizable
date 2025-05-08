@@ -26,9 +26,9 @@ headcount_list <- list(
 salary_table_ <- map2_df(salary_list,
                          names(salary_list),
                          ~ .x %>%
-                           mutate(employee_class = .y)) %>%
+                           mutate(class = .y)) %>%
   pivot_longer(
-    cols = -c(employee_class, age),
+    cols = -c(class, age),
     names_to = "yos",
     values_to = "salary"
   ) %>%
@@ -37,9 +37,9 @@ salary_table_ <- map2_df(salary_list,
 headcount_table_ <- map2_df(headcount_list,
                             names(headcount_list),
                             ~ .x %>%
-                              mutate(employee_class = .y)) %>%
+                              mutate(class = .y)) %>%
   pivot_longer(
-    cols = -c(employee_class, age),
+    cols = -c(class, age),
     names_to = "yos",
     values_to = "count"
   ) %>%
@@ -58,7 +58,7 @@ salary_headcount_list <- list(
 salary_headcount_table <- map2_df(
   salary_headcount_list,
   names(salary_headcount_list),
-  ~ .x %>% mutate(employee_class = .y)
+  ~ .x %>% mutate(class = .y)
 )
 
 # 2).Separation tables ------------------------------------
@@ -86,9 +86,9 @@ female_list <- list(
 term_rate_male_table_ <- map2_df(male_list,
                                  names(male_list),
                                  ~ .x %>%
-                                   mutate(employee_class = .y, gender = "male")) %>%
+                                   mutate(class = .y, gender = "male")) %>%
   pivot_longer(
-    cols = -c(employee_class, yos, gender),
+    cols = -c(class, yos, gender),
     names_to = "age",
     values_to = "rate"
   )
@@ -96,9 +96,9 @@ term_rate_male_table_ <- map2_df(male_list,
 term_rate_female_table_ <- map2_df(female_list,
                                    names(female_list),
                                    ~ .x %>%
-                                     mutate(employee_class = .y, gender = "female")) %>%
+                                     mutate(class = .y, gender = "female")) %>%
   pivot_longer(
-    cols = -c(employee_class, yos, gender),
+    cols = -c(class, yos, gender),
     names_to = "age",
     values_to = "rate"
   )
@@ -125,7 +125,7 @@ mort_list <- list(
   senior_management  = senior_management_mort_table
 )
 
-mort_table <- map2_df(mort_list, names(mort_list), ~ .x %>% mutate(employee_class = .y))
+mort_table <- map2_df(mort_list, names(mort_list), ~ .x %>% mutate(class = .y))
 
 
 # 3) Entrant Profile -------------------------------------------
@@ -142,7 +142,7 @@ entrant_profile_list <- list(
 entrant_profile_table <- map2_df(
   entrant_profile_list,
   names(entrant_profile_list),
-  ~ .x %>% mutate(employee_class = .y)
+  ~ .x %>% mutate(class = .y)
 )
 
 
@@ -159,7 +159,7 @@ mort_retire_list <- list(
 
 mort_retire_table <- map2_df(mort_retire_list,
                              names(mort_retire_list),
-                             ~ .x %>% mutate(employee_class = .y))
+                             ~ .x %>% mutate(class = .y))
 
 
 # 5) Normal Retirement Rate ----------------------------
@@ -176,7 +176,7 @@ normal_retire_rate_tier_1_list <- list(
 normal_retire_rate_tier_1_table <- map2_df(
   normal_retire_rate_tier_1_list,
   names(normal_retire_rate_tier_1_list),
-  ~ .x %>% mutate(employee_class = .y)
+  ~ .x %>% mutate(class = .y)
 )
 
 normal_retire_rate_tier_2_list <- list(
@@ -192,7 +192,7 @@ normal_retire_rate_tier_2_list <- list(
 normal_retire_rate_tier_2_table <- map2_df(
   normal_retire_rate_tier_2_list,
   names(normal_retire_rate_tier_2_list),
-  ~ .x %>% mutate(employee_class = .y)
+  ~ .x %>% mutate(class = .y)
 )
 
 normal_retire_rate_table <- bind_rows(
@@ -214,7 +214,7 @@ early_retire_rate_tier_1_list <- list(
 early_retire_rate_tier_1_table <- map2_df(
   early_retire_rate_tier_1_list,
   names(early_retire_rate_tier_1_list),
-  ~ .x %>% mutate(employee_class = .y)
+  ~ .x %>% mutate(class = .y)
 )
 
 early_retire_rate_tier_2_list <- list(
@@ -230,7 +230,7 @@ early_retire_rate_tier_2_list <- list(
 early_retire_rate_tier_2_table <- map2_df(
   early_retire_rate_tier_2_list,
   names(early_retire_rate_tier_2_list),
-  ~ .x %>% mutate(employee_class = .y)
+  ~ .x %>% mutate(class = .y)
 )
 
 
@@ -253,7 +253,7 @@ separation_rate_list <- list(
 separation_rate_table <- map2_df(
   separation_rate_list,
   names(separation_rate_list),
-  ~ .x %>% mutate(employee_class = .y)
+  ~ .x %>% mutate(class = .y)
 )
 
 # 8) Salary growth rate table -------------------------------------
@@ -334,7 +334,7 @@ summarize_dimensions <- function(df, table_name) {
   df %>%
     summarize(
       table = table_name,
-      unique_employee_class = if ("employee_class" %in% colnames(df)) n_distinct(employee_class, na.rm = TRUE) else NA,
+      unique_class = if ("class" %in% colnames(df)) n_distinct(class, na.rm = TRUE) else NA,
       unique_age = if ("age" %in% colnames(df)) n_distinct(age, na.rm = TRUE) else NA,
       unique_yos = if ("yos" %in% colnames(df)) n_distinct(yos, na.rm = TRUE) else NA,
       unique_entry_year = if ("entry_year" %in% colnames(df)) n_distinct(entry_year, na.rm = TRUE) else NA,
@@ -359,7 +359,7 @@ dimensions_table <- dimensions_summary %>%
   gt() %>%
   cols_label(
     table = "Table Name",
-    unique_employee_class = "Employee Classes",
+    unique_class = "Employee Classes",
     unique_age = "Age Values",
     unique_yos = "YOS Values",
     unique_entry_year = "Entry Years",

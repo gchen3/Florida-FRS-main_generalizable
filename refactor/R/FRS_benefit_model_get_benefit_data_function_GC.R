@@ -89,15 +89,15 @@ get_benefit_table <- function(class_name,
   benefit_table <- ann_factor_table %>%
     mutate(
       term_age = entry_age + yos, .before = term_year,
-      class_name = class_name,
+      class = class_name,
       is_norm_retire_elig = str_detect(tier_at_dist_age, "norm")
     ) %>%
     # dist_age is distribution age, and dist_year is distribution year.
     # distribution age means the age when the member starts to accept benefits (either a refund or a pension)
     left_join(salary_benefit_table,
               by = c("entry_year", "entry_age", "yos", "term_age")) %>%
-    left_join(frs_data_env$ben_mult_lookup %>% filter(class_name == !!class_name) %>% select(-system),
-              by = join_by(class_name, 
+    left_join(frs_data_env$ben_mult_lookup %>% filter(class == class_name) %>% select(-system),
+              by = join_by(class, 
                            tier_at_dist_age,
                            dist_age >= dist_age_min_ge,
                            dist_age < dist_age_max_lt,
@@ -105,7 +105,7 @@ get_benefit_table <- function(class_name,
                            yos < yos_max_lt,
                            dist_year >= dist_year_min_ge,
                            dist_year < dist_year_max_lt)) %>%
-    left_join(frs_data_env$reduce_factor_lookup %>% filter(class_name == !!class_name),
+    left_join(frs_data_env$reduce_factor_lookup %>% filter(class == class_name),
               by = c("tier_at_dist_age", "dist_age")) %>%
     mutate(db_benefit = yos * ben_mult * fas * reduce_factor,
       
@@ -290,7 +290,7 @@ get_benefit_data <- function(
 ) {
   
   # class_salary_growth_table <- get_class_salary_growth_table(class_name, params$salary_growth_table_)
-  class_salary_growth_table <- params$salary_growth_table %>% filter(class == !!class_name)  #Used the stacked table
+  class_salary_growth_table <- params$salary_growth_table %>% filter(class == class_name)  #Used the stacked table
   
   salary_benefit_table <- get_salary_benefit_table(class_name,
                                                    entrant_profile_table,
@@ -350,3 +350,12 @@ get_benefit_data <- function(
   return(output)
 }
 
+get_benefit_data(
+    class_name = "regular",
+    frs_data_env$regular_entrant_profile_table,
+    frs_data_env$regular_salary_headcount_table,
+    frs_data_env$regular_mort_table,
+    frs_data_env$regular_mort_retire_table,
+    frs_data_env$regular_separation_rate_table,
+    params
+)

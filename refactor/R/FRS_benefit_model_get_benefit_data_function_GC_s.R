@@ -21,7 +21,7 @@ get_agg_norm_cost_table_s <- function(
     salary_benefit_table_s){
   
   agg_norm_cost_table_s <- indv_norm_cost_table_s %>% 
-    left_join(salary_headcount_table_s, by = c("class" = "employee_class", "entry_year", "entry_age")) %>%
+    left_join(salary_headcount_table_s, by = c("class", "entry_year", "entry_age")) %>%
     left_join(salary_benefit_table_s %>% select(class, entry_year, entry_age, yos, salary), by = c("class", "entry_year", "entry_age", "yos")) %>%
     filter(!is.na(count)) %>%
     group_by(class) %>%
@@ -43,7 +43,7 @@ get_annuity_factor_retire_table_s <- function(
                      if_else(year == params$new_year_, params$cola_current_retire_one_, 0),
                      params$cola_current_retire_)
     ) %>% 
-    group_by(employee_class, base_age) %>% 
+    group_by(class, base_age) %>% 
     mutate(
       cum_dr = cumprod(1 + lag(dr, default = 0)),
       cum_mort = cumprod(1 - lag(mort_final, default = 0)),
@@ -61,11 +61,11 @@ get_annuity_factor_table_s <- function(
     params
 ) {
   ann_factor_table_s <- mort_table_s %>%
-    semi_join(salary_benefit_table_s, by = c("entry_year", "entry_age", "employee_class" = "class")) %>%
+    semi_join(salary_benefit_table_s, by = c("entry_year", "entry_age", "class")) %>%
     left_join(frs_data_env$dr_lookup, by = c("tier_at_dist_age")) %>%
     left_join(frs_data_env$cola_lookup, 
               by = c("tier_at_dist_age", "entry_year", "yos")) %>%
-    group_by(employee_class, entry_year, entry_age, yos) %>% 
+    group_by(class, entry_year, entry_age, yos) %>% 
     mutate(
       cum_dr = cumprod(1 + lag(dr, default = 0)),
       cum_mort = cumprod(1 - lag(mort_final, default = 0)),
@@ -92,9 +92,9 @@ get_benefit_table_s <- function(ann_factor_table,
     # dist_age is distribution age, and dist_year is distribution year.
     # distribution age means the age when the member starts to accept benefits (either a refund or a pension)
     left_join(salary_benefit_table,
-              by = c("entry_year", "entry_age", "yos", "term_age", "employee_class" = "class")) %>%
+              by = c("entry_year", "entry_age", "yos", "term_age", "class")) %>%
     left_join(frs_data_env$ben_mult_lookup %>% select(-system),
-              by = join_by("employee_class" == "class_name", 
+              by = join_by(class, 
                            tier_at_dist_age,
                            dist_age >= dist_age_min_ge,
                            dist_age < dist_age_max_lt,
@@ -103,7 +103,7 @@ get_benefit_table_s <- function(ann_factor_table,
                            dist_year >= dist_year_min_ge,
                            dist_year < dist_year_max_lt)) %>%
     left_join(frs_data_env$reduce_factor_lookup,
-              by = c("tier_at_dist_age", "dist_age", "employee_class" = "class_name")) %>%
+              by = c("tier_at_dist_age", "dist_age", "class")) %>%
     mutate(db_benefit = yos * ben_mult * fas * reduce_factor,
            
            #cal_factor is a calibration factor added to match the normal cost from the val report
@@ -127,9 +127,9 @@ get_benefit_val_table_s <- function(
     params){
   
   benefit_val_table_s <- salary_benefit_table_s %>% 
-    left_join(final_benefit_table_s, by = c("class" = "employee_class", "entry_year", "entry_age", "term_age")) %>%
+    left_join(final_benefit_table_s, by = c("class", "entry_year", "entry_age", "term_age")) %>%
     left_join(separation_rate_table_s,
-              by = c("class" = "employee_class", "entry_year", "entry_age", "yos", "term_age")) %>%
+              by = c("class", "entry_year", "entry_age", "yos", "term_age")) %>%
     left_join(frs_data_env$dr_lookup, by = c("tier" = "tier_at_dist_age")) %>%
     mutate(
       #note that the tier below applies at termination age only
@@ -193,7 +193,7 @@ get_dist_age_table_s <- function(benefit_table_s){
   
   dist_age_table_s <- benefit_table_s %>%
     mutate(is_norm_retire_elig = tier_at_dist_age %in% c("tier_1_norm", "tier_2_norm", "tier_3_norm")) %>%
-    group_by(employee_class, entry_year, entry_age, term_age) %>%
+    group_by(class, entry_year, entry_age, term_age) %>%
     summarise(
       earliest_norm_retire_age = n() - sum(is_norm_retire_elig) + min(dist_age),    
       term_status = tier_at_term_age[1]) %>%
@@ -204,7 +204,7 @@ get_dist_age_table_s <- function(benefit_table_s){
         term_age
       )
     ) %>% 
-    select(employee_class, entry_year, entry_age, term_age, dist_age)
+    select(class, entry_year, entry_age, term_age, dist_age)
   
   return(dist_age_table_s)
 }
@@ -215,8 +215,8 @@ get_final_benefit_table_s <- function(benefit_table, dist_age_table){
   #Retain only the final distribution ages in the final_benefit_table
   final_benefit_table <- benefit_table %>% 
     semi_join(dist_age_table,
-              by = join_by(employee_class, entry_year, entry_age, dist_age, term_age)) %>% 
-    select(employee_class, entry_year, entry_age, term_age, dist_age, db_benefit, pvfb_db_at_term_age, ann_factor_term) %>% 
+              by = join_by(class, entry_year, entry_age, dist_age, term_age)) %>% 
+    select(class, entry_year, entry_age, term_age, dist_age, db_benefit, pvfb_db_at_term_age, ann_factor_term) %>% 
     mutate(
       #NA benefit values (because the member is not vested) are replaced with 0
       db_benefit = if_else(is.na(db_benefit), 0, db_benefit),
@@ -243,11 +243,11 @@ get_salary_benefit_table_s <- function(entrant_profile_table_s,
     mutate(tier_at_term_age = tier) %>%
     filter(term_age <= params$max_age_) %>% 
     arrange(entry_year, entry_age, yos) %>% 
-    left_join(entrant_profile_table_s, by = c("entry_age", "class" = "employee_class")) %>%
+    left_join(entrant_profile_table_s, by = c("entry_age", "class")) %>%
     filter(is.na(start_sal) == FALSE) %>%
     left_join(salary_growth_table_s, by = c("yos", "class")) %>%
-    left_join(salary_headcount_table_s %>% select(entry_year, entry_age, entry_salary, employee_class), 
-              by = c("entry_year", "entry_age", "class" = "employee_class")) %>%
+    left_join(salary_headcount_table_s %>% select(entry_year, entry_age, entry_salary, class), 
+              by = c("entry_year", "entry_age", "class")) %>%
     mutate(
       salary = if_else(entry_year <= max(salary_headcount_table_s$entry_year), 
                        entry_salary * cumprod_salary_increase,
