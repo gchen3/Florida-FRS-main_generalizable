@@ -49,7 +49,9 @@ get_annuity_factor_retire_table <- function(
       cum_mort = cumprod(1 - lag(mort_final, default = 0)),
       cum_mort_dr = cum_mort / cum_dr,
       ann_factor_retire = pentools::annfactor(cum_mort_dr, cola_vec = cola, one_time_cola = params$one_time_cola_)
-    )
+    ) %>%
+    ungroup()
+  
   return(ann_factor_retire_table)
 }
 
@@ -89,8 +91,7 @@ get_benefit_table <- function(class_name,
   benefit_table <- ann_factor_table %>%
     mutate(
       term_age = entry_age + yos, .before = term_year,
-      class = class_name,
-      is_norm_retire_elig = str_detect(tier_at_dist_age, "norm")
+      class = class_name
     ) %>%
     # dist_age is distribution age, and dist_year is distribution year.
     # distribution age means the age when the member starts to accept benefits (either a refund or a pension)
@@ -118,7 +119,9 @@ get_benefit_table <- function(class_name,
       #calculate the actuarial present value of future DB benefits at termination day (discount the annual DB benefits back to termination day)
       pvfb_db_at_term_age = db_benefit * ann_factor_term
       
-    )
+    ) %>%
+    ungroup()
+  
   return(benefit_table)  
 }
 
@@ -193,11 +196,11 @@ get_benefit_val_table <- function(
 get_dist_age_table <- function(benefit_table){
   # Determine the ultimate distribution age for each member (the age when they're assumed to retire/get a refund, given their termination age)
   dist_age_table <- benefit_table %>% 
+    mutate(is_norm_retire_elig = tier_at_dist_age %in% c("tier_1_norm", "tier_2_norm", "tier_3_norm")) %>%
+    group_by(entry_year, entry_age, term_age) %>%
     summarise(
-      earliest_norm_retire_age = n() - sum(is_norm_retire_elig) + min(dist_age),
-      term_status = tier_at_term_age[1],
-      .by=c(entry_year, entry_age, term_age)
-    ) %>% 
+      earliest_norm_retire_age = n() - sum(is_norm_retire_elig) + min(dist_age),    
+      term_status = tier_at_term_age[1]) %>%
     mutate(
       dist_age = if_else(
         str_detect(term_status, "vested") & !str_detect(term_status, "non_vested"),
@@ -350,12 +353,12 @@ get_benefit_data <- function(
   return(output)
 }
 
-get_benefit_data(
-    class_name = "regular",
-    frs_data_env$regular_entrant_profile_table,
-    frs_data_env$regular_salary_headcount_table,
-    frs_data_env$regular_mort_table,
-    frs_data_env$regular_mort_retire_table,
-    frs_data_env$regular_separation_rate_table,
-    params
-)
+# get_benefit_data(
+#     class_name = "regular",
+#     frs_data_env$regular_entrant_profile_table,
+#     frs_data_env$regular_salary_headcount_table,
+#     frs_data_env$regular_mort_table,
+#     frs_data_env$regular_mort_retire_table,
+#     frs_data_env$regular_separation_rate_table,
+#     params
+# )
