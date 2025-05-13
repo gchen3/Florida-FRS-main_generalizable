@@ -16,29 +16,54 @@ load(fs::path(wddir, "frs_data_env.RData")) # this gets init_funding_data
 ```
 
 ```{r}
+ht <- function(df, nrecs = 6) {
+  # head-tail
+  print(utils::head(df, nrecs))
+  print(utils::tail(df, nrecs))
+}
+
 #1
 skim(frs_data_env$salary_headcount_table)
+ht(frs_data_env$salary_headcount_table |> 
+     arrange(class, entry_year, entry_age))
+
 
 #2
 skim(frs_data_env$mort_table)
+ht(frs_data_env$mort_table |> 
+     arrange(class, entry_year, entry_age, dist_year))
 
 #3
 skim(frs_data_env$entrant_profile_table)
+ht(frs_data_env$entrant_profile_table |> 
+     arrange(class, entry_age))
 
 #4
 skim(frs_data_env$mort_retire_table)
+ht(frs_data_env$mort_retire_table |> 
+     arrange(class, base_age, age, year))
 
 #5
 skim(frs_data_env$normal_retire_rate_table)
+ht(frs_data_env$normal_retire_rate_table |> 
+     arrange(class, tier, age))
 
 #6
 skim(frs_data_env$early_retire_rate_table)
+ht(frs_data_env$early_retire_rate_table |> 
+     arrange(class, tier, age))
 
 #7
 skim(frs_data_env$separation_rate_table)
+ht(frs_data_env$separation_rate_table |> 
+     arrange(class, entry_year, entry_age, term_age))
 
 #8
 skim(frs_data_env$salary_growth_table)
+ht(frs_data_env$salary_growth_table |> 
+     arrange(class, yos))
 
+#Appendix
 frs_data_env$dimensions_table
+
 ```
