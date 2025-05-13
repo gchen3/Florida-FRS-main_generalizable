@@ -1,6 +1,29 @@
+year_range <- params$start_year_:(params$start_year_ + params$model_period_) 
+entry_age_range <- frs_data_env$regular_entrant_profile_table$entry_age
+age_range <- min(entry_age_range):max(params$age_range_)
+term_year_range <- year_range
+retire_year_range <- year_range
 
+salary_headcount_table <- frs_data_env$regular_salary_headcount_table
+mort_table <- frs_data_env$regular_mort_table
+separation_rate_table <- frs_data_env$regular_separation_rate_table
+retire_refund_ratio <- params$retire_refund_ratio_
 
-# workforce helper functions --------------------------------------------------------
+regular_benefit_data <- bm_env$get_benefit_data(
+  "regular",
+  frs_data_env$regular_entrant_profile_table,
+  frs_data_env$regular_salary_headcount_table,
+  frs_data_env$regular_mort_table,
+  frs_data_env$regular_mort_retire_table,
+  frs_data_env$regular_separation_rate_table,    
+  params
+)
+
+benefit_val_table <- regular_benefit_data$benefit_val_table
+
+pop_growth=params$pop_growth_
+
+# initialize_arrays function ----------------------------------------------
 
 initialize_arrays <- function(
     age_range,
@@ -44,6 +67,9 @@ initialize_arrays <- function(
   wf_term <- array(0, dim = term_dim, dimnames = term_dim_names)
   wf_refund <- wf_term
   wf_retire <- array(0, dim = retire_dim, dimnames = retire_dim_names)
+  
+  retire_array <- array(0, dim = term_dim, dimnames = term_dim_names)
+  refund_array <- array(0, dim = term_dim, dimnames = term_dim_names)
   
   # Initial active population ----
   active_int_df <- expand_grid(entry_age = entry_age_range, 
@@ -143,6 +169,39 @@ initialize_arrays <- function(
               refund_array=refund_array))
 }
 
+
+# test initial arrays -----------------------------------------------------
+
+identical(wf_active_s["regular",,,], wf_active)
+identical(wf_term_s["regular",,,,], wf_term)
+identical(wf_refund_s["regular",,,,], wf_refund)
+identical(wf_retire_s["regular",,,,,], wf_retire)
+
+identical(active_int_df_s %>% filter(class == "regular") %>% select(-class), active_int_df)
+identical(wf_active_s["regular",,,1], wf_active[,,1])
+
+identical(mort_table_s %>% filter(class == "regular") %>% select(-class), mort_table)
+identical(mort_df_term_s %>% filter(class == "regular") %>% select(-class), mort_df_term)
+
+identical(sep_df_s %>% filter(class == "regular") %>% select(-class), sep_df)
+identical(sep_array_s["regular",,,], sep_array) ### TRUE
+all.equal(as.vector(sep_array_s["regular",,,]), as.vector(sep_array)) ### TRUE
+sum(sep_array_s["regular",,,] - sep_array) # 0
+
+
+identical(benefit_val_table_s %>% filter(class == "regular") %>% select(-class), benefit_val_table %>% select(-class.x, -class.y))
+identical(optimal_retire_s %>% filter(class == "regular") %>% select(-class), optimal_retire)
+identical(retire_df_s %>% filter(class == "regular") %>% select(-class), retire_df)
+identical(retire_array_s["regular",,,,], retire_array) ### FALSE
+sum(retire_array_s["regular",,,,] - retire_array) # 0
+all.equal(as.vector(retire_array_s["regular",,,,]), as.vector(retire_array)) ### TRUE
+
+identical(refund_df_s %>% filter(class == "regular") %>% select(-class), refund_df)
+identical(refund_array_s["regular",,,,], refund_array) ### FALSE
+sum(refund_array_s["regular",,,,] - refund_array) # 0
+all.equal(as.vector(refund_array_s["regular",,,,]), as.vector(refund_array)) ### TRUE
+
+# loop_through_arrays -----------------------------------------------------
 
 loop_through_arrays <- function(wf_active,
                                 wf_term, 
@@ -246,36 +305,36 @@ loop_through_arrays <- function(wf_active,
 # retire_refund_ratio = retire_refund_ratio_
 # cal_factor = cal_factor_
 
-benefit_data_s <- bm_env$get_benefit_data_s(
-  frs_data_env$entrant_profile_table,
-  frs_data_env$salary_headcount_table,
-  frs_data_env$mort_table,
-  frs_data_env$mort_retire_table,
-  frs_data_env$separation_rate_table,    
-  params
-)
-
-
-get_wf_data_s <- function(
+get_wf_data <- function(
     class_name,
+    entrant_profile_table,
+    salary_headcount_table,
+    mort_table,
+    mort_retire_table,
+    separation_rate_table,
     params
 ) {
   cat("\n\n")
   print(paste0("..preparing wf_data for class: ", class_name))
   
-  ann_factor_table <- benefit_data_s$ann_factor_table %>% filter(class == class_name) %>% select(-class)
-  ann_factor_retire_table <- benefit_data_s$ann_factor_retire_table %>% filter(class == class_name) %>% select(-class)
-  benefit_table <- benefit_data_s$benefit_table %>% filter(class == class_name) %>% select(-class)
-  final_benefit_table <- benefit_data_s$final_benefit_table %>% filter(class == class_name) %>% select(-class)
-  benefit_val_table <- benefit_data_s$benefit_val_table %>% filter(class == class_name) %>% select(-class)
-  indv_norm_cost_table <- benefit_data_s$indv_norm_cost_table %>% filter(class == class_name) %>% select(-class)
-  agg_norm_cost_table <- benefit_data_s$agg_norm_cost_table %>% filter(class == class_name) %>% select(-class)
+  benefit_data_s <- bm_env$get_benefit_data_s(
+    entrant_profile_table,
+    salary_headcount_table,
+    mort_table,
+    mort_retire_table,
+    separation_rate_table,    
+    params
+  )
   
-  entrant_profile_table <- frs_data_env$entrant_profile_table %>% filter(class == class_name) %>% select(-class)
-  salary_headcount_table <- frs_data_env$salary_headcount_table %>% filter(class == class_name) %>% select(-class)
-  mort_table <- frs_data_env$mort_table %>% filter(class == class_name) %>% select(-class)
-  mort_retire_table <- frs_data_env$mort_retire_table %>% filter(class == class_name) %>% select(-class)
-  separation_rate_table <- frs_data_env$separation_rate_table %>% filter(class == class_name) %>% select(-class)
+  benefit_data <- list()
+  
+  benefit_data$ann_factor_table <- benefit_data_s$ann_factor_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$ann_factor_retire_table <- benefit_data_s$ann_factor_retire_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$benefit_table <- benefit_data_s$benefit_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$final_benefit_table <- benefit_data_s$final_benefit_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$benefit_val_table <- benefit_data_s$benefit_val_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$indv_norm_cost_table <- benefit_data_s$indv_norm_cost_table_s %>% filter(class == !!class_name)
+  benefit_data$agg_norm_cost_table <- benefit_data_s$agg_norm_cost_table_s %>% filter(class == !!class_name)
   
   # Get age, entry_age, year, term_year, and retire_year ranges needed for array initialization ----
   entry_age_range <- entrant_profile_table$entry_age # djb: note that there are gaps in these ages
@@ -298,7 +357,7 @@ get_wf_data_s <- function(
     salary_headcount_table,
     mort_table,
     separation_rate_table,
-    benefit_val_table,
+    benefit_val_table = benefit_data$benefit_val_table,
     retire_refund_ratio = params$retire_refund_ratio_
   )
   list2env(init_list, envir = environment()) # djb: put REFERENCES to list elements into the current environment
@@ -379,17 +438,4 @@ get_wf_data_s <- function(
   saveRDS(wf_data, fs::path(iddir, paste0(class_name, "_wf_data.rds")))
   
 }
-
-# wf_test_s <- get_wf_data_s(class_name = "regular",
-#                     params = params)
-# 
-# wf_test <- wfm_env$get_wf_data(class_name = "regular",
-#                     entrant_profile_table = frs_data_env$regular_entrant_profile_table,
-#                     salary_headcount_table = frs_data_env$regular_salary_headcount_table,
-#                     mort_table = frs_data_env$regular_mort_table,
-#                     mort_retire_table = frs_data_env$regular_mort_retire_table,
-#                     separation_rate_table = frs_data_env$regular_separation_rate_table,
-#                     params = params)
-# 
-# identical(wf_test_s, wf_test)
 

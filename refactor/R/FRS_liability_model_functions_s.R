@@ -422,13 +422,13 @@ get_liability_data <- function(
   
   benefit_data <- list()
   
-  benefit_data$ann_factor_table <- benefit_data_s$ann_factor_table_s %>% filter(class == !!class_name)
-  benefit_data$ann_factor_retire_table <- benefit_data_s$ann_factor_table_s %>% filter(class == !!class_name)
-  benefit_data$benefit_table <- benefit_data_s$benefit_table_s %>% filter(class == !!class_name)
-  benefit_data$final_benefit_table <- benefit_data_s$final_benefit_table_s %>% filter(class == !!class_name)
-  benefit_data$benefit_val_table <- benefit_data_s$benefit_val_table_s %>% filter(class == !!class_name)
-  benefit_data$indv_norm_cost_table <- benefit_data_s$indv_norm_cost_table_s %>% filter(class == !!class_name)
-  benefit_data$agg_norm_cost_table <- benefit_data_s$agg_norm_cost_table_s %>% filter(class == !!class_name)
+  benefit_data$ann_factor_table <- benefit_data_s$ann_factor_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$ann_factor_retire_table <- benefit_data_s$ann_factor_retire_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$benefit_table <- benefit_data_s$benefit_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$final_benefit_table <- benefit_data_s$final_benefit_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$benefit_val_table <- benefit_data_s$benefit_val_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$indv_norm_cost_table <- benefit_data_s$indv_norm_cost_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$agg_norm_cost_table <- benefit_data_s$agg_norm_cost_table_s %>% filter(class == class_name) %>% select(-class)
   
   # unpack the wf_data and benefit_data objects
   # performant, because r is copy on modify

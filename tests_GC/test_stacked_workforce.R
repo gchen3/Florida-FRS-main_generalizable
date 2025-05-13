@@ -1,8 +1,32 @@
 
+year_range <- params$start_year_:(params$start_year_ + params$model_period_) 
+entry_age_range <- frs_data_env$entrant_profile_table$entry_age
+age_range <- min(entry_age_range):max(params$age_range_)
+term_year_range <- year_range
+retire_year_range <- year_range
+class_name <- frs_data_env$class_names_no_drop_frs_
 
-# workforce helper functions --------------------------------------------------------
+salary_headcount_table_s <- frs_data_env$salary_headcount_table
+mort_table_s <- frs_data_env$mort_table
+separation_rate_table_s <- frs_data_env$separation_rate_table
+retire_refund_ratio_s <- params$retire_refund_ratio_
+entrant_profile_table_s <- frs_data_env$entrant_profile_table
+mort_retire_table_s <- frs_data_env$mort_retire_table
 
-initialize_arrays <- function(
+benefit_data_s <- bm_env$get_benefit_data_s(
+  frs_data_env$entrant_profile_table,
+  frs_data_env$salary_headcount_table,
+  frs_data_env$mort_table,
+  frs_data_env$mort_retire_table,
+  frs_data_env$separation_rate_table,    
+  params
+)
+
+benefit_val_table_s <- benefit_data_s$benefit_val_table_s
+
+# initialize_arrays_s -----------------------------------------------------
+
+initialize_arrays_s <- function(
     age_range,
     entry_age_range,
     year_range,
@@ -15,75 +39,95 @@ initialize_arrays <- function(
     retire_refund_ratio
 ){
   # Define array dimensions and names ----
-  active_dim <- c(length(entry_age_range), length(age_range), length(year_range))
-  active_dim_names <- list(entry_age = entry_age_range, 
+  active_dim_s <- c(length(class_name), length(entry_age_range), length(age_range), length(year_range))
+  active_dim_names_s <- list(class = class_name,
+                           entry_age = entry_age_range, 
                            age = age_range, 
                            year = year_range)
   
-  term_dim <- c(length(entry_age_range), 
+  term_dim_s <- c(length(class_name), 
+                length(entry_age_range), 
                 length(age_range), 
                 length(year_range), 
                 length(term_year_range))
-  term_dim_names <- list(entry_age = entry_age_range, 
+  term_dim_names_s <- list(class = class_name,
+                         entry_age = entry_age_range, 
                          age = age_range, 
                          year = year_range, 
-                         term_year = term_year_range)
+                         term_year = term_year_range
+                         )
   
-  retire_dim <- c(length(entry_age_range), 
+  retire_dim_s <- c(length(class_name), 
+                  length(entry_age_range), 
                   length(age_range), 
                   length(year_range), 
                   length(term_year_range), 
                   length(retire_year_range))
-  retire_dim_names <- list(entry_age = entry_age_range,
+  retire_dim_names_s <- list(class = class_name,
+                           entry_age = entry_age_range,
                            age = age_range, 
                            year = year_range, 
                            term_year = term_year_range, 
                            retire_year = retire_year_range)
   
-  wf_active <- array(0, dim = active_dim, dimnames = active_dim_names)
-  wf_term <- array(0, dim = term_dim, dimnames = term_dim_names)
-  wf_refund <- wf_term
-  wf_retire <- array(0, dim = retire_dim, dimnames = retire_dim_names)
+  wf_active_s <- array(0, dim = active_dim_s, dimnames = active_dim_names_s)
+  wf_term_s <- array(0, dim = term_dim_s, dimnames = term_dim_names_s)
+  wf_refund_s <- wf_term
+  wf_retire_s <- array(0, dim = retire_dim_s, dimnames = retire_dim_names_s)
+  
+  retire_array_s <-  array(0, dim = term_dim_s, dimnames = term_dim_names_s)
+  refund_array_s <-  array(0, dim = term_dim_s, dimnames = term_dim_names_s)
+  
+
   
   # Initial active population ----
-  active_int_df <- expand_grid(entry_age = entry_age_range, 
+  active_int_df_s <- expand_grid(class = class_name, 
+                               entry_age = entry_age_range, 
                                age = age_range) %>%
-    left_join(salary_headcount_table, by = c("entry_age", "age")) %>%
+    left_join(salary_headcount_table_s, by = c("class","entry_age", "age")) %>%
     replace(is.na(.), 0) %>%
-    select(entry_age, age, count)
+    select(entry_age, age, count, class)
   
-  active_int_matrix <- xtabs(count ~ entry_age + age, active_int_df) # should we store this as a sparse array?
+  active_int_matrix_s <- xtabs(count ~ class + entry_age + age, active_int_df_s) # should we store this as a sparse array?
   
-  wf_active[,,1] <- active_int_matrix # djb: wf_active dimensions are entry_age x age x year -- so fill in first year (2022) wf_active[,,"2022"]
+  wf_active_s[,,,1] <- active_int_matrix_s # djb: wf_active dimensions are entry_age x age x year -- so fill in first year (2022) wf_active[,,"2022"]
   
   # Create probability arrays ----
   
   #.. Mortality probability array (4 dimensions: entry_age, age, year, term_year) ----
-  mort_df_term <- expand_grid(entry_age = entry_age_range,
+  mort_df_term_s <- expand_grid(entry_age = entry_age_range,
                               age = age_range, 
                               year = year_range, 
-                              term_year = term_year_range) %>% 
-    left_join(mort_table, by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year")) %>% 
+                              term_year = term_year_range,
+                              class = class_name) %>% 
+    left_join(mort_table_s, by = c("entry_age", "age" = "dist_age", "year" = "dist_year", "term_year", "class")) %>% 
     mutate(mort = if_else(is.na(mort_final), 0, mort_final))
   
-  mort_array_term <- xtabs(mort ~ entry_age + age + year + term_year, mort_df_term)
+  mort_array_term_s <- xtabs(mort ~ class + entry_age + age + year + term_year, mort_df_term_s)
   
   #.. Separation probability array (3 dimensions: entry_age, age, year) ----
-  sep_df <- expand_grid(entry_age = entry_age_range,
+  sep_df_s <- expand_grid(class = class_name,
+                        entry_age = entry_age_range,
                         age = age_range, 
-                        year = year_range) %>% 
-    mutate(entry_year = year - (age - entry_age)) %>% 
-    left_join(separation_rate_table, by = c("entry_age", "age" = "term_age", "entry_year")) %>% 
-    select(entry_age, age, year, separation_rate) %>% 
-    mutate(separation_rate = if_else(is.na(separation_rate), 0, separation_rate))
+                        year = year_range
+                        ) %>% 
+    mutate(entry_year = year - (age - entry_age),
+           class = as.character(class), ## GC: Had to use as.character to make the results identical to the unstacked arrays.
+           entry_age = as.character(entry_age), ## GC: Had to use as.character to make the results identical to the unstacked arrays.
+           age = as.character(age), ## GC: Had to use as.character to make the results identical to the unstacked arrays.
+           year = as.character(year)) %>% ## GC:Had to use as.character to make the results identical to the unstacked arrays.
+    left_join(separation_rate_table_s, by = c("class", "entry_age", "age" = "term_age", "entry_year")) %>% 
+    select(class, entry_age, age, year, separation_rate) %>% 
+    mutate(separation_rate = if_else(is.na(separation_rate), 0, separation_rate)) 
   
-  sep_array <- xtabs(separation_rate ~ entry_age + age + year, sep_df)
+  sep_array_s <- xtabs(separation_rate ~ class + entry_age + age + year, sep_df_s)
   
   #.. Refund and retirement probability arrays ----
   
-  optimal_retire <- benefit_val_table %>% 
+  optimal_retire_s <- benefit_val_table_s %>% 
     # rename(term_age = Age) %>% 
-    select(entry_year, entry_age, term_age, yos, dist_age, ben_decision) %>% 
+    select(entry_year, entry_age, term_age, yos, dist_age, ben_decision, class) %>%
+    group_by(class) %>%
     mutate(refund = case_when(ben_decision == "refund" ~ 1,     # use case_when instead of ifelse to handle NA values better
                               ben_decision == "mix" ~ 1 - retire_refund_ratio,
                               .default = 0),
@@ -93,7 +137,8 @@ initialize_arrays <- function(
            refund_age = term_age)
   
   #.... Retire probability array (4 dimensions: entry_age, age, year, term_year) ----
-  retire_df <- expand_grid(entry_age = entry_age_range,
+  retire_df_s <- expand_grid(class = class_name,
+                           entry_age = entry_age_range,
                            age = age_range, 
                            year = year_range, 
                            term_year = term_year_range) %>% 
@@ -102,18 +147,21 @@ initialize_arrays <- function(
       term_age = age - (year - term_year),
       yos = term_age - entry_age) %>% 
     filter(year - term_year >= 0, yos >= 0) %>% 
-    left_join(optimal_retire, by = c("entry_age",
+    left_join(optimal_retire_s, by = c("entry_age",
                                      "age" = "dist_age",
                                      "entry_year",
                                      "term_age",
-                                     "yos")) %>% 
-    mutate(retire = if_else(is.na(retire), 0, retire))
+                                     "yos",
+                                     "class")) %>% 
+    mutate(retire = if_else(is.na(retire), 0, retire)) 
   
-  retire_array <- xtabs(retire ~ entry_age + age + year + term_year, retire_df) 
+  retire_array_s <- xtabs(retire ~ class + entry_age + age + year + term_year, retire_df_s) 
   
+
   #.... Refund probability array (4 dimensions: entry_age, age, year, term_year) ----
   # Note that employees get refunds in the same year they get terminated.
-  refund_df <- expand_grid(entry_age = entry_age_range,
+  refund_df_s <- expand_grid(class = class_name,
+                           entry_age = entry_age_range,
                            age = age_range, 
                            year = year_range, 
                            term_year = term_year_range) %>% 
@@ -123,15 +171,16 @@ initialize_arrays <- function(
       yos = term_age - entry_age
     ) %>% 
     filter(year - term_year >= 0, yos >= 0) %>% 
-    left_join(optimal_retire, by = c("entry_age",
+    left_join(optimal_retire_s, by = c("entry_age",
                                      "age" = "refund_age",
                                      "entry_year",
                                      "term_age",
-                                     "yos")) %>% 
+                                     "yos",
+                                     "class")) %>% 
     mutate(refund = if_else(is.na(refund), 0, refund))
   # djb: is there any reason we shouldn't combine retire_df and refund_df? same structure and methods; wide or stacked
   
-  refund_array <- xtabs(refund ~ entry_age + age + year + term_year, refund_df)
+  refund_array_s <- xtabs(refund ~ class + entry_age + age + year + term_year, refund_df_s)
   
   return(list(wf_active=wf_active,
               wf_term=wf_term, 
@@ -142,6 +191,17 @@ initialize_arrays <- function(
               retire_array=retire_array,
               refund_array=refund_array))
 }
+
+
+
+
+# test initial arrays -----------------------------------------------------
+
+
+
+
+# loop_through_arrays -----------------------------------------------------
+
 
 
 loop_through_arrays <- function(wf_active,
@@ -246,36 +306,36 @@ loop_through_arrays <- function(wf_active,
 # retire_refund_ratio = retire_refund_ratio_
 # cal_factor = cal_factor_
 
-benefit_data_s <- bm_env$get_benefit_data_s(
-  frs_data_env$entrant_profile_table,
-  frs_data_env$salary_headcount_table,
-  frs_data_env$mort_table,
-  frs_data_env$mort_retire_table,
-  frs_data_env$separation_rate_table,    
-  params
-)
-
-
-get_wf_data_s <- function(
+get_wf_data <- function(
     class_name,
+    entrant_profile_table,
+    salary_headcount_table,
+    mort_table,
+    mort_retire_table,
+    separation_rate_table,
     params
 ) {
   cat("\n\n")
   print(paste0("..preparing wf_data for class: ", class_name))
   
-  ann_factor_table <- benefit_data_s$ann_factor_table %>% filter(class == class_name) %>% select(-class)
-  ann_factor_retire_table <- benefit_data_s$ann_factor_retire_table %>% filter(class == class_name) %>% select(-class)
-  benefit_table <- benefit_data_s$benefit_table %>% filter(class == class_name) %>% select(-class)
-  final_benefit_table <- benefit_data_s$final_benefit_table %>% filter(class == class_name) %>% select(-class)
-  benefit_val_table <- benefit_data_s$benefit_val_table %>% filter(class == class_name) %>% select(-class)
-  indv_norm_cost_table <- benefit_data_s$indv_norm_cost_table %>% filter(class == class_name) %>% select(-class)
-  agg_norm_cost_table <- benefit_data_s$agg_norm_cost_table %>% filter(class == class_name) %>% select(-class)
+  benefit_data_s <- bm_env$get_benefit_data_s(
+    entrant_profile_table,
+    salary_headcount_table,
+    mort_table,
+    mort_retire_table,
+    separation_rate_table,    
+    params
+  )
   
-  entrant_profile_table <- frs_data_env$entrant_profile_table %>% filter(class == class_name) %>% select(-class)
-  salary_headcount_table <- frs_data_env$salary_headcount_table %>% filter(class == class_name) %>% select(-class)
-  mort_table <- frs_data_env$mort_table %>% filter(class == class_name) %>% select(-class)
-  mort_retire_table <- frs_data_env$mort_retire_table %>% filter(class == class_name) %>% select(-class)
-  separation_rate_table <- frs_data_env$separation_rate_table %>% filter(class == class_name) %>% select(-class)
+  benefit_data <- list()
+  
+  benefit_data$ann_factor_table <- benefit_data_s$ann_factor_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$ann_factor_retire_table <- benefit_data_s$ann_factor_retire_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$benefit_table <- benefit_data_s$benefit_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$final_benefit_table <- benefit_data_s$final_benefit_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$benefit_val_table <- benefit_data_s$benefit_val_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$indv_norm_cost_table <- benefit_data_s$indv_norm_cost_table_s %>% filter(class == class_name) %>% select(-class)
+  benefit_data$agg_norm_cost_table <- benefit_data_s$agg_norm_cost_table_s %>% filter(class == class_name) %>% select(-class)
   
   # Get age, entry_age, year, term_year, and retire_year ranges needed for array initialization ----
   entry_age_range <- entrant_profile_table$entry_age # djb: note that there are gaps in these ages
@@ -298,7 +358,7 @@ get_wf_data_s <- function(
     salary_headcount_table,
     mort_table,
     separation_rate_table,
-    benefit_val_table,
+    benefit_val_table = benefit_data$benefit_val_table,
     retire_refund_ratio = params$retire_refund_ratio_
   )
   list2env(init_list, envir = environment()) # djb: put REFERENCES to list elements into the current environment
@@ -379,17 +439,4 @@ get_wf_data_s <- function(
   saveRDS(wf_data, fs::path(iddir, paste0(class_name, "_wf_data.rds")))
   
 }
-
-# wf_test_s <- get_wf_data_s(class_name = "regular",
-#                     params = params)
-# 
-# wf_test <- wfm_env$get_wf_data(class_name = "regular",
-#                     entrant_profile_table = frs_data_env$regular_entrant_profile_table,
-#                     salary_headcount_table = frs_data_env$regular_salary_headcount_table,
-#                     mort_table = frs_data_env$regular_mort_table,
-#                     mort_retire_table = frs_data_env$regular_mort_retire_table,
-#                     separation_rate_table = frs_data_env$regular_separation_rate_table,
-#                     params = params)
-# 
-# identical(wf_test_s, wf_test)
 

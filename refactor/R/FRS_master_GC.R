@@ -74,7 +74,7 @@ ns(params)
 print("sourcing FRS_benefit_model_helper_functions.R and FRS_benefit_model_get_benefit_data_function.R...")
 bm_env <- new.env()
 #source(fs::path(rdir, "FRS_benefit_model_helper_functions.R"), local = bm_env) # only creates functions - no live code, puts them into the bm_env environment
-source(fs::path(rdir, "FRS_benefit_model_get_benefit_data_function_GC.R"), local = bm_env) # only creates functions - no live code, also into the bm_env environment
+source(fs::path(rdir, "FRS_benefit_model_get_benefit_data_function_GC_s.R"), local = bm_env) # only creates functions - no live code, also into the bm_env environment
 save(bm_env, file = fs::path(wddir, "bm_env.RData"))
 
 
@@ -103,7 +103,7 @@ print("Loading model functions...")
 # Get workforce model
 print("sourcing FRS_workforce_model_functions....")
 wfm_env <- new.env()
-source(fs::path(rdir, "FRS_workforce_model_functions.R"), local = wfm_env) # only creates function - no live code
+source(fs::path(rdir, "FRS_workforce_model_functions_s.R"), local = wfm_env) # only creates function - no live code
 
 #Get liability model
 print("sourcing FRS_liability_model.R...")
@@ -121,7 +121,7 @@ load(fs::path(wddir, "fm_env.RData")) # funding model functions
 
 #Get workforce data (run this model only when workforce data is updated, otherwise use the rds files)
 print("sourcing FRS_workforce_model_get_and_save_wfdata.R...")
-system.time(source(fs::path(rdir, "FRS_workforce_model_get_and_save_wfdata_GC.R")))
+system.time(source(fs::path(rdir, "FRS_workforce_model_get_and_save_wfdata_GC_s.R")))
 
 
 # depends on assumptions in the model: 
