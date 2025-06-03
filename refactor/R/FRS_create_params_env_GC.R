@@ -46,7 +46,7 @@ get_params <- function(frs_data_env, modparm_data_env){
   # what other variables do we want to keep?
   # setdiff(frs_names, frs_underscore)
   frs_extras <- c("eco_eso_judges_active_member_adjustment_ratio", "retiree_distribution", "init_funding_data")
-  frs_GC_add <- c("salary_growth_table")
+  frs_GC_add <- c("salary_growth_table", "db_dc_legacy_table", "db_dc_new_table", "current_year_table")
   frs_keep <- c(frs_underscore, frs_extras, frs_GC_add)
   frs_objects <- mget(frs_keep, envir = frs_data_env)
   

@@ -55,6 +55,7 @@ source(fs::path(rdir, "FRS_data_cleaning.R"), local = frs_data_env) # put data, 
 source(fs::path(rdir, "FRS_stacked_tables.R"), local = frs_data_env) # put data, params into frs_data_env
 #source(fs::path(rdir, "FRS_rules_functions.R"), local = frs_data_env) # put data, params into frs_data_env
 source(fs::path(rdir, "FRS_rules_tables.R"), local = frs_data_env) # put data, params into frs_data_env
+source(fs::path(rdir, "FRS_liability_tables.R"), local = frs_data_env) # put data, params into frs_data_env
 save(frs_data_env, file = fs::path(wddir, "frs_data_env.RData"))
 # ls(envir = modparm_data_env)
 
@@ -108,12 +109,12 @@ source(fs::path(rdir, "FRS_workforce_model_functions_s.R"), local = wfm_env) # o
 #Get liability model
 print("sourcing FRS_liability_model.R...")
 lm_env <- new.env()
-source(fs::path(rdir, "FRS_liability_model_functions.R"), local = lm_env) # only creates function - no live code
+source(fs::path(rdir, "FRS_liability_model_functions_s.R"), local = lm_env) # only creates function - no live code
 
 #Get funding model
 print("sourcing FRS_funding_model_functions.R...")
 fm_env <- new.env()
-source(fs::path(rdir, "FRS_funding_model_functions.R"), local = fm_env) # only creates function - no live code
+source(fs::path(rdir, "FRS_funding_model_functions_s.R"), local = fm_env) # only creates function - no live code
 save(fm_env, file = fs::path(wddir, "fm_env.RData"))
 load(fs::path(wddir, "fm_env.RData")) # funding model functions
 
@@ -130,7 +131,7 @@ cat("\n")
 print("sourcing FRS_workforce_model_get_saved_data.R...")
 wf_data_env <- new.env()
 # djb NEXT: stack the workforce data ----
-system.time(source(fs::path(rdir, "FRS_workforce_model_get_saved_data.R"), local = wf_data_env)) # < 1 sec -- only gets saved data - no functions
+system.time(source(fs::path(rdir, "FRS_workforce_model_get_saved_data_s.R"), local = wf_data_env)) # < 1 sec -- only gets saved data - no functions
 save(wf_data_env, file = fs::path(wddir, "wf_data_env.RData")) # only saves objects - no functions
 load(fs::path(wddir, "wf_data_env.RData"))
 # simply loads wf data -- 4 table types per 7 classes

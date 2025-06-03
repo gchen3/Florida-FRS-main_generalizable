@@ -263,18 +263,12 @@ get_wf_data_s <- function(
   cat("\n\n")
   print(paste0("..preparing wf_data for class: ", class_name))
   
-  ann_factor_table <- benefit_data_s$ann_factor_table %>% filter(class == class_name) %>% select(-class)
-  ann_factor_retire_table <- benefit_data_s$ann_factor_retire_table %>% filter(class == class_name) %>% select(-class)
-  benefit_table <- benefit_data_s$benefit_table %>% filter(class == class_name) %>% select(-class)
-  final_benefit_table <- benefit_data_s$final_benefit_table %>% filter(class == class_name) %>% select(-class)
+
   benefit_val_table <- benefit_data_s$benefit_val_table %>% filter(class == class_name) %>% select(-class)
-  indv_norm_cost_table <- benefit_data_s$indv_norm_cost_table %>% filter(class == class_name) %>% select(-class)
-  agg_norm_cost_table <- benefit_data_s$agg_norm_cost_table %>% filter(class == class_name) %>% select(-class)
-  
+
   entrant_profile_table <- frs_data_env$entrant_profile_table %>% filter(class == class_name) %>% select(-class)
   salary_headcount_table <- frs_data_env$salary_headcount_table %>% filter(class == class_name) %>% select(-class)
   mort_table <- frs_data_env$mort_table %>% filter(class == class_name) %>% select(-class)
-  mort_retire_table <- frs_data_env$mort_retire_table %>% filter(class == class_name) %>% select(-class)
   separation_rate_table <- frs_data_env$separation_rate_table %>% filter(class == class_name) %>% select(-class)
   
   # Get age, entry_age, year, term_year, and retire_year ranges needed for array initialization ----
