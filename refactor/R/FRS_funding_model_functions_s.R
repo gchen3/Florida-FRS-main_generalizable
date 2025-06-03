@@ -986,8 +986,7 @@ get_funding_data <- function(
     element_name <- paste0(class_name, "_mort_retire_table")
     mort_retire_table <- params$mort_retire_table_list[[element_name]]         
     
-    lm_env$get_liability_data_s(class_name, 
-                              bm_env,
+    lm_env$get_liability_data_s(bm_env,
                               wf_data_env, 
                               params) %>% filter(class == class_name) %>% select(-class)
   }

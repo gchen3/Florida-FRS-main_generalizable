@@ -26,7 +26,7 @@ wf_term_df_s <- bind_rows(
   eco =wf_data_env$eco_wf_data$wf_term_df,
   eso =wf_data_env$eso_wf_data$wf_term_df,
   judges =wf_data_env$judges_wf_data$wf_term_df,
-  senior_mgmt =wf_data_env$senior_management_wf_data$wf_term_df,
+  senior_management =wf_data_env$senior_management_wf_data$wf_term_df,
   .id = "class"
 )
 
@@ -37,7 +37,7 @@ wf_refund_df_s <- bind_rows(
   eco =wf_data_env$eco_wf_data$wf_refund_df,
   eso =wf_data_env$eso_wf_data$wf_refund_df,
   judges =wf_data_env$judges_wf_data$wf_refund_df,
-  senior_mgmt =wf_data_env$senior_management_wf_data$wf_refund_df,
+  senior_management =wf_data_env$senior_management_wf_data$wf_refund_df,
   .id = "class"
 )
 
@@ -48,6 +48,7 @@ wf_retire_df_s <- bind_rows(
   eco =wf_data_env$eco_wf_data$wf_retire_df,
   eso =wf_data_env$eso_wf_data$wf_retire_df,
   judges =wf_data_env$judges_wf_data$wf_retire_df,
-  senior_mgmt =wf_data_env$senior_management_wf_data$wf_retire_df,
+  senior_management =wf_data_env$senior_management_wf_data$wf_retire_df,
   .id = "class"
 )
+

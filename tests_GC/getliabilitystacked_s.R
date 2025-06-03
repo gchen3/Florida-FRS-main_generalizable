@@ -43,7 +43,7 @@ wf_term_df_s <- bind_rows(
   eco =wf_data_env$eco_wf_data$wf_term_df,
   eso =wf_data_env$eso_wf_data$wf_term_df,
   judges =wf_data_env$judges_wf_data$wf_term_df,
-  senior_mgmt =wf_data_env$senior_management_wf_data$wf_term_df,
+  senior_management =wf_data_env$senior_management_wf_data$wf_term_df,
   .id = "class"
 )
 
@@ -54,7 +54,7 @@ wf_refund_df_s <- bind_rows(
   eco =wf_data_env$eco_wf_data$wf_refund_df,
   eso =wf_data_env$eso_wf_data$wf_refund_df,
   judges =wf_data_env$judges_wf_data$wf_refund_df,
-  senior_mgmt =wf_data_env$senior_management_wf_data$wf_refund_df,
+  senior_management =wf_data_env$senior_management_wf_data$wf_refund_df,
   .id = "class"
 )
 
@@ -65,7 +65,7 @@ wf_retire_df_s <- bind_rows(
   eco =wf_data_env$eco_wf_data$wf_retire_df,
   eso =wf_data_env$eso_wf_data$wf_retire_df,
   judges =wf_data_env$judges_wf_data$wf_retire_df,
-  senior_mgmt =wf_data_env$senior_management_wf_data$wf_retire_df,
+  senior_management =wf_data_env$senior_management_wf_data$wf_retire_df,
   .id = "class"
 )
 
@@ -269,7 +269,8 @@ wf_active_df_final <- get_wf_active_df_final(wf_active_df,
                                              params)
 
 #TRUE
-identical(wf_active_df_final, wf_active_df_final_s %>% filter(class == "regular") %>% select(-class))
+identical(wf_active_df_final, wf_active_df_final_s %>% filter(class == class_name) %>% select(-class))
+all.equal(wf_active_df_final, wf_active_df_final_s %>% filter(class == class_name) %>% select(-class))
 
 get_wf_term_df_final <- function(
     wf_term_df,
@@ -373,7 +374,7 @@ wf_term_df_final <- get_wf_term_df_final(wf_term_df,
                                          ratios,
                                          params) 
 
-identical(wf_term_df_final, wf_term_df_final_s %>% filter(class == "regular") %>% select(-class)) #TRUE
+identical(wf_term_df_final, wf_term_df_final_s %>% filter(class == class_name) %>% select(-class)) #TRUE
 
 
 
@@ -448,7 +449,7 @@ get_wf_refund_df_final_s <- function(wf_refund_df_s,
 identical(
   get_wf_refund_df_final_s(wf_refund_df_s,
                            benefit_table_s,
-                           params) %>% filter(class == "regular") %>% select(-class),
+                           params) %>% filter(class == class_name) %>% select(-class),
   get_wf_refund_df_final(wf_refund_df,
                          benefit_table,
                          ratios,
@@ -545,7 +546,7 @@ identical(
   get_wf_retire_df_final_s(wf_retire_df_s,
                            benefit_table_s,
                            ann_factor_table_s,
-                           params) %>% filter(class == "regular") %>% select(-class),
+                           params) %>% filter(class == class_name) %>% select(-class),
   get_wf_retire_df_final(wf_retire_df,
                          benefit_table,
                          ann_factor_table,
@@ -644,9 +645,7 @@ wf_retire_current_final <- get_wf_retire_current_final(retiree_pop_current,
                                                            ann_factor_retire_table,
                                                            params)
 
-identical(wf_retire_current_final, wf_retire_current_final_s %>% filter(class == "regular") %>% select(-class)) #TRUE
-
-identical(wf_retire_current, wf_retire_current_s %>% filter(class == "regular") %>% select(-class)) #TRUE
+identical(wf_retire_current_final, wf_retire_current_final_s %>% filter(class == class_name) %>% select(-class)) #TRUE
 
 get_wf_term_current_s <- function(
     params){
@@ -726,13 +725,13 @@ get_wf_term_current <- function(
   return(wf_term_current)
 }
 
-wf_term_current <- get_wf_term_current(params$regular_pvfb_term_current_, params)
+wf_term_current <- get_wf_term_current(params$judges_pvfb_term_current_, params)
 
 wf_term_current_s <- get_wf_term_current_s(params)
 
 all.equal(wf_term_current %>% as.data.frame(), 
           wf_term_current_s %>% 
-          filter(class == "regular") %>% 
+          filter(class == class_name) %>% 
           select(-class) %>%
           as.data.frame())
 
@@ -927,18 +926,18 @@ funding_df_s <- get_funding_df_s(wf_active_df_final_s,
                                  wf_term_current_s,
                                  params)
 
-identical(funding_df, funding_df_s %>% filter(class == "regular") %>% select(-class))
+identical(funding_df, funding_df_s %>% filter(class == "judges") %>% select(-class))
 all.equal(funding_df, 
-          funding_df_s %>% filter(class == "regular") %>% select(-class)) #FALSE
+          funding_df_s %>% filter(class == "judges") %>% select(-class)) #FALSE
 
 all.equal(wf_term_current,
-          wf_term_current_s %>% filter(class == "regular") %>% select(-class)) #FALSE
+          wf_term_current_s %>% filter(class == "judges") %>% select(-class)) #FALSE
 
 all.equal(wf_active_df_final,
-          wf_active_df_final_s %>% filter(class == "regular") %>% select(-class))
+          wf_active_df_final_s %>% filter(class == "judges") %>% select(-class))
 
 all.equal(wf_retire_current_final,
-          wf_retire_current_final_s %>% filter(class == "regular") %>% select(-class)) #FALSE
+          wf_retire_current_final_s %>% filter(class == "judges") %>% select(-class)) #FALSE
 
 
 # main function -----------------------------------------------------------
@@ -1033,21 +1032,10 @@ get_liability_data <- function(
 
 
 get_liability_data_s <- function(
-    class_name,
     bm_env,
-    wf_data,
-    ben_payment_current,
-    retiree_pop_current,
-    pvfb_term_current,
-    entrant_profile_table,
-    salary_headcount_table,
-    mort_table,
-    mort_retire_table,
-    separation_rate_table,        
+    wf_data,     
     params
 ) {
-  
-  print(paste0("processing get_benefit_data in liability model for: ", class_name))
   
   # unpack the wf_data and benefit_data objects
   # performant, because r is copy on modify
@@ -1130,17 +1118,8 @@ ann_factor_table <- bm_env$benefit_data_s$ann_factor_table %>% filter(class == c
 ann_factor_retire_table <- bm_env$benefit_data_s$ann_factor_retire_table %>% filter(class == class_name) %>% select(-class)
 
 liability_data_s <- get_liability_data_s (
-  class_name,
   bm_env,
-  wf_data,
-  ben_payment_current,
-  retiree_pop_current,
-  pvfb_term_current,
-  entrant_profile_table_s,
-  salary_headcount_table_s,
-  mort_table_s,
-  mort_retire_table_s,
-  separation_rate_table_s,        
+  wf_data_env,
   params
 )
 
@@ -1180,20 +1159,10 @@ benefit_table <- bm_env$benefit_data_s$benefit_table %>% filter(class == class_n
 ann_factor_table <- bm_env$benefit_data_s$ann_factor_table %>% filter(class == class_name) %>% select(-class)
 ann_factor_retire_table <- bm_env$benefit_data_s$ann_factor_retire_table %>% filter(class == class_name) %>% select(-class)
 
-liability_data_s <- get_liability_data_s(
-  "special",
-  bm_env,
-  wf_data,
-  ben_payment_current,
-  retiree_pop_current,
-  pvfb_term_current,
-  entrant_profile_table_s,
-  salary_headcount_table_s,
-  mort_table_s,
-  mort_retire_table_s,
-  separation_rate_table_s,        
-  params
-)
+wf_active_df <- wf_data$wf_active_df
+wf_term_df <- wf_data$wf_term_df
+wf_refund_df <- wf_data$wf_refund_df
+wf_retire_df <- wf_data$wf_retire_df
 
 liability_data_special <- get_liability_data (
   "special",
@@ -1209,8 +1178,14 @@ liability_data_special <- get_liability_data (
   separation_rate_table,        
   params
 )
+
+liability_data_s <- get_liability_data_s(
+  bm_env,
+  wf_data_env,
+  params
+)
 # Check if the two functions return the same result
-identical(liability_data_special, liability_data_s %>% filter(class == "special") %>% select(-class)) #FALSE
+identical(liability_data_special, liability_data_s %>% filter(class == "special") %>% select(-class)) #TRUE
 
 # The two functions return different results for the special class because the special class has different ratios for the new and legacy plans.
 
@@ -1227,20 +1202,15 @@ mort_retire_table = frs_data_env$admin_mort_retire_table
 separation_rate_table = frs_data_env$admin_separation_rate_table
 params = params
 
-liability_data_s <- get_liability_data_s(
-  "admin",
-  bm_env,
-  wf_data,
-  ben_payment_current,
-  retiree_pop_current,
-  pvfb_term_current,
-  entrant_profile_table_s,
-  salary_headcount_table_s,
-  mort_table_s,
-  mort_retire_table_s,
-  separation_rate_table_s,        
-  params
-)
+benefit_val_table <- bm_env$benefit_data_s$benefit_val_table %>% filter(class == class_name) %>% select(-class)
+benefit_table <- bm_env$benefit_data_s$benefit_table %>% filter(class == class_name) %>% select(-class)
+ann_factor_table <- bm_env$benefit_data_s$ann_factor_table %>% filter(class == class_name) %>% select(-class)
+ann_factor_retire_table <- bm_env$benefit_data_s$ann_factor_retire_table %>% filter(class == class_name) %>% select(-class)
+
+wf_active_df <- wf_data$wf_active_df
+wf_term_df <- wf_data$wf_term_df
+wf_refund_df <- wf_data$wf_refund_df
+wf_retire_df <- wf_data$wf_retire_df
 
 liability_data_admin <- get_liability_data (
   "admin",
@@ -1257,5 +1227,202 @@ liability_data_admin <- get_liability_data (
   params
 )
 
+liability_data_s <- get_liability_data_s(
+  bm_env,
+  wf_data_env,
+  params
+)
+
 # Check if the two functions return the same result
-identical(liability_data_admin, liability_data_s %>% filter(class == "admin") %>% select(-class)) #FALSE
+identical(liability_data_admin, liability_data_s %>% filter(class == "admin") %>% select(-class)) #TRUE
+
+# judges class -----------------------------------------------------------
+class_name = "judges"
+wf_data = wf_data_env$judges_wf_data
+ben_payment_current = frs_data_env$judges_ben_payment_current_
+retiree_pop_current = frs_data_env$judges_retiree_pop_current_
+pvfb_term_current = frs_data_env$judges_pvfb_term_current_
+entrant_profile_table = frs_data_env$judges_entrant_profile_table
+salary_headcount_table = frs_data_env$judges_salary_headcount_table
+mort_table = frs_data_env$judges_mort_table
+mort_retire_table = frs_data_env$judges_mort_retire_table
+separation_rate_table = frs_data_env$judges_separation_rate_table
+params = params
+
+benefit_val_table <- bm_env$benefit_data_s$benefit_val_table %>% filter(class == class_name) %>% select(-class)
+benefit_table <- bm_env$benefit_data_s$benefit_table %>% filter(class == class_name) %>% select(-class)
+ann_factor_table <- bm_env$benefit_data_s$ann_factor_table %>% filter(class == class_name) %>% select(-class)
+ann_factor_retire_table <- bm_env$benefit_data_s$ann_factor_retire_table %>% filter(class == class_name) %>% select(-class)
+
+wf_active_df <- wf_data$wf_active_df
+wf_term_df <- wf_data$wf_term_df
+wf_refund_df <- wf_data$wf_refund_df
+wf_retire_df <- wf_data$wf_retire_df
+
+liability_data_judges <- get_liability_data (
+  "judges",
+  bm_env,
+  wf_data,
+  ben_payment_current,
+  retiree_pop_current,
+  pvfb_term_current,
+  entrant_profile_table,
+  salary_headcount_table,
+  mort_table,
+  mort_retire_table,
+  separation_rate_table,        
+  params
+)
+
+
+liability_data_s <- get_liability_data_s(
+  bm_env,
+  wf_data_env,
+  params
+)
+
+# Check if the two functions return the same result
+identical(liability_data_judges, liability_data_s %>% filter(class == "judges") %>% select(-class)) #FALSE
+all.equal(liability_data_judges, 
+          liability_data_s %>% filter(class == "judges") %>% select(-class)) #FALSE
+
+# ESO class -----------------------------------------------------------
+class_name = "eso"
+wf_data = wf_data_env$eso_wf_data
+ben_payment_current = frs_data_env$eso_ben_payment_current_
+retiree_pop_current = frs_data_env$eso_retiree_pop_current_
+pvfb_term_current = frs_data_env$eso_pvfb_term_current_
+entrant_profile_table = frs_data_env$eso_entrant_profile_table
+salary_headcount_table = frs_data_env$eso_salary_headcount_table
+mort_table = frs_data_env$eso_mort_table
+mort_retire_table = frs_data_env$eso_mort_retire_table
+separation_rate_table = frs_data_env$eso_separation_rate_table
+params = params
+
+benefit_val_table <- bm_env$benefit_data_s$benefit_val_table %>% filter(class == class_name) %>% select(-class)
+benefit_table <- bm_env$benefit_data_s$benefit_table %>% filter(class == class_name) %>% select(-class)
+ann_factor_table <- bm_env$benefit_data_s$ann_factor_table %>% filter(class == class_name) %>% select(-class)
+ann_factor_retire_table <- bm_env$benefit_data_s$ann_factor_retire_table %>% filter(class == class_name) %>% select(-class)
+
+wf_active_df <- wf_data$wf_active_df
+wf_term_df <- wf_data$wf_term_df
+wf_refund_df <- wf_data$wf_refund_df
+wf_retire_df <- wf_data$wf_retire_df
+
+liability_data_eso <- get_liability_data (
+  "eso",
+  bm_env,
+  wf_data,
+  ben_payment_current,
+  retiree_pop_current,
+  pvfb_term_current,
+  entrant_profile_table,
+  salary_headcount_table,
+  mort_table,
+  mort_retire_table,
+  separation_rate_table,        
+  params
+)
+
+liability_data_s <- get_liability_data_s(
+  bm_env,
+  wf_data_env,
+  params
+)
+
+# Check if the two functions return the same result
+identical(liability_data_eso, liability_data_s %>% filter(class == "eso") %>% select(-class)) #TRUE
+
+# ECO class -----------------------------------------------------------
+class_name = "eco"
+wf_data = wf_data_env$eco_wf_data
+ben_payment_current = frs_data_env$eco_ben_payment_current_
+retiree_pop_current = frs_data_env$eco_retiree_pop_current_
+pvfb_term_current = frs_data_env$eco_pvfb_term_current_
+entrant_profile_table = frs_data_env$eco_entrant_profile_table
+salary_headcount_table = frs_data_env$eco_salary_headcount_table
+mort_table = frs_data_env$eco_mort_table
+mort_retire_table = frs_data_env$eco_mort_retire_table
+separation_rate_table = frs_data_env$eco_separation_rate_table
+params = params
+
+benefit_val_table <- bm_env$benefit_data_s$benefit_val_table %>% filter(class == class_name) %>% select(-class)
+benefit_table <- bm_env$benefit_data_s$benefit_table %>% filter(class == class_name) %>% select(-class)
+ann_factor_table <- bm_env$benefit_data_s$ann_factor_table %>% filter(class == class_name) %>% select(-class)
+ann_factor_retire_table <- bm_env$benefit_data_s$ann_factor_retire_table %>% filter(class == class_name) %>% select(-class)
+
+wf_active_df <- wf_data$wf_active_df
+wf_term_df <- wf_data$wf_term_df
+wf_refund_df <- wf_data$wf_refund_df
+wf_retire_df <- wf_data$wf_retire_df
+
+liability_data_eco <- get_liability_data (
+  "eco",
+  bm_env,
+  wf_data,
+  ben_payment_current,
+  retiree_pop_current,
+  pvfb_term_current,
+  entrant_profile_table,
+  salary_headcount_table,
+  mort_table,
+  mort_retire_table,
+  separation_rate_table,        
+  params
+)
+
+liability_data_s <- get_liability_data_s(
+  bm_env,
+  wf_data_env,
+  params
+)
+
+# Check if the two functions return the same result
+identical(liability_data_eco, liability_data_s %>% filter(class == "eco") %>% select(-class)) #FALSE
+
+# senior_management classes -----------------------------------------------------------
+class_name = "senior_management"
+wf_data = wf_data_env$senior_management_wf_data
+ben_payment_current = frs_data_env$senior_management_ben_payment_current_
+retiree_pop_current = frs_data_env$senior_management_retiree_pop_current_
+pvfb_term_current = frs_data_env$senior_management_pvfb_term_current_
+entrant_profile_table = frs_data_env$senior_management_entrant_profile_table
+salary_headcount_table = frs_data_env$senior_management_salary_headcount_table
+mort_table = frs_data_env$senior_management_mort_table
+mort_retire_table = frs_data_env$senior_management_mort_retire_table
+separation_rate_table = frs_data_env$senior_management_separation_rate_table
+params = params
+
+benefit_val_table <- bm_env$benefit_data_s$benefit_val_table %>% filter(class == class_name) %>% select(-class)
+benefit_table <- bm_env$benefit_data_s$benefit_table %>% filter(class == class_name) %>% select(-class)
+ann_factor_table <- bm_env$benefit_data_s$ann_factor_table %>% filter(class == class_name) %>% select(-class)
+ann_factor_retire_table <- bm_env$benefit_data_s$ann_factor_retire_table %>% filter(class == class_name) %>% select(-class)
+
+wf_active_df <- wf_data$wf_active_df
+wf_term_df <- wf_data$wf_term_df
+wf_refund_df <- wf_data$wf_refund_df
+wf_retire_df <- wf_data$wf_retire_df
+
+liability_data_senior_management <- get_liability_data (
+  "senior_management",
+  bm_env,
+  wf_data,
+  ben_payment_current,
+  retiree_pop_current,
+  pvfb_term_current,
+  entrant_profile_table,
+  salary_headcount_table,
+  mort_table,
+  mort_retire_table,
+  separation_rate_table,        
+  params
+)
+
+# Check if the two functions return the same result
+identical(liability_data_senior_management, liability_data_s %>% filter(class == "senior_management") %>% select(-class)) #TRUE
+
+
+
+
+
+

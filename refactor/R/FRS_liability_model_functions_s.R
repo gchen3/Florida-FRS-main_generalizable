@@ -381,13 +381,10 @@ get_funding_df_s <- function(wf_active_df_final_s,
 
 # main function -----------------------------------------------------------
 get_liability_data_s <- function(
-    class_name,
     bm_env,
     wf_data_env,
     params
 ) {
-  
-  print(paste0("processing get_benefit_data in liability model for: ", class_name))
   
   # unpack the wf_data and benefit_data objects
   wf_active_df_s <- wf_data_env$wf_active_df_s
