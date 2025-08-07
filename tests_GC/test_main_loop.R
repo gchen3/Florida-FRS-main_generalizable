@@ -1,6 +1,32 @@
-library(parallel)
 
-funding_list <- params$funding_list
+# get_funding_table (initial year) ----------------------------------------
+
+class_name <- "regular"
+init_funding_data <- params$init_funding_data    #init_funding_data is constructed from data cleaning, read directly from input files
+params$start_year_ <- 2022
+params$model_period_ <- 30
+
+get_funding_table <- function(class_name, 
+                              init_funding_data,
+                              params) {
+  funding_table <- init_funding_data %>% 
+    filter(class == class_name) %>% 
+    select(-class) %>%
+    add_row(year = (params$start_year_ + 1):(params$start_year_ + params$model_period_))
+  
+  funding_table[is.na(funding_table)] <- 0
+  
+  return(funding_table)
+}
+
+
+funding_list <- get_funding_table(class_name, init_funding_data, params)
+
+
+
+# loop --------------------------------------------------------------------
+
+funding_list <- funding_list #from the last step
 liability_list 
 current_hire_amo_payment_list
 future_hire_amo_payment_list

@@ -18,6 +18,7 @@ get_all_classes_funding_list <- function(init_funding_data,
 }
 
 
+##GC: You don't need to use this function if the current_amort_layers_table is already cleaned (no n/a; summarize by class and amortization period)
 get_current_amort_layers_summary_table <- function(current_amort_layers_table){
   
   #Summarize current amortization layers

@@ -19,7 +19,7 @@ library(btools) # ns, ht
 # load pension-specific libraries
 # For first time installing package, or each time package is updated, install as follows
 # remove.packages("pentools")
-devtools::install_github("gchen3/pentools")
+# devtools::install_github("gchen3/pentools")
 library(pentools) # use this instead of sourcing "FRS_utility_functions.R"
 # remove.packages("pendata")
 # devtools::install_github("donboyd5/pendata")
