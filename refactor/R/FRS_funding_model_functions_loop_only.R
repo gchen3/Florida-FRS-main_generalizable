@@ -960,87 +960,94 @@ get_funding_data <- function(
   # with Windows OS or API. Switch back to lapply if needed. When working,
   # mclapply will be about twice as fast as lapply.
   a <- proc.time()
+  classes <- params$class_names_no_drop_frs_
+  liab_all <- lm_env$get_liability_data_s(bm_env, wf_data_env, params)
+  liability_list <- map(
+    classes,
+    ~ liab_all %>% filter(class == .x) %>% select(-class)
+  ) %>% set_names(classes)
+  
   
   # get values of arguments to get_liability_data for this class and then call it
-  call_get_liability_data <- function(class_name) {
-    # create lists of data frames so that get_liablity_data does not have to (dangerously) pull data from the global environment with assign
-    
-    element_name <- paste0(class_name, "_wf_data")
-    wf_data <- params$wf_data_list[[element_name]]
-    
-    ben_payment_current <- params[[paste0(class_name, "_ben_payment_current_")]]
-    retiree_pop_current <- params[[paste0(class_name, "_retiree_pop_current_")]]
-    pvfb_term_current <- params[[paste0(class_name, "_pvfb_term_current_")]]
-    
-    element_name <- paste0(class_name, "_entrant_profile_table")
-    entrant_profile_table <- params$entrant_profile_table_list[[element_name]]
-    
-    element_name <- paste0(class_name, "_salary_headcount_table")
-    salary_headcount_table <- params$salary_headcount_table_list[[element_name]]    
-    
-    element_name <- paste0(class_name, "_mort_table")
-    mort_table <- params$mort_table_list[[element_name]]     
-    
-    element_name <- paste0(class_name, "_separation_rate_table")
-    separation_rate_table <- params$separation_rate_table_list[[element_name]]         
-    
-    element_name <- paste0(class_name, "_mort_retire_table")
-    mort_retire_table <- params$mort_retire_table_list[[element_name]]         
-    
-    lm_env$get_liability_data_s(bm_env,
-                              wf_data_env, 
-                              params) %>% filter(class == class_name) %>% select(-class)
-  }
-  
-  liability_list <- mclapply(
-    X = params$class_names_no_drop_frs_, 
-    FUN = call_get_liability_data,
-    # Set mc.cores to 1 for compatibility with Windows
-    mc.cores = 1
-  )
-  names(liability_list) <- params$class_names_no_drop_frs_
+  # call_get_liability_data <- function(class_name) {
+  #   # create lists of data frames so that get_liablity_data does not have to (dangerously) pull data from the global environment with assign
+  #   # 
+  #   # element_name <- paste0(class_name, "_wf_data")
+  #   # wf_data <- params$wf_data_list[[element_name]]
+  #   # 
+  #   # ben_payment_current <- params[[paste0(class_name, "_ben_payment_current_")]]
+  #   # retiree_pop_current <- params[[paste0(class_name, "_retiree_pop_current_")]]
+  #   # pvfb_term_current <- params[[paste0(class_name, "_pvfb_term_current_")]]
+  #   # 
+  #   # element_name <- paste0(class_name, "_entrant_profile_table")
+  #   # entrant_profile_table <- params$entrant_profile_table_list[[element_name]]
+  #   # 
+  #   # element_name <- paste0(class_name, "_salary_headcount_table")
+  #   # salary_headcount_table <- params$salary_headcount_table_list[[element_name]]    
+  #   # 
+  #   # element_name <- paste0(class_name, "_mort_table")
+  #   # mort_table <- params$mort_table_list[[element_name]]     
+  #   # 
+  #   # element_name <- paste0(class_name, "_separation_rate_table")
+  #   # separation_rate_table <- params$separation_rate_table_list[[element_name]]         
+  #   # 
+  #   # element_name <- paste0(class_name, "_mort_retire_table")
+  #   # mort_retire_table <- params$mort_retire_table_list[[element_name]]         
+  #   
+  #   lm_env$get_liability_data_s(bm_env,
+  #                             wf_data_env, 
+  #                             params) %>% filter(class == class_name) %>% select(-class)
+  # }
+  # 
+  # liability_list <- mclapply(
+  #   X = params$class_names_no_drop_frs_, 
+  #   FUN = call_get_liability_data,
+  #   # Set mc.cores to 1 for compatibility with Windows
+  #   mc.cores = 1
+  # )
+  # names(liability_list) <- params$class_names_no_drop_frs_
   b <- proc.time()
   print("liability_list time")
   print(b - a)
   
   # FOR LATER USE (djb): unpack liability_list into a stacked tibble
-  liability_list_stacked <- bind_rows(liability_list, .id = "class")
-  # save it to see if I can reproduce using stacked input data
-  saveRDS(liability_list_stacked, fs::path(stackdir, "liability_list_stacked.rds"))
-  
-  # FOR LATER USE (djb) classes_stacked
-  classes_stacked <- funding_list_stacked |> 
-    filter(class %in% params$class_names_no_drop_frs_) |>
-    left_join(liability_list_stacked,
-              by = join_by(class, year)) |> 
-    left_join(params$nc_cal_ |> 
-                mutate(class = str_replace(class, "_", "")) |> # make senior management uniform SOON!!
-                rename(nc_cal = nc_cal_), # djb this is correct - refers to a column name not the global variable
-              by = join_by(class)) |> 
-    arrange(class, year) |> # make sure we get the lags right
-    # new variables,  use lag to align with the funding mechanism
-    mutate(# payroll calibration
-      payroll_db_legacy_ratio = lag(payroll_db_legacy_est / total_payroll_est),
-      payroll_db_new_ratio = lag(payroll_db_new_est / total_payroll_est),
-      payroll_dc_legacy_ratio = lag(payroll_dc_legacy_est / total_payroll_est),
-      payroll_dc_new_ratio = lag(payroll_dc_new_est / total_payroll_est),
-      
-      # normal cost calibration/projection
-      nc_rate_db_legacy = lag(nc_rate_db_legacy_est * nc_cal),
-      nc_rate_db_new = lag(nc_rate_db_new_est * nc_cal),
-      
-      # aal calibration - no great way to do this in a chain so use 4 ifelse statements
-      aal_legacy = if_else(year == first(year), aal_legacy_est, aal_legacy),
-      total_aal = if_else(year == first(year), total_aal_est, total_aal),
-      
-      ual_ava_legacy = ifelse(year == first(year),
-                              aal_legacy - ava_legacy,
-                              ual_ava_legacy),
-      
-      total_ual_ava = ifelse(year == first(year),
-                             total_aal - total_ava,
-                             total_ual_ava),
-      .by=class)
+  # liability_list_stacked <- bind_rows(liability_list, .id = "class")
+  # # save it to see if I can reproduce using stacked input data
+  # saveRDS(liability_list_stacked, fs::path(stackdir, "liability_list_stacked.rds"))
+  # 
+  # # FOR LATER USE (djb) classes_stacked
+  # classes_stacked <- funding_list_stacked |> 
+  #   filter(class %in% params$class_names_no_drop_frs_) |>
+  #   left_join(liability_list_stacked,
+  #             by = join_by(class, year)) |> 
+  #   left_join(params$nc_cal_ |> 
+  #               mutate(class = str_replace(class, "_", "")) |> # make senior management uniform SOON!!
+  #               rename(nc_cal = nc_cal_), # djb this is correct - refers to a column name not the global variable
+  #             by = join_by(class)) |> 
+  #   arrange(class, year) |> # make sure we get the lags right
+  #   # new variables,  use lag to align with the funding mechanism
+  #   mutate(# payroll calibration
+  #     payroll_db_legacy_ratio = lag(payroll_db_legacy_est / total_payroll_est),
+  #     payroll_db_new_ratio = lag(payroll_db_new_est / total_payroll_est),
+  #     payroll_dc_legacy_ratio = lag(payroll_dc_legacy_est / total_payroll_est),
+  #     payroll_dc_new_ratio = lag(payroll_dc_new_est / total_payroll_est),
+  #     
+  #     # normal cost calibration/projection
+  #     nc_rate_db_legacy = lag(nc_rate_db_legacy_est * nc_cal),
+  #     nc_rate_db_new = lag(nc_rate_db_new_est * nc_cal),
+  #     
+  #     # aal calibration - no great way to do this in a chain so use 4 ifelse statements
+  #     aal_legacy = if_else(year == first(year), aal_legacy_est, aal_legacy),
+  #     total_aal = if_else(year == first(year), total_aal_est, total_aal),
+  #     
+  #     ual_ava_legacy = ifelse(year == first(year),
+  #                             aal_legacy - ava_legacy,
+  #                             ual_ava_legacy),
+  #     
+  #     total_ual_ava = ifelse(year == first(year),
+  #                            total_aal - total_ava,
+  #                            total_ual_ava),
+  #     .by=class)
   
   # names(flstacked) |> sort()
   
