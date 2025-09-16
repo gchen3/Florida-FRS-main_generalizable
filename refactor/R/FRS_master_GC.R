@@ -114,7 +114,9 @@ source(fs::path(rdir, "FRS_liability_model_functions_s.R"), local = lm_env) # on
 #Get funding model
 print("sourcing FRS_funding_model_functions.R...")
 fm_env <- new.env()
-source(fs::path(rdir, "FRS_funding_model_functions_s.R"), local = fm_env) # only creates function - no live code
+#source(fs::path(rdir, "FRS_funding_model_functions_s.R"), local = fm_env) # only creates function - no live code
+source(fs::path(rdir, "FRS_funding_amort.R"), local = fm_env) # only creates function - no live code
+source(fs::path(rdir, "FRS_funding_model_functions_loop_only.R"), local = fm_env) # only creates function - no live code
 save(fm_env, file = fs::path(wddir, "fm_env.RData"))
 load(fs::path(wddir, "fm_env.RData")) # funding model functions
 
@@ -158,7 +160,6 @@ params$early_retire_rate_tier_1_table_list <- mget(paste0(params$class_names_no_
 params$early_retire_rate_tier_2_table_list <- mget(paste0(params$class_names_no_drop_frs_, "_early_retire_rate_tier_2_table"), envir = frs_data_env) # defined in benefit model actions
 
 # get funding and amortization data --------------------------------------------
-
 params$funding_list <- fm_env$get_all_classes_funding_list(params$init_funding_data, params)
 params$current_amort_layers_table <- fm_env$get_current_amort_layers_summary_table(params$current_amort_layers_table_)
 save(params, file = fs::path(wddir, "params.RData"))
