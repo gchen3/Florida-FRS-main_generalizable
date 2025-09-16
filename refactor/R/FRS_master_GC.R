@@ -69,7 +69,15 @@ load(fs::path(wddir, "frs_data_env.RData")) # this gets init_funding_data
 source(fs::path(rdir, "FRS_create_params_env_GC.R")) 
 params <- get_params(frs_data_env, modparm_data_env)
 ns(params)
+ns(frs_data_env)
 
+save(params, file = fs::path(wddir, "params_bf_cal.RData"))
+save(frs_data_env, file = fs::path(wddir, "frs_data_env_bf_cal.RData"))
+print("params and frs data env successfully built...")
+
+print("start with a clean environment and load the data environment...")
+load(fs::path(wddir, "params_bf_cal.RData"))
+load(fs::path(wddir, "frs_data_env_bf_cal.RData"))
 
 # Get benefit model environment -----------------------------------------------
 print("sourcing FRS_benefit_model_helper_functions.R and FRS_benefit_model_get_benefit_data_function.R...")
