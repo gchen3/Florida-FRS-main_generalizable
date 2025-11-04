@@ -63,10 +63,10 @@ source(fs::path(rdir, "FRS_create_params_env_GC.R"))
 
 params <- pendata::frs$params_env
 
-keep <- c("entrant_profile_table_s","salary_headcount_table",
-  "mort_table","mort_retire_table","separation_rate_table",
-  "dr_lookup","cola_lookup","ben_mult_lookup","reduce_factor_lookup",
-  "tier_table","fas_period_lookup","entrant_profile_table")
+keep <- c("salary_headcount_table", "mort_table","mort_retire_table",
+          "separation_rate_table","entrant_profile_table",
+          "dr_lookup","cola_lookup","ben_mult_lookup","reduce_factor_lookup",
+          "tier_table","fas_period_lookup")
 rm(list = setdiff(ls(frs_data_env, all.names = TRUE), keep), envir = frs_data_env)
 
 ns(params)
@@ -115,7 +115,7 @@ print("sourcing FRS_funding_model_functions.R...")
 fm_env <- new.env()
 #source(fs::path(rdir, "FRS_funding_model_functions_s.R"), local = fm_env) # only creates function - no live code
 source(fs::path(rdir, "FRS_funding_amort.R"), local = fm_env) # only creates function - no live code
-source(fs::path(rdir, "FRS_funding_model_functions_loop_only.R"), local = fm_env) # only creates function - no live code
+source(fs::path(rdir, "FRS_funding_model_functions_loop_try.R"), local = fm_env) # only creates function - no live code
 
 # Prepare data for modeling -----------------------------------------------
 
