@@ -1471,3 +1471,5 @@ get_funding_data <- function(
   return(output)
   
 }
+
+# baseline_funding <- get_funding_data(params = params, return = "stacked")

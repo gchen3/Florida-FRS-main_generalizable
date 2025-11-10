@@ -115,7 +115,8 @@ print("sourcing FRS_funding_model_functions.R...")
 fm_env <- new.env()
 #source(fs::path(rdir, "FRS_funding_model_functions_s.R"), local = fm_env) # only creates function - no live code
 source(fs::path(rdir, "FRS_funding_amort.R"), local = fm_env) # only creates function - no live code
-source(fs::path(rdir, "FRS_funding_model_functions_loop_try.R"), local = fm_env) # only creates function - no live code
+source(fs::path(rdir, "FRS_funding_model_functions_loop_without_drop_V5.R"), local = fm_env) # only creates function - no live code
+source(fs::path(rdir, "FRS_funding_model_functions_drop_only.R"), local = fm_env) # only creates function - no live code
 
 # Prepare data for modeling -----------------------------------------------
 
@@ -163,6 +164,7 @@ params$current_amort_layers_table <- fm_env$get_current_amort_layers_summary_tab
 print("Done building model...")
 
 # generate baseline results
+params$enable_drop_ <- TRUE
 baseline_funding <- fm_env$get_funding_data(params = params, return = "stacked")
 
 save.image(here::here("refactor", "new_results", "new_workspace.RData")) # save the entire workspace, ~ 15-20 secs
