@@ -1,58 +1,20 @@
 # ============================================================
-# V5.R — Funding Model (loop-first; no safe_div; DROP-ready)
+# V5.R — Funding Model (vanilla, no DROP)
 # ============================================================
 
-# ------------------ Default (no-DROP) hooks ------------------
-# These are no-ops. Sourcing drop.R will override them.
+# Note: This file assumes these exist in your session/env:
+# - lm_env$get_liability_data_s(bm_env, wf_data_env, params)
+# - get_current_hire_amortization_tables(...)
+# - get_future_hire_amortization_tables(...)
+# It also assumes 'params' contains all model inputs listed below.
 
-# 1) Should we enable DROP behavior?
-drop_enabled <- function(params) {
-  isTRUE(params$enable_drop_) && exists("build_drop_drivers_hook") &&
-    exists("drop_step1_funding_hook") &&
-    exists("frs_add_drop_hook") &&
-    exists("drop_step2_asset_reallocation_hook") &&
-    exists("finalize_ava_hook")
-}
-
-# 2) Build drivers (no-op default)
-build_drop_drivers_hook <- function(funding_list, frs_fund) {
-  NULL
-}
-
-# 3) DROP step 1: funding (no-op default)
-drop_step1_funding_hook <- function(i, funding_list, drop_drivers, params) {
-  funding_list
-}
-
-# 4) Add DROP back to FRS (no-op default)
-frs_add_drop_hook <- function(i, frs_fund, funding_list) {
-  frs_fund
-}
-
-# 5) DROP step 2: asset reallocation (no-op default)
-drop_step2_asset_reallocation_hook <- function(i, funding_list, frs_fund) {
-  funding_list
-}
-
-# 6) Finalize AVA for classes (default vanilla: ava = unadj)
-finalize_ava_hook <- function(i, funding_list, frs_fund, params, classes) {
-  for (class in classes) {
-    cf <- funding_list[[class]]
-    cf$ava_legacy[i] <- cf$unadj_ava_legacy[i]
-    cf$ava_new[i]    <- cf$unadj_ava_new[i]
-    funding_list[[class]] <- cf
-  }
-  funding_list
-}
-# -------------------------------------------------------------
-
-# --- helpers: build per-class funding tables -------------------------------
+# ----------------------- helpers ---------------------------------------------
 
 get_funding_table <- function(class_name, init_funding_data, params) {
   funding_table <- init_funding_data %>%
-    filter(class == class_name) %>%
-    select(-class) %>%
-    add_row(year = (params$start_year_ + 1):(params$start_year_ + params$model_period_))
+    dplyr::filter(class == class_name) %>%
+    dplyr::select(-class) %>%
+    tibble::add_row(year = (params$start_year_ + 1):(params$start_year_ + params$model_period_))
   funding_table[is.na(funding_table)] <- 0
   funding_table
 }
@@ -65,13 +27,13 @@ get_all_classes_funding_list <- function(init_funding_data, params) {
 
 get_current_amort_layers_summary_table <- function(current_amort_layers_table){
   current_amort_layers_table %>%
-    mutate(amo_period = if_else(amo_period == "n/a", "20", amo_period),
-           amo_period = as.numeric(amo_period)) %>%
-    summarise(amo_balance = sum(amo_balance), .by = c(class, amo_period)) %>%
-    arrange(class, desc(amo_period))
+    dplyr::mutate(amo_period = dplyr::if_else(amo_period == "n/a", "20", amo_period),
+                  amo_period = as.numeric(amo_period)) %>%
+    dplyr::summarise(amo_balance = sum(amo_balance), .by = c(class, amo_period)) %>%
+    dplyr::arrange(class, dplyr::desc(amo_period))
 }
 
-# --- PHASE 1 (per class): payroll, benefits, refunds, NC$, AAL --------------
+# ---------------- Phase 1: per-class payroll, benefits, refunds, NC$, AAL ----
 
 inner_loop1_payroll_benefits <- function(i, funding_list, liability_list, params) {
   for (class in params$class_names_no_drop_frs_) {
@@ -97,7 +59,7 @@ inner_loop1_payroll_benefits <- function(i, funding_list, liability_list, params
       total_ben_payment[i]  <- ben_payment_legacy[i] + ben_payment_new[i]
       total_refund[i]       <- refund_legacy[i] + refund_new[i]
       
-      # Total NC rate
+      # Total NC rate (weighted)
       total_nc_rate[i] <- (nc_rate_db_legacy[i] * payroll_db_legacy[i] +
                              nc_rate_db_new[i]    * payroll_db_new[i]) /
         (payroll_db_legacy[i] + payroll_db_new[i])
@@ -127,7 +89,7 @@ inner_loop1_payroll_benefits <- function(i, funding_list, liability_list, params
   list(funding_list = funding_list)
 }
 
-# --- FRS summary after Phase 1 ----------------------------------------------
+# ----------- FRS snapshot after Phase 1 (sum of non-DROP classes) -----------
 
 summarize_frs_payroll_benefits <- function(i, funding_list, classes, frs_fund) {
   sum_fields <- function(field) {
@@ -149,7 +111,7 @@ summarize_frs_payroll_benefits <- function(i, funding_list, classes, frs_fund) {
   frs_fund$total_ben_payment[i]  <- sum_fields("total_ben_payment")
   frs_fund$total_refund[i]       <- sum_fields("total_refund")
   
-  # NC $ and total NC rate
+  # NC and total NC rate
   frs_fund$nc_legacy[i]     <- sum_fields("nc_legacy")
   frs_fund$nc_new[i]        <- sum_fields("nc_new")
   frs_fund$total_nc_rate[i] <- (frs_fund$nc_legacy[i] + frs_fund$nc_new[i]) /
@@ -167,7 +129,7 @@ summarize_frs_payroll_benefits <- function(i, funding_list, classes, frs_fund) {
   frs_fund
 }
 
-# --- PHASE 2 (per class): contributions, flows, MVA, AVA bases --------------
+# --------- Phase 2: per-class contributions, flows, MVA, AVA bases ----------
 
 inner_loop2_funding <- function(i,
                                 funding_list,
@@ -204,7 +166,7 @@ inner_loop2_funding <- function(i,
       cf$er_dc_rate_legacy[i] <- 0
       cf$er_dc_rate_new[i]    <- 0
     } else {
-      nm <- str_replace(paste0(class, "_er_dc_cont_rate_"), " ", "_")
+      nm <- stringr::str_replace(paste0(class, "_er_dc_cont_rate_"), " ", "_")
       er_dc_rate <- params[[nm]]
       cf$er_dc_rate_legacy[i] <- er_dc_rate
       cf$er_dc_rate_new[i]    <- er_dc_rate
@@ -248,7 +210,7 @@ inner_loop2_funding <- function(i,
     frs_fund$total_er_dc_cont[i]  <- frs_fund$total_er_dc_cont[i]  + cf$total_er_dc_cont[i]
     
     # Returns
-    cf$roa[i]    <- return_scenarios[which(return_scenarios$year == cf$year[i]), return_scen_index][[1]]
+    cf$roa[i] <- return_scenarios[which(return_scenarios$year == cf$year[i]), return_scen_index][[1]]
     frs_fund$roa[i] <- cf$roa[i]
     
     # Solvency contribution & cash flows
@@ -286,7 +248,7 @@ inner_loop2_funding <- function(i,
   list(funding_list = funding_list, frs_fund = frs_fund)
 }
 
-# --- FRS AVA smoothing ------------------------------------------------------
+# ---------------------- FRS AVA smoothing -----------------------------------
 
 inner_frs_fund2 <- function(i, frs_fund, params){
   # Legacy
@@ -319,13 +281,13 @@ inner_frs_fund2 <- function(i, frs_fund, params){
   frs_fund
 }
 
-# --- PHASE 3 (per class): AVA from FRS allocated earnings -------------------
+# --- Phase 3: per-class AVA from FRS allocated earnings ---------------------
 
 inner_loop3_ava_development <- function(i, funding_list, frs_fund, params, classes){
   for (class in classes) {
     cf <- funding_list[[class]]
     
-    # Legacy: divide directly
+    # Legacy
     cf$alloc_inv_earnings_ava_legacy[i] <-
       frs_fund$alloc_inv_earnings_ava_legacy[i] *
       (cf$ava_base_legacy[i] / frs_fund$ava_base_legacy[i])
@@ -334,8 +296,8 @@ inner_loop3_ava_development <- function(i, funding_list, frs_fund, params, class
       cf$net_cf_legacy[i] +
       cf$alloc_inv_earnings_ava_legacy[i]
     
-    # New: guard only zero case
-    cf$alloc_inv_earnings_ava_new[i] <- if_else(
+    # New (guard zero only)
+    cf$alloc_inv_earnings_ava_new[i] <- dplyr::if_else(
       frs_fund$ava_base_new[i] == 0, 0,
       frs_fund$alloc_inv_earnings_ava_new[i] * (cf$ava_base_new[i] / frs_fund$ava_base_new[i])
     )
@@ -349,7 +311,7 @@ inner_loop3_ava_development <- function(i, funding_list, frs_fund, params, class
   funding_list
 }
 
-# --- PHASE 4 (per class): UAL/FR and all-in cost ----------------------------
+# ------------- Phase 4: per-class UAL/FR and all-in cost --------------------
 
 inner_loop5_all_in_cost <- function(i, funding_list, frs_fund, params, classes){
   for (class in classes) {
@@ -380,7 +342,7 @@ inner_loop5_all_in_cost <- function(i, funding_list, frs_fund, params, classes){
     frs_fund$fr_ava[i] <- frs_fund$total_ava[i] / frs_fund$total_aal[i]
     
     # Contributions & all-in cost
-    cf$total_er_cont[i]      <- cf$total_er_db_cont[i] + cf$total_er_dc_cont[i] + cf$total_solv_cont[i]
+    cf$total_er_cont[i]       <- cf$total_er_db_cont[i] + cf$total_er_dc_cont[i] + cf$total_solv_cont[i]
     frs_fund$total_er_cont[i] <- frs_fund$total_er_cont[i] + cf$total_er_cont[i]
     
     cf$total_er_cont_rate[i]  <- cf$total_er_cont[i] / cf$total_payroll[i]
@@ -403,7 +365,7 @@ inner_loop5_all_in_cost <- function(i, funding_list, frs_fund, params, classes){
   list(funding_list = funding_list, frs_fund = frs_fund)
 }
 
-# --- PHASE 5 (per class): amortization layers -------------------------------
+# --------------------- Phase 5: amortization layers -------------------------
 
 inner_loop6_amortization <- function(i,
                                      funding_list,
@@ -468,7 +430,7 @@ inner_loop6_amortization <- function(i,
   )
 }
 
-# --- MAIN YEAR LOOP ----------------------------------------------------------
+# ----------------------------- MAIN LOOP (vanilla) --------------------------
 
 main_loop <- function(funding_list,
                       liability_list,
@@ -484,7 +446,7 @@ main_loop <- function(funding_list,
   for (i in 2:nrow(funding_list[[1]])) {
     frs_fund <- funding_list$frs
     
-    # (1) per-class payroll/benefits/NC$/AAL (non-DROP classes only)
+    # (1) per-class core (non-DROP classes)
     res <- inner_loop1_payroll_benefits(i, funding_list, liability_list, params)
     funding_list <- res$funding_list
     
@@ -492,104 +454,97 @@ main_loop <- function(funding_list,
     classes_core <- params$class_names_no_drop_frs_
     frs_fund <- summarize_frs_payroll_benefits(i, funding_list, classes_core, frs_fund)
     
-    # Decide class set for downstream phases
-    use_drop <- drop_enabled(params)
-    classes_for_flows <- if (use_drop) params$class_names_no_frs_ else params$class_names_no_drop_frs_
-    
-    # (3) DROP step 1 (only if enabled via sourced drop.R)
-    if (use_drop) {
-      drop_drivers <- build_drop_drivers_hook(funding_list, frs_fund)
-      funding_list <- drop_step1_funding_hook(i, funding_list, drop_drivers, params)
-      frs_fund     <- frs_add_drop_hook(i, frs_fund, funding_list)
-    }
-    
-    # (4) per-class funding flows/MVA/AVA bases
-    res <- inner_loop2_funding(i,
-                               funding_list,
-                               frs_fund,
-                               current_hire_amo_payment_list,
-                               future_hire_amo_payment_list,
-                               params$return_scenarios,
-                               params$return_scen_index,
-                               params,
-                               classes_for_flows)
+    # (3) per-class flows/MVA/AVA bases (no DROP in vanilla)
+    classes_for_flows <- params$class_names_no_drop_frs_
+    res <- inner_loop2_funding(
+      i,
+      funding_list, frs_fund,
+      current_hire_amo_payment_list,
+      future_hire_amo_payment_list,
+      params$return_scenarios,
+      params$return_scen_index,
+      params,
+      classes_for_flows
+    )
     funding_list <- res$funding_list
     frs_fund     <- res$frs_fund
     
-    # (5) FRS AVA smoothing
+    # (4) FRS AVA smoothing
     frs_fund <- inner_frs_fund2(i, frs_fund, params)
     
-    # (6) per-class unadjusted AVA from FRS allocated earnings
+    # (5) per-class unadjusted AVA
     funding_list <- inner_loop3_ava_development(i, funding_list, frs_fund, params, classes_for_flows)
     
-    # (7) DROP asset reallocation (if enabled)
-    if (use_drop) {
-      funding_list <- drop_step2_asset_reallocation_hook(i, funding_list, frs_fund)
+    # (6) finalize class AVA (vanilla = use unadjusted AVA)
+    for (class in classes_for_flows) {
+      cf <- funding_list[[class]]
+      cf$ava_legacy[i] <- cf$unadj_ava_legacy[i]
+      cf$ava_new[i]    <- cf$unadj_ava_new[i]
+      funding_list[[class]] <- cf
     }
     
-    # (8) finalize class AVA (vanilla or DROP-aware)
-    funding_list <- finalize_ava_hook(i, funding_list, frs_fund, params, classes_for_flows)
-    
-    # (9) per-class UAL/FR/all-in + push to FRS
+    # (7) per-class UAL/FR/all-in + push to FRS
     res <- inner_loop5_all_in_cost(i, funding_list, frs_fund, params, classes_for_flows)
     funding_list <- res$funding_list
     frs_fund     <- res$frs_fund
     
-    # (10) amortization layers
-    res <- inner_loop6_amortization(i,
-                                    funding_list,
-                                    current_hire_debt_layer_list,
-                                    future_hire_debt_layer_list,
-                                    current_hire_amo_period_list,
-                                    future_hire_amo_period_list,
-                                    current_hire_amo_payment_list,
-                                    future_hire_amo_payment_list,
-                                    amo_pay_growth,
-                                    params,
-                                    classes_for_flows)
+    # (8) amortization layers
+    res <- inner_loop6_amortization(
+      i,
+      funding_list,
+      current_hire_debt_layer_list,
+      future_hire_debt_layer_list,
+      current_hire_amo_period_list,
+      future_hire_amo_period_list,
+      current_hire_amo_payment_list,
+      future_hire_amo_payment_list,
+      amo_pay_growth,
+      params,
+      classes_for_flows
+    )
     current_hire_debt_layer_list  <- res$current_hire_debt_layer_list
     future_hire_debt_layer_list   <- res$future_hire_debt_layer_list
     current_hire_amo_payment_list <- res$current_hire_amo_payment_list
     future_hire_amo_payment_list  <- res$future_hire_amo_payment_list
     
-    # store FRS back
+    # store back
     funding_list$frs <- frs_fund
   }
   
   funding_list
 }
 
-# --- TOP-LEVEL driver --------------------------------------------------------
+# --------------------------- TOP-LEVEL DRIVER -------------------------------
 
 get_funding_data <- function(params, return = "unstacked") {
   funding_list               <- params$funding_list
   current_amort_layers_table <- params$current_amort_layers_table
   
-  # Liability outputs (externally provided by lm_env)
+  # Liability outputs (provided by lm_env)
   classes <- params$class_names_no_drop_frs_
   liab_all <- lm_env$get_liability_data_s(bm_env, wf_data_env, params)
-  liability_list <- map(
+  liability_list <- purrr::map(
     classes,
-    ~ liab_all %>% filter(class == .x) %>% select(-class)
-  ) %>% set_names(classes)
+    ~ liab_all %>% dplyr::filter(class == .x) %>% dplyr::select(-class)
+  ) %>% purrr::set_names(classes)
   
-  # Model calibration
+  # Model calibration (payroll ratios, NC rates, initial AAL)
   for (class in params$class_names_no_drop_frs_) {
     fund_data <- funding_list[[class]]
     liab_data <- liability_list[[class]]
     
     # Payroll ratios (lagged)
-    fund_data$payroll_db_legacy_ratio <- lag(liab_data$payroll_db_legacy_est / liab_data$total_payroll_est)
-    fund_data$payroll_db_new_ratio    <- lag(liab_data$payroll_db_new_est    / liab_data$total_payroll_est)
-    fund_data$payroll_dc_legacy_ratio <- lag(liab_data$payroll_dc_legacy_est / liab_data$total_payroll_est)
-    fund_data$payroll_dc_new_ratio    <- lag(liab_data$payroll_dc_new_est    / liab_data$total_payroll_est)
+    fund_data$payroll_db_legacy_ratio <- dplyr::lag(liab_data$payroll_db_legacy_est / liab_data$total_payroll_est)
+    fund_data$payroll_db_new_ratio    <- dplyr::lag(liab_data$payroll_db_new_est    / liab_data$total_payroll_est)
+    fund_data$payroll_dc_legacy_ratio <- dplyr::lag(liab_data$payroll_dc_legacy_est / liab_data$total_payroll_est)
+    fund_data$payroll_dc_new_ratio    <- dplyr::lag(liab_data$payroll_dc_new_est    / liab_data$total_payroll_est)
     
-    # NC rates (lagged + calibrated)
+    # NC rates (lagged & calibrated)
     nc_cal <- params[[paste0(class, "_nc_cal_")]]
-    fund_data$nc_rate_db_legacy <- lag(liab_data$nc_rate_db_legacy_est * nc_cal)
-    fund_data$nc_rate_db_new    <- lag(liab_data$nc_rate_db_new_est    * nc_cal)
+    fund_data$nc_rate_db_legacy <- dplyr::lag(liab_data$nc_rate_db_legacy_est * nc_cal)
+    fund_data$nc_rate_db_new    <- dplyr::lag(liab_data$nc_rate_db_new_est    * nc_cal)
     
-    # AAL init
+    # AAL initialization
     fund_data$aal_legacy[1]     <- liab_data$aal_legacy_est[1]
     fund_data$total_aal[1]      <- liab_data$total_aal_est[1]
     fund_data$ual_ava_legacy[1] <- fund_data$aal_legacy[1] - fund_data$ava_legacy[1]
@@ -603,10 +558,10 @@ get_funding_data <- function(params, return = "unstacked") {
   amo_col_num <- max(current_amort_layers_table$amo_period, amo_period_new + params$funding_lag_)
   amo_pay_growth <- ifelse(params$amo_method_ == "level $", 0, params$amo_pay_growth_)
   
-  # CURRENT tables (by class)
+  # Current-hire amortization tables
   current_by_class <- params$class_names_no_frs_ |>
-    set_names() |>
-    map(~ get_current_hire_amortization_tables(
+    rlang::set_names() |>
+    purrr::map(~ get_current_hire_amortization_tables(
       class_name = .x,
       current_amort_layers_table = current_amort_layers_table,
       amo_col_num = amo_col_num,
@@ -620,12 +575,12 @@ get_funding_data <- function(params, return = "unstacked") {
     current_hire_debt_layer_table  = "current_hire_debt_layer_list",
     current_hire_amo_payment_table = "current_hire_amo_payment_list"
   )
-  current_hire_amo_list <- set_names(current_by_table, current_name_map[names(current_by_table)])
+  current_hire_amo_list <- rlang::set_names(current_by_table, current_name_map[names(current_by_table)])
   
-  # FUTURE tables (by class)
+  # Future-hire amortization tables
   future_by_class <- params$class_names_no_frs_ |>
-    set_names() |>
-    map(~ get_future_hire_amortization_tables(
+    rlang::set_names() |>
+    purrr::map(~ get_future_hire_amortization_tables(
       class_name = .x,
       amo_col_num = amo_col_num,
       params = params
@@ -637,9 +592,9 @@ get_funding_data <- function(params, return = "unstacked") {
     future_hire_debt_layer_table  = "future_hire_debt_layer_list",
     future_hire_amo_payment_table = "future_hire_amo_payment_list"
   )
-  future_hire_amo_list <- set_names(future_by_table, future_name_map[names(future_by_table)])
+  future_hire_amo_list <- rlang::set_names(future_by_table, future_name_map[names(future_by_table)])
   
-  # Run main loop
+  # Run vanilla main loop
   funding_list <- main_loop(
     funding_list = funding_list,
     liability_list = liability_list,
@@ -653,9 +608,7 @@ get_funding_data <- function(params, return = "unstacked") {
     params = params
   )
   
-  if (return == "stacked") bind_rows(funding_list, .id = "class") else funding_list
+  if (return == "stacked") dplyr::bind_rows(funding_list, .id = "class") else funding_list
 }
 
-# Example without DROP:
-# params$enable_drop_ <- FALSE
-# baseline_v5 <- get_funding_data(params, return = "stacked")
+# =========================== End V5.R ========================================
