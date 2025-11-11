@@ -1,6 +1,4 @@
-# ============================================================
 # V5.R — Funding Model (vanilla, no DROP)
-# ============================================================
 
 # Note: This file assumes these exist in your session/env:
 # - lm_env$get_liability_data_s(bm_env, wf_data_env, params)
@@ -8,7 +6,7 @@
 # - get_future_hire_amortization_tables(...)
 # It also assumes 'params' contains all model inputs listed below.
 
-# ----------------------- helpers ---------------------------------------------
+# ----------------------- Pre-run data clearning ---------------------------------------------
 
 get_funding_table <- function(class_name, init_funding_data, params) {
   funding_table <- init_funding_data %>%
@@ -32,6 +30,10 @@ get_current_amort_layers_summary_table <- function(current_amort_layers_table){
     dplyr::summarise(amo_balance = sum(amo_balance), .by = c(class, amo_period)) %>%
     dplyr::arrange(class, dplyr::desc(amo_period))
 }
+
+params$ava_smooth_years_ <- 5       # years for AVA smoothing
+params$ava_cap_upper_    <- 1.20    # upper AVA caps
+params$ava_cap_lower_    <- 0.80    # upper AVA caps
 
 # ---------------- Phase 1: per-class payroll, benefits, refunds, NC$, AAL ----
 
@@ -251,30 +253,39 @@ inner_loop2_funding <- function(i,
 # ---------------------- FRS AVA smoothing -----------------------------------
 
 inner_frs_fund2 <- function(i, frs_fund, params){
-  # Legacy
+  years  <- params$ava_smooth_years_
+  cap_up <- params$ava_cap_upper_
+  cap_dn <- params$ava_cap_lower_
+  w <- 1 / if (is.finite(years) && years > 0) years else 1
+  
+  ## Legacy
   frs_fund$exp_inv_earnings_ava_legacy[i] <- frs_fund$ava_legacy[i-1] * params$dr_current_ +
     frs_fund$net_cf_legacy[i] * params$dr_current_ / 2
   frs_fund$exp_ava_legacy[i] <- frs_fund$ava_legacy[i-1] +
-    frs_fund$net_cf_legacy[i] +
-    frs_fund$exp_inv_earnings_ava_legacy[i]
-  frs_fund$ava_legacy[i] <- max(min(
-    frs_fund$exp_ava_legacy[i] + (frs_fund$mva_legacy[i] - frs_fund$exp_ava_legacy[i]) * 0.2,
-    frs_fund$mva_legacy[i] * 1.2),
-    frs_fund$mva_legacy[i] * 0.8
-  )
+    frs_fund$net_cf_legacy[i] + frs_fund$exp_inv_earnings_ava_legacy[i]
+  
+  legacy_mid <- frs_fund$exp_ava_legacy[i] +
+    (frs_fund$mva_legacy[i] - frs_fund$exp_ava_legacy[i]) * w
+  frs_fund$ava_legacy[i] <- pmin(pmax(legacy_mid,
+                                      frs_fund$mva_legacy[i] * cap_dn),
+                                 frs_fund$mva_legacy[i] * cap_up)
+  
   frs_fund$alloc_inv_earnings_ava_legacy[i] <- frs_fund$ava_legacy[i] -
     frs_fund$ava_legacy[i-1] - frs_fund$net_cf_legacy[i]
   frs_fund$ava_base_legacy[i] <- frs_fund$ava_legacy[i-1] + frs_fund$net_cf_legacy[i] / 2
   
-  # New
+  ## New
   frs_fund$exp_inv_earnings_ava_new[i] <- frs_fund$ava_new[i-1] * params$dr_new_ +
     frs_fund$net_cf_new[i] * params$dr_new_ / 2
-  frs_fund$exp_ava_new[i] <- frs_fund$ava_new[i-1] + frs_fund$net_cf_new[i] + frs_fund$exp_inv_earnings_ava_new[i]
-  frs_fund$ava_new[i] <- max(min(
-    frs_fund$exp_ava_new[i] + (frs_fund$mva_new[i] - frs_fund$exp_ava_new[i]) * 0.2,
-    frs_fund$mva_new[i] * 1.2),
-    frs_fund$mva_new[i] * 0.8
-  )
+  frs_fund$exp_ava_new[i] <- frs_fund$ava_new[i-1] +
+    frs_fund$net_cf_new[i] + frs_fund$exp_inv_earnings_ava_new[i]
+  
+  new_mid <- frs_fund$exp_ava_new[i] +
+    (frs_fund$mva_new[i] - frs_fund$exp_ava_new[i]) * w
+  frs_fund$ava_new[i] <- pmin(pmax(new_mid,
+                                   frs_fund$mva_new[i] * cap_dn),
+                              frs_fund$mva_new[i] * cap_up)
+  
   frs_fund$alloc_inv_earnings_ava_new[i] <- frs_fund$ava_new[i] - frs_fund$ava_new[i-1] - frs_fund$net_cf_new[i]
   frs_fund$ava_base_new[i] <- frs_fund$ava_new[i-1] + frs_fund$net_cf_new[i] / 2
   
@@ -430,7 +441,7 @@ inner_loop6_amortization <- function(i,
   )
 }
 
-# ----------------------------- MAIN LOOP (vanilla) --------------------------
+# ----------------------------- MAIN LOOP --------------------------
 
 main_loop <- function(funding_list,
                       liability_list,
