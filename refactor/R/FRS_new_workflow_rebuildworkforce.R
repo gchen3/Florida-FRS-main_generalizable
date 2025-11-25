@@ -42,9 +42,10 @@ ns(params)
 ns(frs_data_env)
 
 # --- Benefit model helpers ----------------------------------------------------
-message("sourcing FRS_benefit_model_helper_functions and data function...")
+message("sourcing benefit core and FRS benefit adapter...")
 bm_env <- new.env()
-source(fs::path(rdir, "FRS_benefit_model_get_benefit_data_function_GC_s.R"), local = bm_env)
+source(fs::path(rdir, "benefit_core.R"),          local = bm_env)
+source(fs::path(rdir, "FRS_benefit_adapter.R"),   local = bm_env)
 
 # --- Load workforce, liability, funding functions -----------------------------
 message("Loading model functions...")
