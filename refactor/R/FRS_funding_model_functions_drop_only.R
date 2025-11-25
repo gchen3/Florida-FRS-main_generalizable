@@ -1,9 +1,10 @@
-# =====================================================================
-# drop.R — DROP module for V5 (override main_loop when sourced)
+# drop.R — DROP module for V5 (override main_loop when sourced) ---------
+
 # Source AFTER V5.R. Then set:
 #   params$enable_drop_ <- TRUE
 # to run with DROP. If FALSE, this main_loop behaves like vanilla V5.
-# =====================================================================
+
+
 
 # 1) Build DROP drivers from Regular + FRS working totals
 build_drop_drivers <- function(funding_list, frs_fund) {
@@ -154,9 +155,10 @@ class_apply_drop_reallocation <- function(i, funding_list, frs_fund, params){
   funding_list
 }
 
-# =====================================================================
-# Override main_loop: DROP-aware flow (falls back to vanilla if disabled)
-# =====================================================================
+
+
+# Override main_loop: DROP-aware flow (falls back to vanilla if di --------
+
 
 main_loop <- function(funding_list,
                       liability_list,
@@ -256,11 +258,11 @@ main_loop <- function(funding_list,
   funding_list
 }
 
-# =====================================================================
-# End DROP module
-# =====================================================================
+# End DROP module ---------------------------------------------------------
 # Usage:
 #   source("V5.R",  local = fm_env)
 #   source("drop.R", local = fm_env)        # overrides main_loop
 #   params$enable_drop_ <- TRUE
 #   baseline <- fm_env$get_funding_data(params, return = "stacked")
+
+

@@ -50,9 +50,10 @@ source(fs::path(rdir, "FRS_benefit_model_get_benefit_data_function_GC_s.R"), loc
 message("Loading model functions...")
 
 # Workforce
-message("sourcing FRS_workforce_model_functions....")
+message("sourcing workforce core and FRS adapter (V3)...")
 wfm_env <- new.env()
-source(fs::path(rdir, "FRS_workforce_model_functions_V3.R"), local = wfm_env)
+source(fs::path(rdir, "workforce_core.R"),        local = wfm_env)
+source(fs::path(rdir, "FRS_workforce_adapter.R"),  local = wfm_env)
 
 # Liability
 message("sourcing FRS_liability_model_functions...")

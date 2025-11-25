@@ -53,7 +53,12 @@ keep <- c(
   "dr_lookup", "cola_lookup", "ben_mult_lookup", "reduce_factor_lookup",
   "tier_table", "fas_period_lookup"
 )
+
 rm(list = setdiff(ls(frs_data_env, all.names = TRUE), keep), envir = frs_data_env)
+
+#saveRDS(mget(keep, envir = frs_data_env, inherits = FALSE), fs::path(wddir, "frs_data_env.rds"), compress = "xz")
+
+frs_data_env <- list2env(readRDS(fs::path(rdir, "frs_data_env.rds")), parent = emptyenv())
 
 ns(params)
 ns(frs_data_env)
@@ -69,7 +74,7 @@ message("Loading model functions...")
 # Workforce
 message("sourcing FRS_workforce_model_functions....")
 wfm_env <- new.env()
-source(fs::path(rdir, "FRS_workforce_model_functions_s.R"), local = wfm_env)
+source(fs::path(rdir, "FRS_workforce_model_functions_V2.R"), local = wfm_env)
 
 # Liability
 message("sourcing FRS_liability_model_functions...")
@@ -85,11 +90,11 @@ source(fs::path(rdir, "FRS_funding_model_functions_drop_only.R"),            loc
 
 # --- Prepare data for modeling -------------------------------------------------
 message("sourcing FRS_workforce_model_get_and_save_wfdata.R...")
-system.time(source(fs::path(rdir, "FRS_workforce_model_get_and_save_wfdata_GC_s.R")))
+source(fs::path(rdir, "FRS_workforce_model_get_and_save_wfdata_GC_s.R"))
 
 message("sourcing FRS_workforce_model_get_saved_data.R...")
 wf_data_env <- new.env()
-system.time(source(fs::path(rdir, "FRS_workforce_model_get_saved_data_s.R"), local = wf_data_env))
+source(fs::path(rdir, "FRS_workforce_model_get_saved_data_s.R"), local = wf_data_env)
 
 # --- Funding & amortization inputs --------------------------------------------
 params$funding_list <- fm_env$get_all_classes_funding_list(params$init_funding_data, params)
