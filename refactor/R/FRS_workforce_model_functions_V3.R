@@ -361,11 +361,11 @@ arrays_to_dfs <- function(state, entry_age_range, age_range, year_range) {
 # Main
 # ================================================================
 benefit_data_s <- bm_env$get_benefit_data_s(
-  frs_data_env$entrant_profile_table,
-  frs_data_env$salary_headcount_table,
-  frs_data_env$mort_table,
-  frs_data_env$mort_retire_table,
-  frs_data_env$separation_rate_table,
+  params$entrant_profile_table,
+  params$salary_headcount_table,
+  params$mort_table,
+  params$mort_retire_table,
+  params$separation_rate_table,
   params
 )
 
@@ -373,10 +373,10 @@ get_wf_data_s <- function(class_name, params) {
   cat("\n\n"); message(sprintf("..preparing wf_data for class: %s", class_name))
 
   benefit_val_table      <- benefit_data_s$benefit_val_table     %>% filter(class == class_name) %>% select(-class)
-  entrant_profile_table  <- frs_data_env$entrant_profile_table   %>% filter(class == class_name) %>% select(-class)
-  salary_headcount_table <- frs_data_env$salary_headcount_table  %>% filter(class == class_name) %>% select(-class)
-  mort_table             <- frs_data_env$mort_table              %>% filter(class == class_name) %>% select(-class)
-  separation_rate_table  <- frs_data_env$separation_rate_table   %>% filter(class == class_name) %>% select(-class)
+  entrant_profile_table  <- params$entrant_profile_table   %>% filter(class == class_name) %>% select(-class)
+  salary_headcount_table <- params$salary_headcount_table  %>% filter(class == class_name) %>% select(-class)
+  mort_table             <- params$mort_table              %>% filter(class == class_name) %>% select(-class)
+  separation_rate_table  <- params$separation_rate_table   %>% filter(class == class_name) %>% select(-class)
 
   entry_age_range <- entrant_profile_table$entry_age
   year_range      <- params$start_year_:(params$start_year_ + params$model_period_)

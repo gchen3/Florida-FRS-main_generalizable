@@ -64,8 +64,8 @@ get_annuity_factor_table_s <- function(
 ) {
   ann_factor_table_s <- mort_table_s %>%
     semi_join(salary_benefit_table_s, by = c("entry_year", "entry_age", "class")) %>%
-    left_join(frs_data_env$dr_lookup, by = c("tier_at_dist_age")) %>%
-    left_join(frs_data_env$cola_lookup, 
+    left_join(params$dr_lookup, by = c("tier_at_dist_age")) %>%
+    left_join(params$cola_lookup, 
               by = c("tier_at_dist_age", "entry_year", "yos")) %>%
     group_by(class, entry_year, entry_age, yos) %>% 
     mutate(
@@ -95,7 +95,7 @@ get_benefit_table_s <- function(ann_factor_table_s,
     # distribution age means the age when the member starts to accept benefits (either a refund or a pension)
     left_join(salary_benefit_table_s,
               by = c("entry_year", "entry_age", "yos", "term_age", "class")) %>%
-    left_join(frs_data_env$ben_mult_lookup %>% select(-system),
+    left_join(params$ben_mult_lookup %>% select(-system),
               by = join_by(class, 
                            tier_at_dist_age,
                            dist_age >= dist_age_min_ge,
@@ -104,7 +104,7 @@ get_benefit_table_s <- function(ann_factor_table_s,
                            yos < yos_max_lt,
                            dist_year >= dist_year_min_ge,
                            dist_year < dist_year_max_lt)) %>%
-    left_join(frs_data_env$reduce_factor_lookup,
+    left_join(params$reduce_factor_lookup,
               by = c("tier_at_dist_age", "dist_age", "class")) %>%
     mutate(db_benefit = yos * ben_mult * fas * reduce_factor,
            
@@ -135,7 +135,7 @@ get_benefit_val_table_s <- function(
     left_join(final_benefit_table_s, by = c("class", "entry_year", "entry_age", "term_age")) %>%
     left_join(separation_rate_table_s,
               by = c("class", "entry_year", "entry_age", "yos", "term_age")) %>%
-    left_join(frs_data_env$dr_lookup, by = c("tier" = "tier_at_dist_age")) %>%
+    left_join(params$dr_lookup, by = c("tier" = "tier_at_dist_age")) %>%
     mutate(
       #note that the tier below applies at termination age only
       #dr = if_else(str_detect(tier_at_term_age, "tier_3"), params$dr_new_, params$dr_current_),
@@ -245,7 +245,7 @@ get_salary_benefit_table_s <- function(entrant_profile_table_s,
                                         class = params$class_names_no_drop_frs_) %>%
     mutate(
       term_age = entry_age + yos) %>%
-    left_join(frs_data_env$tier_table, by = c("entry_year", "yos", "term_age"= "age", "class")) %>%
+    left_join(params$tier_table, by = c("entry_year", "yos", "term_age"= "age", "class")) %>%
     mutate(tier_at_term_age = tier) %>%
     filter(term_age <= params$max_age_) %>% 
     arrange(entry_year, entry_age, yos) %>% 
@@ -260,7 +260,7 @@ get_salary_benefit_table_s <- function(entrant_profile_table_s,
                        entry_salary * cumprod_salary_increase,
                        start_sal * cumprod_salary_increase * (1 + params$payroll_growth_)^(entry_year - ref_year))
     ) %>% 
-    left_join(frs_data_env$fas_period_lookup, by = c("tier_at_term_age")) %>%
+    left_join(params$fas_period_lookup, by = c("tier_at_term_age")) %>%
     group_by(class, entry_year, entry_age) %>%
     distinct() %>%
     mutate(
@@ -350,11 +350,11 @@ get_benefit_data_s <- function(
 
 ##This is temporary code to test the function
 benefit_data_s <- get_benefit_data_s(
-  frs_data_env$entrant_profile_table,
-  frs_data_env$salary_headcount_table,
-  frs_data_env$mort_table,
-  frs_data_env$mort_retire_table,
-  frs_data_env$separation_rate_table,
+  params$entrant_profile_table,
+  params$salary_headcount_table,
+  params$mort_table,
+  params$mort_retire_table,
+  params$separation_rate_table,
   params
 )
 

@@ -29,39 +29,8 @@ outdir   <- here::here("refactor", "new_results")
 
 if (!dir.exists(outdir)) dir.create(outdir, recursive = TRUE)
 
-# --- Build model parameters & frs_data envs -----------------------------------
-message("This is a full run using GC version, so creating model parameters and frs_data environments from scratch...")
-
-modparm_data_env <- new.env()
-source(fs::path(rdir, "FRS_model_parameters_GC.R"), local = modparm_data_env)
-
-frs_data_env <- new.env()
-source(fs::path(rdir, "FRS_data_cleaning_functions.R"), local = frs_data_env)
-source(fs::path(rdir, "FRS_data_cleaning.R"),           local = frs_data_env)
-source(fs::path(rdir, "FRS_stacked_tables.R"),          local = frs_data_env)
-source(fs::path(rdir, "FRS_rules_tables.R"),            local = frs_data_env)
-source(fs::path(rdir, "FRS_liability_tables.R"),        local = frs_data_env)
-
-# --- Create params env BEFORE benefit actions ---------------------------------
-source(fs::path(rdir, "FRS_create_params_env_GC.R"))
-
-params <- pendata::frs$params_env
-
-keep <- c(
-  "salary_headcount_table", "mort_table", "mort_retire_table",
-  "separation_rate_table", "entrant_profile_table",
-  "dr_lookup", "cola_lookup", "ben_mult_lookup", "reduce_factor_lookup",
-  "tier_table", "fas_period_lookup"
-)
-
-rm(list = setdiff(ls(frs_data_env, all.names = TRUE), keep), envir = frs_data_env)
-
-#saveRDS(mget(keep, envir = frs_data_env, inherits = FALSE), fs::path(wddir, "frs_data_env.rds"), compress = "xz")
-
-frs_data_env <- list2env(readRDS(fs::path(rdir, "frs_data_env.rds")), parent = emptyenv())
-
-ns(params)
-ns(frs_data_env)
+# --- Load model parameters from Pandata -----------------------------------
+source(fs::path(rdir, "Build_new_params.R"))
 
 # --- Benefit model helpers ----------------------------------------------------
 message("sourcing FRS_benefit_model_helper_functions and data function...")
@@ -74,7 +43,7 @@ message("Loading model functions...")
 # Workforce
 message("sourcing FRS_workforce_model_functions....")
 wfm_env <- new.env()
-source(fs::path(rdir, "FRS_workforce_model_functions_V2.R"), local = wfm_env)
+source(fs::path(rdir, "FRS_workforce_model_functions_V3.R"), local = wfm_env)
 
 # Liability
 message("sourcing FRS_liability_model_functions...")
