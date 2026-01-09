@@ -1,3 +1,5 @@
+rm(list = ls())
+
 # --- Libraries ---------------------------------------------------------------
 library(readxl)
 library(tidyverse)
@@ -30,7 +32,9 @@ outdir   <- here::here("refactor", "new_results")
 if (!dir.exists(outdir)) dir.create(outdir, recursive = TRUE)
 
 # --- Load model parameters from Pandata -----------------------------------
-source(fs::path(rdir, "Build_new_params.R"))
+params <- list2env(as.list(pendata::frs$params_env), parent = emptyenv())
+
+# source(fs::path(rdir, "Build_new_params.R"))
 
 # --- Benefit model helpers ----------------------------------------------------
 message("sourcing FRS_benefit_model_helper_functions and data function...")
