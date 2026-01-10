@@ -961,7 +961,7 @@ get_funding_data <- function(
   # mclapply will be about twice as fast as lapply.
   a <- proc.time()
   classes <- params$class_names_no_drop_frs_
-  liab_all <- lm_env$get_liability_data_s(bm_env, wf_data_env, params)
+  liab_all <- lm_env$get_liability_data_s(wf_data_env, params)
   liability_list <- map(
     classes,
     ~ liab_all %>% filter(class == .x) %>% select(-class)

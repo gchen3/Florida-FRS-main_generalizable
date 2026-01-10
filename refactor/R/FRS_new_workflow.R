@@ -62,10 +62,17 @@ source(fs::path(rdir, "FRS_funding_model_functions_loop_without_drop_V5.R"), loc
 source(fs::path(rdir, "FRS_funding_model_functions_drop_only.R"),            local = fm_env)
 
 # --- Prepare data for modeling -------------------------------------------------
-message("sourcing FRS_workforce_model_get_saved_data.R...")
+message("sourcing FRS_benefit_get_saved_data.R...")
+bf_data_env <- new.env()
+source(fs::path(rdir, "FRS_benefit_model_get_and_save_bendata.R"), local = bf_data_env)
+
+message("sourcing FRS_workforce_get_saved_data.R...")
 wf_data_env <- new.env()
 source(fs::path(rdir, "FRS_workforce_model_get_and_save_wfdata_GC_s.R"), local = wf_data_env)
-# source(fs::path(rdir, "FRS_workforce_model_get_saved_data_s.R"), local = wf_data_env)
+
+message("sourcing FRS_liability_get_saved_data.R...")
+liab_data_env <- new.env()
+source(fs::path(rdir, "FRS_liability_model_get_and_save_liabdata.R"), local = liab_data_env)
 
 # --- Funding & amortization inputs --------------------------------------------
 params$funding_list <- fm_env$get_all_classes_funding_list(params$init_funding_data, params)
@@ -75,7 +82,7 @@ message("Done building model...")
 
 # --- Baseline results ----------------------------------------------------------
 params$enable_drop_ <- TRUE
-baseline_funding <- fm_env$get_funding_data(params = params, return = "stacked")
+baseline_funding <- fm_env$get_funding_data(liab_data_env, params, return = "stacked")
 
 # Save full workspace 
 save.image(fs::path(outdir, "new_workspace.RData")) 

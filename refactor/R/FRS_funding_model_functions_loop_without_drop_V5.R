@@ -527,17 +527,19 @@ main_loop <- function(funding_list,
 
 # --------------------------- TOP-LEVEL DRIVER -------------------------------
 
-get_funding_data <- function(params, return = "unstacked") {
+get_funding_data <- function(liab_data_env, params, return = "unstacked") {
   funding_list               <- params$funding_list
   current_amort_layers_table <- params$current_amort_layers_table
   
   # Liability outputs (provided by lm_env)
   classes <- params$class_names_no_drop_frs_
-  liab_all <- lm_env$get_liability_data_s(wf_data_env, params)
-  liability_list <- purrr::map(
-    classes,
-    ~ liab_all %>% dplyr::filter(class == .x) %>% dplyr::select(-class)
-  ) %>% purrr::set_names(classes)
+  liability_list <- liab_data_env$liability_list
+  
+  # liab_all <- lm_env$get_liability_data_s(bf_data_env, wf_data_env, params)
+  # liability_list <- purrr::map(
+  #   classes,
+  #   ~ liab_all %>% dplyr::filter(class == .x) %>% dplyr::select(-class)
+  # ) %>% purrr::set_names(classes)
   
   # Model calibration (payroll ratios, NC rates, initial AAL)
   for (class in params$class_names_no_drop_frs_) {
