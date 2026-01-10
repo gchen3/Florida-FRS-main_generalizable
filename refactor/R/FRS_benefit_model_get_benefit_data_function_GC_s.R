@@ -137,13 +137,6 @@ get_benefit_val_table_s <- function(
               by = c("class", "entry_year", "entry_age", "yos", "term_age")) %>%
     left_join(params$dr_lookup, by = c("tier" = "tier_at_dist_age")) %>%
     mutate(
-      #note that the tier below applies at termination age only
-      #dr = if_else(str_detect(tier_at_term_age, "tier_3"), params$dr_new_, params$dr_current_),
-      # sep_type = get_sep_type(tier_at_term_age),
-      # ben_decision = if_else(yos == 0, 
-      #                        NA, 
-      #                        if_else(sep_type == "retire", "retire",
-      #                                if_else(sep_type == "vested", "mix", "refund"))),
       sep_type = case_when(
         str_detect(tier_at_term_age, "early|norm|reduced") ~ "retire",
         str_detect(tier_at_term_age, "non_vested") ~ "non_vested",
@@ -181,16 +174,6 @@ get_benefit_val_table_s <- function(
   return(benefit_val_table_s)
 }
 
-
-
-# get_class_salary_growth_table <- function(class_name, salary_growth_table){
-#   
-#   class_salary_growth_table <- salary_growth_table %>% 
-#     select(yos, contains(class_name)) %>% 
-#     rename(cumprod_salary_increase = 2)
-#   
-#   return(class_salary_growth_table)
-# }
 
 
 get_dist_age_table_s <- function(benefit_table_s){
@@ -347,36 +330,4 @@ get_benefit_data_s <- function(
   
   return(output)
 }
-
-##This is temporary code to test the function
-
-##This is temporary code to test the function
-# get_benefit_data <- function(
-#     class_name,
-#     entrant_profile_table_s,
-#     salary_headcount_table_s,
-#     mort_table_s,
-#     mort_retire_table_s,
-#     separation_rate_table_s,
-#     params) {
-# 
-#   force(entrant_profile_table_s)
-#   force(salary_headcount_table_s)
-#   force(mort_table_s)
-#   force(mort_retire_table_s)
-#   force(separation_rate_table_s)
-# 
-#   benefit_data <- list(
-#     ann_factor_table        = bm_env$benefit_data_s$ann_factor_table_s %>% ungroup() %>% filter(class == class_name) %>% select(-class),
-#     ann_factor_retire_table = bm_env$benefit_data_s$ann_factor_retire_table_s %>% ungroup() %>% filter(class == class_name) %>% select(-class),
-#     benefit_table           = bm_env$benefit_data_s$benefit_table_s %>% ungroup() %>% filter(class == class_name) %>% select(-class),
-#     final_benefit_table     = bm_env$benefit_data_s$final_benefit_table_s %>% ungroup() %>% filter(class == class_name) %>% select(-class),
-#     benefit_val_table       = bm_env$benefit_data_s$benefit_val_table_s %>% ungroup() %>% filter(class == class_name) %>% select(-class),
-#     indv_norm_cost_table    = bm_env$benefit_data_s$indv_norm_cost_table_s %>% ungroup() %>% filter(class == class_name) %>% select(-class),
-#     agg_norm_cost_table     = bm_env$benefit_data_s$agg_norm_cost_table_s %>% ungroup() %>% filter(class == class_name) %>% select(-class)
-#   )
-# 
-#   return(benefit_data)
-# 
-# }
 

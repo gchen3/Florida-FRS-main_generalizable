@@ -527,7 +527,7 @@ main_loop <- function(funding_list,
 
 # --------------------------- TOP-LEVEL DRIVER -------------------------------
 
-get_funding_data <- function(liab_data_env, params, return = "unstacked") {
+get_funding_data <- function(liab_data_env, params) {
   funding_list               <- params$funding_list
   current_amort_layers_table <- params$current_amort_layers_table
   
@@ -621,7 +621,7 @@ get_funding_data <- function(liab_data_env, params, return = "unstacked") {
     params = params
   )
   
-  if (return == "stacked") dplyr::bind_rows(funding_list, .id = "class") else funding_list
+  dplyr::bind_rows(funding_list, .id = "class")
 }
 
 # =========================== End V5.R ========================================
