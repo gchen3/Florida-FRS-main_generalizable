@@ -3,20 +3,6 @@
  # Standalone implementation with consistent refund indexing by term_age.
  # ================================================================
 
-suppressPackageStartupMessages({
-  library(dplyr)
-  library(tidyr)
-  library(data.table)
-  library(fs)
-})
-
-# Safety for joins: drop non-matches rather than recycling
-options(datatable.nomatch = 0)
-
-# ---------------------------
-# Utils
-# ---------------------------
-
 # Matrix shift via transition matrix TM (ages everyone by +1 year)
 shift_with_TM <- function(mat, TM) mat %*% TM
 
@@ -415,6 +401,6 @@ get_wf_data_s <- function(class_name, params) {
     wf_refund_df = dfs$wf_refund_df,
     wf_retire_df = dfs$wf_retire_df
   )
-  saveRDS(wf_data, fs::path(iddir, paste0(class_name, "_wf_data.rds")))
+  # saveRDS(wf_data, fs::path(iddir, paste0(class_name, "_wf_data.rds")))
   invisible(wf_data)
 }
