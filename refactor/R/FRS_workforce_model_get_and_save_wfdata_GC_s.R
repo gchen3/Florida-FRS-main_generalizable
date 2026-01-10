@@ -1,3 +1,12 @@
+benefit_data_s <- bm_env$get_benefit_data_s(
+  params$entrant_profile_table,
+  params$salary_headcount_table,
+  params$mort_table,
+  params$mort_retire_table,
+  params$separation_rate_table,
+  params
+)
+
 # Get and save workforce data for Government of Canada employees (special, regular, admin, eco, eso, judges, senior management) - simplified
 wf_data_s <- params$class_names_no_drop_frs_ |> 
   set_names() |> 
@@ -18,7 +27,6 @@ wf_refund_df_s <- wf_data_s |>
 wf_retire_df_s <- wf_data_s |>
   map("wf_retire_df") |>
   bind_rows(.id = "class")
-
 # GC: below is just for comparison purpuses, can be deleted later
 regular_wf_data <- wf_data_s$regular
 special_wf_data <- wf_data_s$special

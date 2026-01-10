@@ -381,7 +381,6 @@ get_funding_df_s <- function(wf_active_df_final_s,
 
 # main function -----------------------------------------------------------
 get_liability_data_s <- function(
-    bm_env,
     wf_data_env,
     params
 ) {
@@ -392,10 +391,10 @@ get_liability_data_s <- function(
   wf_refund_df_s <- wf_data_env$wf_refund_df_s
   wf_retire_df_s <- wf_data_env$wf_retire_df_s
   
-  benefit_val_table_s <- bm_env$benefit_data_s$benefit_val_table 
-  benefit_table_s <- bm_env$benefit_data_s$benefit_table 
-  ann_factor_table_s <- bm_env$benefit_data_s$ann_factor_table 
-  ann_factor_retire_table_s <- bm_env$benefit_data_s$ann_factor_retire_table
+  benefit_val_table_s <- wf_data_env$benefit_data_s$benefit_val_table 
+  benefit_table_s <- wf_data_env$benefit_data_s$benefit_table 
+  ann_factor_table_s <- wf_data_env$benefit_data_s$ann_factor_table 
+  ann_factor_retire_table_s <- wf_data_env$benefit_data_s$ann_factor_retire_table
   
   wf_active_df_final_s <- get_wf_active_df_final_s(
     wf_active_df_s,

@@ -62,9 +62,6 @@ source(fs::path(rdir, "FRS_funding_model_functions_loop_without_drop_V5.R"), loc
 source(fs::path(rdir, "FRS_funding_model_functions_drop_only.R"),            local = fm_env)
 
 # --- Prepare data for modeling -------------------------------------------------
-message("sourcing FRS_workforce_model_get_and_save_wfdata.R...")
-# source(fs::path(rdir, "FRS_workforce_model_get_and_save_wfdata_GC_s.R"))
-
 message("sourcing FRS_workforce_model_get_saved_data.R...")
 wf_data_env <- new.env()
 source(fs::path(rdir, "FRS_workforce_model_get_and_save_wfdata_GC_s.R"), local = wf_data_env)
