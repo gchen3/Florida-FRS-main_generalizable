@@ -1,7 +1,7 @@
 # Get and save workforce data for Government of Canada employees (special, regular, admin, eco, eso, judges, senior management) - simplified
 wf_data_s <- params$class_names_no_drop_frs_ |> 
   set_names() |> 
-  map(wfm_env$get_wf_data_s, params = params)
+  map(wfm_env$get_wf_data_s, params = params, bf_data_env = bf_data_env)
 
 wf_active_df_s <- wf_data_s |>
   map("wf_active_df") |>
