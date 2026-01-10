@@ -346,14 +346,6 @@ arrays_to_dfs <- function(state, entry_age_range, age_range, year_range) {
 # ================================================================
 # Main
 # ================================================================
-# benefit_data_s <- bm_env$get_benefit_data_s(
-#   params$entrant_profile_table,
-#   params$salary_headcount_table,
-#   params$mort_table,
-#   params$mort_retire_table,
-#   params$separation_rate_table,
-#   params
-# )
 
 get_wf_data_s <- function(class_name, bf_data_env, params) {
   cat("\n\n"); message(sprintf("..preparing wf_data for class: %s", class_name))

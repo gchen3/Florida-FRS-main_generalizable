@@ -6,7 +6,7 @@
 # - get_future_hire_amortization_tables(...)
 # It also assumes 'params' contains all model inputs listed below.
 
-# ----------------------- Pre-run data clearning ---------------------------------------------
+# ----------------------- Pre-run data cleaning ---------------------------------------------
 
 get_funding_table <- function(class_name, init_funding_data, params) {
   funding_table <- init_funding_data %>%
