@@ -38,7 +38,7 @@ params <- list2env(as.list(pendata::frs$params_env))
 # --- Benefit model helpers ----------------------------------------------------
 message("sourcing FRS_benefit_model_helper_functions and data function...")
 bm_env <- new.env()
-source(fs::path(rdir, "FRS_benefit_model_get_benefit_data_function_GC_s.R"), local = bm_env)
+source(fs::path(rdir, "FRS_benefit_model_functions.R"), local = bm_env)
 
 # --- Load workforce, liability, funding functions -----------------------------
 message("Loading model functions...")
@@ -51,7 +51,7 @@ source(fs::path(rdir, "FRS_workforce_model_functions_V3.R"), local = wfm_env)
 # Liability
 message("sourcing FRS_liability_model_functions...")
 lm_env <- new.env()
-source(fs::path(rdir, "FRS_liability_model_functions_s.R"), local = lm_env)
+source(fs::path(rdir, "FRS_liability_model_functions.R"), local = lm_env)
 
 # Funding
 message("sourcing funding model functions...")
