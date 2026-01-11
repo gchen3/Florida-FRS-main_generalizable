@@ -32,9 +32,8 @@ outdir   <- here::here("refactor", "new_results")
 if (!dir.exists(outdir)) dir.create(outdir, recursive = TRUE)
 
 # --- Load model parameters from Pandata -----------------------------------
-params <- list2env(as.list(pendata::frs$params_env), parent = emptyenv())
-
-# source(fs::path(rdir, "Build_new_params.R"))
+params_env <- new.env()
+params <- list2env(as.list(pendata::frs$params_env))
 
 # --- Benefit model helpers ----------------------------------------------------
 message("sourcing FRS_benefit_model_helper_functions and data function...")
@@ -61,15 +60,17 @@ source(fs::path(rdir, "FRS_funding_amort.R"),                                loc
 source(fs::path(rdir, "FRS_funding_model_functions_loop_without_drop_V5.R"), local = fm_env)
 source(fs::path(rdir, "FRS_funding_model_functions_drop_only.R"),            local = fm_env)
 
-# --- Prepare data for modeling -------------------------------------------------
+# --- Prepare benefit data for modeling -------------------------------------------------
 message("sourcing FRS_benefit_get_saved_data.R...")
 bf_data_env <- new.env()
 source(fs::path(rdir, "FRS_benefit_model_get_and_save_bendata.R"), local = bf_data_env)
 
+# --- Prepare workforce data for modeling -------------------------------------------------
 message("sourcing FRS_workforce_get_saved_data.R...")
 wf_data_env <- new.env()
 source(fs::path(rdir, "FRS_workforce_model_get_and_save_wfdata_GC_s.R"), local = wf_data_env)
 
+# --- Prepare liability data for modeling -------------------------------------------------
 message("sourcing FRS_liability_get_saved_data.R...")
 liab_data_env <- new.env()
 source(fs::path(rdir, "FRS_liability_model_get_and_save_liabdata.R"), local = liab_data_env)
@@ -78,11 +79,10 @@ source(fs::path(rdir, "FRS_liability_model_get_and_save_liabdata.R"), local = li
 params$funding_list <- fm_env$get_all_classes_funding_list(params$init_funding_data, params)
 params$current_amort_layers_table <- fm_env$get_current_amort_layers_summary_table(params$current_amort_layers_table_)
 
-message("Done building model...")
-
 # --- Baseline results ----------------------------------------------------------
+message("Calculating baseline funding results...")
 params$enable_drop_ <- TRUE
-baseline_funding <- fm_env$get_funding_data(liab_data_env, params, return = "stacked")
+baseline_funding <- fm_env$get_funding_data(liab_data_env, params)
 
 # Save full workspace 
 save.image(fs::path(outdir, "new_workspace.RData")) 
