@@ -17,6 +17,14 @@ params$get_fas <- function(salary_vec, fas_period) {
   RcppRoll::roll_mean(x, n = fas_period, align = "right", fill = NA_real_)
 }
 
+# Preprocessing the tier_table by added the normal retirement and vested qualification
+params$tier_table <- params$tier_table %>%
+  dplyr::mutate(
+    is_norm_retire_elig = tier %in% c("tier_1_norm", "tier_2_norm", "tier_3_norm"),
+    vested_at_term = grepl("vested", tier, fixed = TRUE) &
+      !grepl("non_vested", tier, fixed = TRUE)
+  )
+
 # Benefit Model Function --------------------------------------------------
 get_salary_benefit_table_s <- function(entrant_profile_table_s,
                                        salary_growth_table_s,
@@ -389,6 +397,64 @@ get_dist_age_table_s <- function(benefit_table_s){
   
   return(dist_age_table_s)
 }
+
+get_dist_age_table_s_2 <- function(benefit_table_s, params) {
+  
+  # Build the set of tier labels that count as "normal retirement eligible"
+  norm_tiers <- params$tier_table %>%
+    dplyr::filter(is_norm_retire_elig) %>%
+    dplyr::distinct(tier) %>%
+    dplyr::pull(tier)
+  
+  # Build termination-point keys and attach vested-at-term flag from tier_table
+  term_pts <- benefit_table_s %>%
+    dplyr::distinct(class, entry_year, entry_age, yos, term_age) %>%
+    dplyr::left_join(
+      params$tier_table %>%
+        dplyr::distinct(class, entry_year, yos, age, vested_at_term) %>%
+        dplyr::rename(term_age = age),
+      by = c("class", "entry_year", "yos", "term_age")
+    ) %>%
+    # If the tier_table join doesn’t find a match, vested_at_term is NA; treat NA as not vested (FALSE)
+    dplyr::mutate(vested_at_term = dplyr::coalesce(vested_at_term, FALSE))
+  
+  # For vested term points only, find the earliest dist_age that is normal-retirement-eligible
+  earliest_norm <- benefit_table_s %>%
+    dplyr::semi_join(
+      dplyr::filter(term_pts, vested_at_term) %>%
+        dplyr::select(class, entry_year, entry_age, yos, term_age),
+      by = c("class", "entry_year", "entry_age", "yos", "term_age")
+    ) %>%
+    dplyr::filter(tier_at_dist_age %in% norm_tiers) %>%
+    dplyr::group_by(class, entry_year, entry_age, yos, term_age) %>%
+    dplyr::summarise(earliest_norm_retire_age = min(dist_age), .groups = "drop")
+  
+  # Choose final dist_age: vested -> earliest eligible age; non-vested -> term_age
+  term_pts %>%
+    dplyr::left_join(
+      earliest_norm,
+      by = c("class", "entry_year", "entry_age", "yos", "term_age")
+    ) %>%
+    dplyr::mutate(
+      dist_age = dplyr::if_else(
+        vested_at_term,
+        dplyr::coalesce(earliest_norm_retire_age, term_age),
+        term_age
+      )
+    ) %>%
+    dplyr::select(class, entry_year, entry_age, term_age, dist_age)
+}
+
+dist_age_table_s <- get_dist_age_table_s(benefit_table_s)
+dist_age_table_s_2 <- get_dist_age_table_s_2(benefit_table_s, params)
+
+identical(dist_age_table_s, dist_age_table_s_2)
+
+microbenchmark(
+  dist_age_table_s   = get_dist_age_table_s(benefit_table_s),
+  dist_age_table_s_2 = get_dist_age_table_s_2(benefit_table_s, params),
+  times = 2
+)
 
 get_final_benefit_table_s <- function(benefit_table_s, dist_age_table_s){
   
