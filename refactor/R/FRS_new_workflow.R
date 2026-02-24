@@ -45,6 +45,13 @@ params$get_fas <- function(salary_vec, fas_period) {
   RcppRoll::roll_mean(x, n = fas_period, align = "right", fill = NA_real_)
 }
 
+params$tier_table <- params$tier_table %>%
+  dplyr::mutate(
+    is_norm_retire_elig = tier %in% c("tier_1_norm", "tier_2_norm", "tier_3_norm"),
+    vested_at_term = grepl("vested", tier, fixed = TRUE) &
+      !grepl("non_vested", tier, fixed = TRUE)
+  )
+
 # --- Benefit model helpers ----------------------------------------------------
 message("sourcing FRS_benefit_model_helper_functions and data function...")
 bm_env <- new.env()

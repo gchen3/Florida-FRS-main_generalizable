@@ -183,38 +183,54 @@ get_benefit_table_s <- function(ann_factor_table_s,
 }
 
 
-get_dist_age_table_s <- function(benefit_table_s){
-  # Determine the ultimate distribution age for each member (the age when they're assumed to retire/get a refund, given their termination age)
+get_final_benefit_table_s <- function(benefit_table_s, params) {
+  norm_tiers <- params$tier_table %>%
+    filter(is_norm_retire_elig) %>%
+    distinct(tier) %>%
+    pull(tier)
   
-  dist_age_table_s <- benefit_table_s %>%
-    mutate(is_norm_retire_elig = tier_at_dist_age %in% c("tier_1_norm", "tier_2_norm", "tier_3_norm")) %>%
-    group_by(class, entry_year, entry_age, term_age) %>%
-    summarise(
-      earliest_norm_retire_age = n() - sum(is_norm_retire_elig) + min(dist_age),    
-      term_status = tier_at_term_age[1]) %>%
+  term_pts <- benefit_table_s %>%
+    distinct(class, entry_year, entry_age, yos, term_age) %>%
+    left_join(
+      params$tier_table %>%
+        distinct(class, entry_year, yos, age, vested_at_term) %>%
+        rename(term_age = age),
+      by = c("class", "entry_year", "yos", "term_age")
+    ) %>%
+    mutate(vested_at_term = coalesce(vested_at_term, FALSE))
+  
+  earliest_norm <- benefit_table_s %>%
+    semi_join(
+      term_pts %>%
+        filter(vested_at_term) %>%
+        select(class, entry_year, entry_age, yos, term_age),
+      by = c("class", "entry_year", "entry_age", "yos", "term_age")
+    ) %>%
+    filter(tier_at_dist_age %in% norm_tiers) %>%
+    group_by(class, entry_year, entry_age, yos, term_age) %>%
+    summarise(earliest_norm_retire_age = min(dist_age), .groups = "drop")
+  
+  dist_age_table_s_2 <- term_pts %>%
+    left_join(
+      earliest_norm,
+      by = c("class", "entry_year", "entry_age", "yos", "term_age")
+    ) %>%
     mutate(
       dist_age = if_else(
-        str_detect(term_status, "vested") & !str_detect(term_status, "non_vested"),
-        earliest_norm_retire_age, 
+        vested_at_term,
+        coalesce(earliest_norm_retire_age, term_age),
         term_age
       )
-    ) %>% 
-    select(class, entry_year, entry_age, term_age, dist_age) %>%
-    ungroup()
+    ) %>%
+    select(class, entry_year, entry_age, term_age, dist_age)
   
-  return(dist_age_table_s)
-}
-
-
-get_final_benefit_table_s <- function(benefit_table_s, dist_age_table_s){
-  
-  #Retain only the final distribution ages in the final_benefit_table
-  final_benefit_table_s <- benefit_table_s %>% 
-    semi_join(dist_age_table_s,
-              by = join_by(class, entry_year, entry_age, dist_age, term_age)) %>% 
-    select(class, entry_year, entry_age, term_age, dist_age, db_benefit, pvfb_db_at_term_age, ann_factor_term) %>% 
+  final_benefit_table_s <- benefit_table_s %>%
+    semi_join(
+      dist_age_table_s_2,
+      by = join_by(class, entry_year, entry_age, dist_age, term_age)
+    ) %>%
+    select(class, entry_year, entry_age, term_age, dist_age, db_benefit, pvfb_db_at_term_age, ann_factor_term) %>%
     mutate(
-      #NA benefit values (because the member is not vested) are replaced with 0
       db_benefit = if_else(is.na(db_benefit), 0, db_benefit),
       pvfb_db_at_term_age = if_else(is.na(pvfb_db_at_term_age), 0, pvfb_db_at_term_age)
     )
@@ -324,9 +340,7 @@ get_benefit_data_s <- function(
     salary_benefit_table_s,
     params)
   
-  dist_age_table_s <- get_dist_age_table_s(benefit_table_s)
-  
-  final_benefit_table_s <- get_final_benefit_table_s(benefit_table_s, dist_age_table_s)
+  final_benefit_table_s <- get_final_benefit_table_s(benefit_table_s, params)
   
   ## Benefit Accrual & Normal Cost #######
   
