@@ -52,6 +52,8 @@ params$tier_table <- params$tier_table %>%
       !grepl("non_vested", tier, fixed = TRUE)
   )
 
+source(fs::path(rdir, "plan_rule_table_helpers.R"))
+
 # --- Benefit model helpers ----------------------------------------------------
 message("sourcing FRS_benefit_model_helper_functions and data function...")
 bm_env <- new.env()
