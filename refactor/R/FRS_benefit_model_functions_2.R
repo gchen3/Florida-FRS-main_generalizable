@@ -184,58 +184,65 @@ get_benefit_table_s <- function(ann_factor_table_s,
 
 
 get_final_benefit_table_s <- function(benefit_table_s, params) {
-  norm_tiers <- params$tier_table %>%
-    filter(is_norm_retire_elig) %>%
-    distinct(tier) %>%
-    pull(tier)
+  tier_term_lookup <- tidyr::crossing(
+    tier_id = unique(params$plan_rule_tables$tier_map$tier_id),
+    status = unique(params$plan_rule_tables$status_priority$status)
+  ) %>%
+    dplyr::mutate(
+      tier_at_term_age = paste0(tier_id, "_", status),
+      vested_at_term = status == "vested"
+    ) %>%
+    dplyr::select(tier_at_term_age, tier_id, vested_at_term)
+  
+  norm_paths <- params$plan_rule_tables$status_paths %>%
+    dplyr::filter(status == "norm") %>%
+    dplyr::select(tier_id, class_group, min_yos, min_age)
   
   term_pts <- benefit_table_s %>%
-    distinct(class, entry_year, entry_age, yos, term_age) %>%
-    left_join(
-      params$tier_table %>%
-        distinct(class, entry_year, yos, age, vested_at_term) %>%
-        rename(term_age = age),
-      by = c("class", "entry_year", "yos", "term_age")
-    ) %>%
-    mutate(vested_at_term = coalesce(vested_at_term, FALSE))
+    dplyr::distinct(class, entry_year, entry_age, yos, term_age, tier_at_term_age) %>%
+    dplyr::left_join(tier_term_lookup, by = "tier_at_term_age") %>%
+    dplyr::left_join(params$plan_rule_tables$class_group_map, by = "class") %>%
+    dplyr::mutate(class_group = dplyr::coalesce(class_group, "GEN"))
   
-  earliest_norm <- benefit_table_s %>%
-    semi_join(
-      term_pts %>%
-        filter(vested_at_term) %>%
-        select(class, entry_year, entry_age, yos, term_age),
-      by = c("class", "entry_year", "entry_age", "yos", "term_age")
+  final_dist_age <- term_pts %>%
+    dplyr::left_join(
+      norm_paths,
+      by = c("tier_id", "class_group"),
+      relationship = "many-to-many"
     ) %>%
-    filter(tier_at_dist_age %in% norm_tiers) %>%
-    group_by(class, entry_year, entry_age, yos, term_age) %>%
-    summarise(earliest_norm_retire_age = min(dist_age), .groups = "drop")
-  
-  dist_age_table_s_2 <- term_pts %>%
-    left_join(
-      earliest_norm,
-      by = c("class", "entry_year", "entry_age", "yos", "term_age")
+    dplyr::filter(!vested_at_term | yos >= min_yos) %>%
+    dplyr::mutate(
+      candidate_norm_age = pmax(as.numeric(term_age), as.numeric(min_age))
     ) %>%
-    mutate(
-      dist_age = if_else(
+    dplyr::group_by(class, entry_year, entry_age, yos, term_age, vested_at_term) %>%
+    dplyr::summarise(
+      earliest_norm_retire_age = min(candidate_norm_age),
+      .groups = "drop"
+    ) %>%
+    dplyr::mutate(
+      dist_age = dplyr::if_else(
         vested_at_term,
-        coalesce(earliest_norm_retire_age, term_age),
-        term_age
+        dplyr::coalesce(earliest_norm_retire_age, as.numeric(term_age)),
+        as.numeric(term_age)
       )
     ) %>%
-    select(class, entry_year, entry_age, term_age, dist_age)
+    dplyr::select(class, entry_year, entry_age, term_age, dist_age)
   
-  final_benefit_table_s <- benefit_table_s %>%
-    semi_join(
-      dist_age_table_s_2,
-      by = join_by(class, entry_year, entry_age, dist_age, term_age)
+  benefit_table_s %>%
+    dplyr::semi_join(
+      final_dist_age,
+      by = dplyr::join_by(class, entry_year, entry_age, term_age, dist_age)
     ) %>%
-    select(class, entry_year, entry_age, term_age, dist_age, db_benefit, pvfb_db_at_term_age, ann_factor_term) %>%
-    mutate(
-      db_benefit = if_else(is.na(db_benefit), 0, db_benefit),
-      pvfb_db_at_term_age = if_else(is.na(pvfb_db_at_term_age), 0, pvfb_db_at_term_age)
+    dplyr::transmute(
+      class,
+      entry_year,
+      entry_age,
+      term_age,
+      dist_age,
+      db_benefit = dplyr::coalesce(db_benefit, 0),
+      pvfb_db_at_term_age = dplyr::coalesce(pvfb_db_at_term_age, 0),
+      ann_factor_term
     )
-  
-  return(final_benefit_table_s)
 }
 
 
@@ -244,48 +251,55 @@ get_benefit_val_table_s <- function(
     final_benefit_table_s,
     separation_rate_table_s,
     params){
+  tier_term_lookup <- tidyr::crossing(
+    tier_id = unique(params$plan_rule_tables$tier_map$tier_id),
+    status = unique(params$plan_rule_tables$status_priority$status)
+  ) %>%
+    dplyr::mutate(tier_at_term_age = paste0(tier_id, "_", status)) %>%
+    dplyr::select(tier_at_term_age, status)
   
-  benefit_val_table_s <- salary_benefit_table_s %>% 
-    left_join(final_benefit_table_s, by = c("class", "entry_year", "entry_age", "term_age")) %>%
-    left_join(separation_rate_table_s,
-              by = c("class", "entry_year", "entry_age", "yos", "term_age")) %>%
-    left_join(params$dr_lookup, by = c("tier" = "tier_at_dist_age")) %>%
-    mutate(
-      sep_type = case_when(
-        str_detect(tier_at_term_age, "early|norm|reduced") ~ "retire",
-        str_detect(tier_at_term_age, "non_vested") ~ "non_vested",
-        str_detect(tier_at_term_age, "vested") & !str_detect(tier_at_term_age, "non_vested") ~ "vested",
-        TRUE ~ NA
+  salary_benefit_table_s %>%
+    dplyr::left_join(final_benefit_table_s, by = c("class", "entry_year", "entry_age", "term_age")) %>%
+    dplyr::left_join(separation_rate_table_s, by = c("class", "entry_year", "entry_age", "yos", "term_age")) %>%
+    dplyr::left_join(params$dr_lookup, by = c("tier" = "tier_at_dist_age")) %>%
+    dplyr::left_join(tier_term_lookup, by = "tier_at_term_age") %>%
+    dplyr::mutate(
+      ben_decision = dplyr::case_when(
+        yos == 0 ~ NA_character_,
+        status %in% c("norm", "early", "reduced") ~ "retire",
+        status == "vested" ~ "mix",
+        status == "non_vested" ~ "refund",
+        TRUE ~ NA_character_
       ),
-      ben_decision = case_when(
-        yos == 0 ~ NA,
-        sep_type == "retire" ~ "retire",
-        sep_type == "vested" ~ "mix",
-        TRUE ~ "refund"
-      ),
-      pvfb_db_wealth_at_term_age = case_when(
-        sep_type == "retire" ~ pvfb_db_at_term_age,
-        sep_type == "vested" ~ (params$retire_refund_ratio_ * pvfb_db_at_term_age + (1 - params$retire_refund_ratio_) * db_ee_balance),
-        sep_type == "non_vested" ~ db_ee_balance
+      pvfb_db_wealth_at_term_age = dplyr::case_when(
+        ben_decision == "retire" ~ dplyr::coalesce(pvfb_db_at_term_age, 0),
+        ben_decision == "mix" ~ (
+          params$retire_refund_ratio_ * dplyr::coalesce(pvfb_db_at_term_age, 0) +
+            (1 - params$retire_refund_ratio_) * dplyr::coalesce(db_ee_balance, 0)
+        ),
+        ben_decision == "refund" ~ dplyr::coalesce(db_ee_balance, 0),
+        TRUE ~ 0
       )
-    ) %>% 
-    group_by(class, entry_year, entry_age) %>%
-    mutate(
-      #calculate the present value of future DB benefits at current age (discount the annual DB benefits back to current age)
-      pvfb_db_wealth_at_current_age = pentools::get_pvfb(sep_rate_vec = separation_rate, interest_vec = dr, value_vec = pvfb_db_wealth_at_term_age),
-      
-      #calculate the present value of future salary at current age (discount the annual salary back to current age)
-      pvfs_at_current_age = pentools::get_pvfs(remaining_prob_vec = remaining_prob, interest_vec = dr, sal_vec = salary),
-      
-      #calculate the individual normal cost rate at current age
-      indv_norm_cost = pvfb_db_wealth_at_current_age[yos == 0] / pvfs_at_current_age[yos == 0],
-      
-      #calculate the present value of future normal cost at current age (discount the annual normal cost back to current age)
+    ) %>%
+    dplyr::group_by(class, entry_year, entry_age) %>%
+    dplyr::mutate(
+      pvfb_db_wealth_at_current_age =
+        pentools::get_pvfb(
+          sep_rate_vec = separation_rate,
+          interest_vec = dr,
+          value_vec = pvfb_db_wealth_at_term_age
+        ),
+      pvfs_at_current_age =
+        pentools::get_pvfs(
+          remaining_prob_vec = remaining_prob,
+          interest_vec = dr,
+          sal_vec = salary
+        ),
+      indv_norm_cost =
+        pvfb_db_wealth_at_current_age[yos == 0] / pvfs_at_current_age[yos == 0],
       pvfnc_db = indv_norm_cost * pvfs_at_current_age
-    ) %>% 
-    ungroup()
-  
-  return(benefit_val_table_s)
+    ) %>%
+    dplyr::ungroup()
 }
 
 
