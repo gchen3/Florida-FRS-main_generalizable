@@ -1,3 +1,4 @@
+# Load plan rule tables from the Excel workbook into params
 plan_rule_tables_path <- here::here("refactor", "R", "plan_rule_tables.xlsx")
 
 params$plan_overview <- readxl::read_excel(plan_rule_tables_path, sheet = "plan_overview")
